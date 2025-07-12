@@ -5,7 +5,14 @@ module.exports = {
   sitemapSize: 5000,
   changefreq: "daily",
   priority: 0.7,
-  exclude: ["/api/*", "/admin/*", "/dashboard", "/login", "/register", "/profile"],
+  exclude: [
+    "/api/*",
+    "/admin/*",
+    "/dashboard",
+    "/login",
+    "/register",
+    "/profile",
+  ],
   additionalPaths: async () => {
     const paths = [];
 
@@ -38,7 +45,14 @@ module.exports = {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/admin/", "/dashboard", "/login", "/register", "/profile"],
+        disallow: [
+          "/api/",
+          "/admin/",
+          "/dashboard",
+          "/login",
+          "/register",
+          "/profile",
+        ],
       },
     ],
     additionalSitemaps: ["https://moviezonee.mooo.com/sitemap.xml"],

@@ -3,9 +3,13 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /profile
 
 # Host
-Host: https://moviezonee.mooo.com/
+Host: https://moviezonee.mooo.com
 
 # Sitemaps
 Sitemap: https://moviezonee.mooo.com/sitemap.xml

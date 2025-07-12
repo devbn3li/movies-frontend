@@ -19,26 +19,26 @@ jobs:
           script: |
             set -e
             cd movies-frontend
-            
+
             # Remove generated files that might conflict
             rm -f public/sitemap*.xml public/robots.txt
-            
+
             # Reset any local changes and pull latest
             git reset --hard HEAD
             git clean -fd
             git pull origin main
-            
+
             # Install dependencies
             npm install
-            
+
             # Build the project (this will regenerate sitemap and robots.txt)
             npm run build
-            
+
             # Restart the application
             pm2 delete movies-frontend || true
             pm2 start npm --name "movies-frontend" -- run start
             pm2 save
-            
+
             # Verify deployment
             echo "Deployment completed successfully"
             pm2 status movies-frontend
