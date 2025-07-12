@@ -49,24 +49,24 @@ export default function TVShowsPage() {
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
-        <div className="flex w-full justify-center items-center mb-4 gap-5">
+      <div className="flex w-full justify-center items-center mb-4 gap-5">
 
-          <Input
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="w-full sm:mx-25"
-            type="search"
-            autoComplete="on"
-            disabled={isLoading}
-          />
-        </div>
+        <Input
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="w-full sm:mx-25"
+          type="search"
+          autoComplete="on"
+          disabled={isLoading}
+        />
+      </div>
 
 
-          <CardsGrid items={paginated} type="tv" isLoading={isLoading} />
+      <CardsGrid items={paginated} type="tv" isLoading={isLoading} />
 
 
       {!isLoading && filtered.length > ITEMS_PER_PAGE && (<div className="flex justify-center w-full">
