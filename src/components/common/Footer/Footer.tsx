@@ -11,7 +11,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center mb-4 group">
+            <div className="flex flex-col mb-4 group">
               <Image
                 src={logo}
                 alt="Movie Zone Logo"
