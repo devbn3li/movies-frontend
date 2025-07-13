@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import MayLike from "@/components/MayLike";
 import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
+import Cast from "@/components/Cast";
 
 type Media = TVShow;
 
@@ -152,6 +153,10 @@ export default function SeriesPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10">
+          {seriesId && <Cast movieId={seriesId} mediaType="tv" />}
         </div>
 
         {seriesId && <MayLike movieId={String(seriesId)} type={mediaType} />}

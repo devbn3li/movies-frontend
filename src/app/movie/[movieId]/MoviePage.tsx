@@ -8,6 +8,7 @@ import { Movie, TVShow } from "@/types/index";
 import MayLike from "@/components/MayLike";
 import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
+import Cast from "@/components/Cast";
 import Head from "next/head";
 
 type Media = Movie | TVShow;
@@ -165,6 +166,10 @@ export default function MoviePage({ movieId }: { movieId: string }) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10">
+          {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} />}
         </div>
 
         {movieId && <MayLike movieId={movieId} type={mediaType} />}
