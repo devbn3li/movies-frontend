@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Movie, TVShow } from "@/types/index";
 import MayLike from "@/components/MayLike";
 import TrendingNow from "@/components/TrendingNow";
+import WatchlistButton from "@/components/WatchlistButton";
 import Head from "next/head";
 
 type Media = Movie | TVShow;
@@ -53,7 +54,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         />
       </Head>
 
-  {/* 💠 Dynamic Background Blur */}
+      {/* 💠 Dynamic Background Blur */}
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat bg-fixed blur-2xl opacity-30"
         style={{ backgroundImage: `url(${backdrop})` }}
@@ -93,12 +94,15 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         <div className="max-w-[1080px] w-full border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl mb-10">
           <div className="flex items-center justify-between gap-5 mb-4 w-full">
             <h1 className="text-3xl font-bold text-white">{title}</h1>
-            <span className="text-xl text-yellow-400">
-              ⭐{" "}
-              {typeof item.vote_average === "number"
-                ? item.vote_average.toFixed(1)
-                : "0.0"}
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="text-xl text-yellow-400">
+                ⭐{" "}
+                {typeof item.vote_average === "number"
+                  ? item.vote_average.toFixed(1)
+                  : "0.0"}
+              </span>
+              <WatchlistButton item={item} type={mediaType as 'movie' | 'tv'} showText />
+            </div>
           </div>
           <p className="text-[#FFFFFF] mb-2 text-lg font-medium">
             {rDate?.slice(0, 4)} | {item.adult ? "18+" : "+13"} |{" "}

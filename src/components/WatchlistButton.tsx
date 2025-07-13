@@ -1,0 +1,58 @@
+import React from 'react';
+import { Heart } from 'lucide-react';
+import { useWatchlistStore } from '@/store/watchlist';
+import { Movie, TVShow } from '@/types';
+
+interface WatchlistButtonProps {
+  item: Movie | TVShow;
+  type: 'movie' | 'tv';
+  className?: string;
+  showText?: boolean;
+}
+
+const WatchlistButton: React.FC<WatchlistButtonProps> = ({
+  item,
+  type,
+  className = '',
+  showText = false
+}) => {
+  const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlistStore();
+  const inWatchlist = isInWatchlist(item.id, type);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (inWatchlist) {
+      removeFromWatchlist(item.id, type);
+    } else {
+      addToWatchlist(item, type);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleToggle}
+      className={`group flex items-center gap-2 p-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${inWatchlist
+          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
+          : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 hover:shadow-lg'
+        } ${className}`}
+      title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+    >
+      <Heart
+        size={20}
+        className={`transition-all duration-300 ${inWatchlist
+            ? 'fill-current animate-pulse'
+            : 'group-hover:scale-110'
+          }`}
+      />
+      {showText && (
+        <span className="text-sm font-medium transition-all duration-300">
+          {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+        </span>
+      )}
+    </button>
+  );
+};
+
+export default WatchlistButton;

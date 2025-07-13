@@ -8,6 +8,7 @@ import { TVShow } from "@/types/index";
 import { useMemo } from "react";
 import MayLike from "@/components/MayLike";
 import TrendingNow from "@/components/TrendingNow";
+import WatchlistButton from "@/components/WatchlistButton";
 
 type Media = TVShow;
 
@@ -84,12 +85,15 @@ export default function SeriesPage() {
         <div className="max-w-[1080px] w-full border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl mb-10">
           <div className="flex items-center justify-between gap-5 mb-4 w-full">
             <h1 className="text-3xl font-bold text-white">{title}</h1>
-            <span className="text-xl text-yellow-400">
-              ⭐{" "}
-              {typeof item.vote_average === "number"
-                ? item.vote_average.toFixed(1)
-                : "0.0"}
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="text-xl text-yellow-400">
+                ⭐{" "}
+                {typeof item.vote_average === "number"
+                  ? item.vote_average.toFixed(1)
+                  : "0.0"}
+              </span>
+              <WatchlistButton item={item} type="tv" showText />
+            </div>
           </div>
           <p className="text-[#FFFFFF] mb-2 text-lg font-medium">
             {rDate.slice(0, 4)} | {item.adult ? "18+" : "+13"} |{" "}
