@@ -122,6 +122,35 @@ function CardsGrid({
   items: Movie[];
   isLoading: boolean;
 }) {
+  // Helper functions
+  const getYear = (movie: Movie) => {
+    return movie.release_date ? new Date(movie.release_date).getFullYear() : null;
+  };
+
+  const getRating = (vote_average: number | undefined) => {
+    if (!vote_average) return null;
+    return (vote_average / 2).toFixed(1);
+  };
+
+  const getBadge = (movie: Movie) => {
+    if (!movie.vote_average) return null;
+
+    if (movie.vote_average >= 8) return { text: "High Rated", color: "bg-yellow-500" };
+    if (movie.popularity && movie.popularity >= 1000) return { text: "Popular", color: "bg-red-500" };
+
+    if (movie.release_date) {
+      const releaseYear = new Date(movie.release_date).getFullYear();
+      const currentYear = new Date().getFullYear();
+      if (currentYear - releaseYear <= 1) return { text: "New", color: "bg-green-500" };
+    }
+
+    return null;
+  };
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + "...";
+  };
   if (isLoading) {
     return (
       <div className="w-full flex justify-center">
@@ -173,6 +202,21 @@ function CardsGrid({
               className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
             >
               <div className="relative group overflow-hidden rounded-2xl">
+                {/* Badge */}
+                {getBadge(item) && (
+                  <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full text-xs font-bold text-white ${getBadge(item)?.color}`}>
+                    {getBadge(item)?.text}
+                  </div>
+                )}
+
+                {/* Rating */}
+                {item.vote_average ? (
+                  <div className="absolute top-2 right-2 z-20 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                    <span className="text-yellow-400 text-xs">⭐</span>
+                    <span className="text-white text-xs font-semibold">{getRating(item.vote_average)}</span>
+                  </div>
+                ) : null}
+
                 <Image
                   src={item.poster_url}
                   alt={item.title}
@@ -180,9 +224,36 @@ function CardsGrid({
                   height={340}
                   className="rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
                 />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+
+                {/* Enhanced Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+
+                {/* Enhanced Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <h3 className="text-white font-semibold text-sm line-clamp-2">{item.title}</h3>
+                  <h3 className="text-white font-bold text-base mb-2 line-clamp-2">
+                    {item.title}
+                  </h3>
+
+                  {/* Year and Genre */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {getYear(item) && (
+                      <span className="text-white/80 text-sm bg-white/20 px-2 py-1 rounded">
+                        {getYear(item)}
+                      </span>
+                    )}
+                    {item.genre_names && item.genre_names[0] && (
+                      <span className="text-white/80 text-sm bg-white/20 px-2 py-1 rounded">
+                        {item.genre_names[0]}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Overview */}
+                  {item.overview && (
+                    <p className="text-white/70 text-sm line-clamp-2 leading-relaxed">
+                      {truncateText(item.overview, 100)}
+                    </p>
+                  )}
                 </div>
               </div>
             </Link>

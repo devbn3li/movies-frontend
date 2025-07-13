@@ -187,6 +187,67 @@ html {
   overflow: hidden;
 }
 
+/* Enhanced badge animations */
+.badge-bounce {
+  animation: badge-bounce 0.6s ease-out;
+}
+
+@keyframes badge-bounce {
+  0% {
+    transform: scale(0) rotate(-12deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(-6deg);
+  }
+  100% {
+    transform: scale(1) rotate(-3deg);
+    opacity: 1;
+  }
+}
+
+/* Custom badge colors with gradients */
+.badge-high-rating {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.badge-popular {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.badge-new {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Enhanced card hover effects */
+.card-hover-glow {
+  transition: all 0.3s ease;
+}
+
+.card-hover-glow:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Star rating animation */
+.star-rating {
+  animation: star-twinkle 2s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+}
+
 .sidebar-trigger {
   position: absolute;
   top: 1.3rem;
