@@ -11,7 +11,8 @@ import { useState, useEffect } from "react";
 
 interface Movie {
   id: number;
-  title: string;
+  title?: string;
+  name?: string;
   poster_path: string | null;
 }
 
@@ -64,14 +65,20 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
                 flex justify-center
               "
             >
-              <Link href={`/${mediaType}/${movie.id}`} className="p-2">
-                <Image
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title || "Trending Movie"}
-                  className="object-cover h-auto rounded-2xl hover:scale-105 transition-transform duration-300"
-                  width={280}
-                  height={420}
-                />
+              <Link href={`/${mediaType}/${movie.id}`} className="p-2 block">
+                <div className="relative group overflow-hidden rounded-2xl">
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title || movie.name || "Trending Movie"}
+                    className="object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
+                    width={280}
+                    height={420}
+                  />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-white font-semibold text-sm line-clamp-2">{movie.title || movie.name}</h3>
+                  </div>
+                </div>
               </Link>
             </CarouselItem>
           ))}

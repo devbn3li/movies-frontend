@@ -181,13 +181,19 @@ function CardsGrid({
             key={item.id}
             className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
           >
-            <Image
-              src={item.poster_url}
-              alt={item.name}
-              width={230}
-              height={340}
-              className="rounded-2xl object-cover h-auto mb-2 hover:scale-105 transition-transform duration-300 ease-in-out"
-            />
+            <div className="relative group overflow-hidden rounded-2xl">
+              <Image
+                src={item.poster_url}
+                alt={item.name}
+                width={230}
+                height={340}
+                className="rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
+              />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+              <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                <h3 className="text-white font-semibold text-sm line-clamp-2">{item.name}</h3>
+              </div>
+            </div>
           </Link>
         ))}
       </div>
