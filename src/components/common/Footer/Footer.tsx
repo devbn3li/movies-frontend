@@ -50,22 +50,22 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 transition-colors duration-300 hover:text-primary">Support</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
+                <Link href="/help" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
+                <Link href="/contact" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
+                <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
+                <Link href="/terms" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
                   Terms of Service
                 </Link>
               </li>
