@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { CastMember, Credits } from "@/types/index";
 import { getCredits } from "@/lib/api";
 
@@ -114,7 +115,11 @@ export default function Cast({ movieId, mediaType }: CastProps) {
       {/* Cast Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
         {displayedCast.map((castMember: CastMember) => (
-          <div key={castMember.cast_id} className="text-center">
+          <Link
+            href={`/person/${castMember.id}`}
+            key={castMember.cast_id}
+            className="text-center group cursor-pointer"
+          >
             <div className="relative mb-2">
               <Image
                 src={
@@ -125,16 +130,25 @@ export default function Cast({ movieId, mediaType }: CastProps) {
                 alt={castMember.name}
                 width={185}
                 height={278}
-                className="w-full rounded-2xl object-cover aspect-[2/3] border border-white/20 bg-white/10 backdrop-blur-md shadow-xl"
+                className="w-full rounded-2xl object-cover aspect-[2/3] border border-white/20 bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = placeholderAvatar;
                 }}
               />
+
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-center justify-center">
+                <div className="text-white text-center p-2">
+                  <p className="text-sm font-semibold">View Profile</p>
+                </div>
+              </div>
             </div>
-            <h3 className="text-white text-sm font-medium truncate">{castMember.name}</h3>
+            <h3 className="text-white text-sm font-medium truncate group-hover:text-purple-300 transition-colors duration-200">
+              {castMember.name}
+            </h3>
             <p className="text-[#FFFFFFB3] text-xs truncate">{castMember.character}</p>
-          </div>
+          </Link>
         ))}
       </div>
 

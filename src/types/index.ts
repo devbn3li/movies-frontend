@@ -66,3 +66,91 @@ export type Credits = {
   cast: CastMember[];
   crew: CrewMember[];
 };
+
+export type Person = {
+  id: number;
+  name: string;
+  biography: string;
+  birthday: string | null;
+  deathday: string | null;
+  gender: number;
+  homepage: string | null;
+  imdb_id: string | null;
+  known_for_department: string;
+  place_of_birth: string | null;
+  popularity: number;
+  profile_path: string | null;
+  adult: boolean;
+  also_known_as: string[];
+};
+
+export type PersonMovieCredit = {
+  id: number;
+  title: string;
+  original_title: string;
+  overview: string;
+  release_date: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genre_ids: number[];
+  character?: string;
+  job?: string;
+  department?: string;
+  credit_id: string;
+};
+
+export type PersonTVCredit = {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string;
+  first_air_date: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genre_ids: number[];
+  character?: string;
+  job?: string;
+  department?: string;
+  credit_id: string;
+  episode_count?: number;
+};
+
+export type PersonCredits = {
+  id: number;
+  cast: PersonMovieCredit[] | PersonTVCredit[];
+  crew: PersonMovieCredit[] | PersonTVCredit[];
+};
+
+export type PersonImage = {
+  aspect_ratio: number;
+  height: number;
+  width: number;
+  file_path: string;
+  vote_average: number;
+  vote_count: number;
+};
+
+export type PersonImages = {
+  id: number;
+  profiles: PersonImage[];
+};
+
+export type PersonExternalIds = {
+  id: number;
+  imdb_id: string | null;
+  freebase_mid: string | null;
+  freebase_id: string | null;
+  tvrage_id: number | null;
+  wikidata_id: string | null;
+  facebook_id: string | null;
+  instagram_id: string | null;
+  tiktok_id: string | null;
+  twitter_id: string | null;
+  youtube_id: string | null;
+};
