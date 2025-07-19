@@ -264,7 +264,7 @@ export default function PersonPage({ personId }: PersonPageProps) {
                     <div className="mb-6">
                       <p className="text-gray-300 text-sm mb-2">Also known as:</p>
                       <div className="flex flex-wrap gap-2">
-                        {person.also_known_as.slice(0, 3).map((name, index) => (
+                        {person.also_known_as.slice(0, 20).map((name, index) => (
                           <span
                             key={index}
                             className="bg-white/10 px-3 py-1 rounded-full text-white text-sm"
@@ -302,30 +302,48 @@ export default function PersonPage({ personId }: PersonPageProps) {
                 {/* Filmography Tabs */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
                   <Tabs defaultValue="movies" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 bg-white/10">
-                      <TabsTrigger value="movies" className="data-[state=active]:bg-purple-600">
-                        <Film size={16} className="mr-2" />
-                        Movies ({movieCredits?.cast?.length || 0})
-                      </TabsTrigger>
-                      <TabsTrigger value="tv" className="data-[state=active]:bg-purple-600">
-                        <Tv size={16} className="mr-2" />
-                        TV Shows ({tvCredits?.cast?.length || 0})
-                      </TabsTrigger>
-                      <TabsTrigger value="photos" className="data-[state=active]:bg-purple-600">
-                        <Camera size={16} className="mr-2" />
-                        Photos ({images?.profiles?.length || 0})
-                      </TabsTrigger>
-                    </TabsList>
+                    {/* Mobile-first scrollable tabs */}
+                    <div className="p-2 overflow-x-auto scrollbar-hide">
+                      <TabsList className="flex w-max min-w-full bg-white/10 gap-1 p-1 rounded-xl">
+                        <TabsTrigger
+                          value="movies"
+                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex-shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
+                        >
+                          <Film size={16} className="mr-2 flex-shrink-0" />
+                          <span className="whitespace-nowrap text-sm font-medium">
+                            Movies ({movieCredits?.cast?.length || 0})
+                          </span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="tv"
+                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex-shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
+                        >
+                          <Tv size={16} className="mr-2 flex-shrink-0" />
+                          <span className="whitespace-nowrap text-sm font-medium">
+                            TV Shows ({tvCredits?.cast?.length || 0})
+                          </span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="photos"
+                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex-shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
+                        >
+                          <Camera size={16} className="mr-2 flex-shrink-0" />
+                          <span className="whitespace-nowrap text-sm font-medium">
+                            Photos ({images?.profiles?.length || 0})
+                          </span>
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
 
-                    <TabsContent value="movies" className="p-6">
+                    <TabsContent value="movies" className="p-4 sm:p-6 mt-0">
                       <FilmographyGrid credits={allMovieCredits} mediaType="movie" />
                     </TabsContent>
 
-                    <TabsContent value="tv" className="p-6">
+                    <TabsContent value="tv" className="p-4 sm:p-6 mt-0">
                       <FilmographyGrid credits={allTVCredits} mediaType="tv" />
                     </TabsContent>
 
-                    <TabsContent value="photos" className="p-6">
+                    <TabsContent value="photos" className="p-4 sm:p-6 mt-0">
                       <PhotosGrid images={images?.profiles || []} />
                     </TabsContent>
                   </Tabs>

@@ -135,7 +135,7 @@ export default function SocialMediaLinks({
 
       {/* Stats */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
-        <p className="text-gray-400 text-xs">
+        <p className="text-gray-400 text-xs max-sm:w-[60%]">
           Follow {personName}&apos;s latest updates
         </p>
         <div className="flex items-center gap-1">
