@@ -5,30 +5,120 @@ import Image from "next/image";
 import mediaData from "@/assets/moviesdb.json";
 import { notFound } from "next/navigation";
 import { TVShow } from "@/types/index";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import MayLike from "@/components/MayLike";
 import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
 import Cast from "@/components/Cast";
+import Loading from "@/components/Loading";
 
-type Media = TVShow;
+// TMDB TV Show type
+interface TMDBTVShow {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string;
+  first_air_date: string;
+  genres: { id: number; name: string }[];
+  poster_path: string | null;
+  backdrop_path: string | null;
+  popularity: number;
+  vote_average: number;
+  vote_count: number;
+  original_language: string;
+  origin_country: string[];
+  adult: boolean;
+}
+
+// Convert TMDB data to local format
+const convertTMDBToLocal = (tmdbShow: TMDBTVShow): TVShow => ({
+  id: tmdbShow.id,
+  name: tmdbShow.name,
+  original_name: tmdbShow.original_name,
+  overview: tmdbShow.overview,
+  first_air_date: tmdbShow.first_air_date,
+  genre_names: tmdbShow.genres.map(g => g.name),
+  poster_url: tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}` : "/placeholder.jpg",
+  backdrop_url: tmdbShow.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbShow.backdrop_path}` : "/placeholder.jpg",
+  popularity: tmdbShow.popularity,
+  vote_average: tmdbShow.vote_average,
+  vote_count: tmdbShow.vote_count,
+  original_language: tmdbShow.original_language,
+  origin_country: tmdbShow.origin_country,
+  adult: tmdbShow.adult,
+});
 
 export default function SeriesPage() {
   const params = useParams();
+  const [item, setItem] = useState<TVShow | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   const seriesId = useMemo(() => {
     if (!params?.seriesId || Array.isArray(params.seriesId)) return null;
     return Number(params.seriesId);
   }, [params]);
 
-  const { tv_shows } = mediaData as {
-    tv_shows: TVShow[];
-  };
+  useEffect(() => {
+    if (!seriesId) {
+      setIsLoading(false);
+      return;
+    }
 
-  const all: Media[] = [...tv_shows];
-  const item = all.find((m) => m.id === seriesId);
+    const fetchSeriesData = async () => {
+      setIsLoading(true);
+      
+      // First, try to find in local data
+      const { tv_shows } = mediaData as { tv_shows: TVShow[] };
+      const localItem = tv_shows.find((m) => m.id === seriesId);
 
-  if (!item) return notFound();
+      if (localItem) {
+        console.log(`✅ Found series ${seriesId} locally:`, localItem.name);
+        setItem(localItem);
+        setIsLoading(false);
+        return;
+      }
+
+      // If not found locally, fetch from TMDB
+      console.log(`🌐 Series ${seriesId} not found locally, fetching from TMDB...`);
+      try {
+        const options = {
+          method: 'GET',
+          headers: {
+            accept: 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDU2NDBlODJmOTQxOTdiYzU3MWUyMDA2NDhlZjEwNSIsIm5iZiI6MTc1MTA5NjA3MC4xMzkwMDAyLCJzdWIiOiI2ODVmOWIwNmQ5ZjAwYjdjNTQzMDM3N2MiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.e4jNVZYjfYuUJwr1vvInG1Yngo98IdJClQFTzTvH5qk'
+          }
+        };
+
+        const response = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}`, options);
+        
+        if (response.ok) {
+          const tmdbData: TMDBTVShow = await response.json();
+          console.log(`✅ Successfully fetched series ${seriesId} from TMDB:`, tmdbData.name);
+          const convertedItem = convertTMDBToLocal(tmdbData);
+          setItem(convertedItem);
+        } else {
+          console.log(`❌ Series ${seriesId} not found on TMDB (Status: ${response.status})`);
+          setItem(null);
+        }
+      } catch (error) {
+        console.error('Error fetching from TMDB:', error);
+        setItem(null);
+      }
+      
+      setIsLoading(false);
+    };
+
+    fetchSeriesData();
+  }, [seriesId]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!item) {
+    return notFound();
+  }
 
   const title = item.name;
   const rDate = item.first_air_date;

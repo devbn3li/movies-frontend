@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import Image from "next/image";
 import mediaData from "@/assets/moviesdb.json";
 import { notFound } from "next/navigation";
@@ -10,20 +10,115 @@ import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
 import Cast from "@/components/Cast";
 import Head from "next/head";
+import Loading from "@/components/Loading";
 
 type Media = Movie | TVShow;
 
+// TMDB Movie type
+interface TMDBMovie {
+  id: number;
+  title: string;
+  original_title: string;
+  overview: string;
+  release_date: string;
+  genres: { id: number; name: string }[];
+  poster_path: string | null;
+  backdrop_path: string | null;
+  popularity: number;
+  vote_average: number;
+  vote_count: number;
+  original_language: string;
+  adult: boolean;
+  video: boolean;
+}
+
+// Convert TMDB data to local format
+const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
+  id: tmdbMovie.id,
+  title: tmdbMovie.title,
+  original_title: tmdbMovie.original_title,
+  overview: tmdbMovie.overview,
+  release_date: tmdbMovie.release_date,
+  genre_names: tmdbMovie.genres.map(g => g.name),
+  poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : "/placeholder.jpg",
+  backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbMovie.backdrop_path}` : "/placeholder.jpg",
+  popularity: tmdbMovie.popularity,
+  vote_average: tmdbMovie.vote_average,
+  vote_count: tmdbMovie.vote_count,
+  original_language: tmdbMovie.original_language,
+  adult: tmdbMovie.adult,
+  video: tmdbMovie.video,
+});
+
 export default function MoviePage({ movieId }: { movieId: string }) {
   const id = useMemo(() => Number(movieId), [movieId]);
+  const [item, setItem] = useState<Media | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { movies, tv_shows } = mediaData as {
-    movies: Movie[];
-    tv_shows: TVShow[];
-  };
+  useEffect(() => {
+    if (!id) {
+      setIsLoading(false);
+      return;
+    }
 
-  const all: Media[] = [...movies, ...tv_shows];
-  const item = all.find((m) => m.id === id);
-  if (!item) return notFound();
+    const fetchMovieData = async () => {
+      setIsLoading(true);
+      
+      // First, try to find in local data
+      const { movies, tv_shows } = mediaData as {
+        movies: Movie[];
+        tv_shows: TVShow[];
+      };
+      const all: Media[] = [...movies, ...tv_shows];
+      const localItem = all.find((m) => m.id === id);
+
+      if (localItem) {
+        console.log(`✅ Found movie ${id} locally:`, "title" in localItem ? localItem.title : localItem.name);
+        setItem(localItem);
+        setIsLoading(false);
+        return;
+      }
+
+      // If not found locally, fetch from TMDB (try movie first)
+      console.log(`🌐 Movie ${id} not found locally, fetching from TMDB...`);
+      try {
+        const options = {
+          method: 'GET',
+          headers: {
+            accept: 'application/json',
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDU2NDBlODJmOTQxOTdiYzU3MWUyMDA2NDhlZjEwNSIsIm5iZiI6MTc1MTA5NjA3MC4xMzkwMDAyLCJzdWIiOiI2ODVmOWIwNmQ5ZjAwYjdjNTQzMDM3N2MiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.e4jNVZYjfYuUJwr1vvInG1Yngo98IdJClQFTzTvH5qk'
+          }
+        };
+
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}`, options);
+        
+        if (response.ok) {
+          const tmdbData: TMDBMovie = await response.json();
+          console.log(`✅ Successfully fetched movie ${id} from TMDB:`, tmdbData.title);
+          const convertedItem = convertTMDBToLocal(tmdbData);
+          setItem(convertedItem);
+        } else {
+          console.log(`❌ Movie ${id} not found on TMDB (Status: ${response.status})`);
+          setItem(null);
+        }
+      } catch (error) {
+        console.error('Error fetching from TMDB:', error);
+        setItem(null);
+      }
+      
+      setIsLoading(false);
+    };
+
+    fetchMovieData();
+  }, [id]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!item) {
+    return notFound();
+  }
 
   const title = "title" in item ? item.title : item.name;
   const rDate = "release_date" in item ? item.release_date : item.first_air_date;
