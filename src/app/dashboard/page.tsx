@@ -141,8 +141,6 @@ const DashboardPage = () => {
 
       <Tabs defaultValue="movies" onValueChange={(val) => {
         setTab(val as "movies" | "tv")
-        setPage(1)
-        setSearch("")
       }}>
         <TabsList className="mb-4">
           <TabsTrigger value="movies">Movies</TabsTrigger>
