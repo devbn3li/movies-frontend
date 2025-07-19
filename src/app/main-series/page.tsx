@@ -15,6 +15,9 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TVShow } from "@/types/index";
 import Loading from "@/components/Loading";
+import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
+import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFilteredData";
+import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -23,6 +26,7 @@ export default function TVShowsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
 
   // Simulate loading data (since moviesdb.json is static)
   useEffect(() => {
@@ -36,10 +40,9 @@ export default function TVShowsPage() {
   }, []);
 
   const data = tvShows;
-
-  const filtered = data.filter((item) => {
-    return item.name.toLowerCase().includes(search.toLowerCase());
-  });
+  const filtered = useFilteredData(data, search, filters);
+  const genres = extractGenres(data);
+  const years = extractYears(data);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice(
@@ -47,12 +50,16 @@ export default function TVShowsPage() {
     page * ITEMS_PER_PAGE
   );
 
+  const handleFilterChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    setPage(1); // Reset to first page when filters change
+  };
+
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
       <div className="flex w-full justify-center items-center mb-4 gap-5">
-
         <Input
-          placeholder="Search..."
+          placeholder="Search series..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -65,57 +72,78 @@ export default function TVShowsPage() {
         />
       </div>
 
+      <FilterBar
+        onFilterChange={handleFilterChange}
+        genres={genres}
+        years={years}
+        disabled={isLoading}
+      />
+
+      <ResultsCount
+        total={data.length}
+        filtered={filtered.length}
+        isLoading={isLoading}
+        itemType="series"
+      />
 
       <CardsGrid items={paginated} type="tv" isLoading={isLoading} />
 
 
-      {!isLoading && filtered.length > ITEMS_PER_PAGE && (<div className="flex justify-center w-full">
-        <Pagination className="w-full max-w-3xl">
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious href="#" onClick={() => setPage(page - 1)} />
-              </PaginationItem>
-            )}
-            {Array.from({ length: totalPages }).map((_, idx) => {
-              const pageNum = idx + 1;
-              const shouldShow =
-                pageNum === 1 ||
-                pageNum === totalPages ||
-                Math.abs(pageNum - page) <= 1;
-              const isEllipsisBefore = pageNum === page - 2 && pageNum !== 1;
-              const isEllipsisAfter = pageNum === page + 2 && pageNum !== totalPages;
+      {!isLoading && filtered.length > ITEMS_PER_PAGE && (
+        <div className="flex justify-center w-full mt-8">
+          <Pagination className="w-full max-w-3xl">
+            <PaginationContent>
+              {page > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious href="#" onClick={() => setPage(page - 1)} />
+                </PaginationItem>
+              )}
+              {Array.from({ length: totalPages }).map((_, idx) => {
+                const pageNum = idx + 1;
+                const shouldShow =
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  Math.abs(pageNum - page) <= 1;
+                const isEllipsisBefore = pageNum === page - 2 && pageNum !== 1;
+                const isEllipsisAfter = pageNum === page + 2 && pageNum !== totalPages;
 
-              if (isEllipsisBefore || isEllipsisAfter) {
+                if (isEllipsisBefore || isEllipsisAfter) {
+                  return (
+                    <PaginationItem key={`ellipsis-${pageNum}`}>
+                      <span className="px-2 text-gray-500">...</span>
+                    </PaginationItem>
+                  );
+                }
+
+                if (!shouldShow) return null;
+
                 return (
-                  <PaginationItem key={`ellipsis-${pageNum}`}>
-                    <span className="px-2 text-gray-500">...</span>
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      isActive={page === pageNum}
+                      onClick={() => setPage(pageNum)}
+                    >
+                      {pageNum}
+                    </PaginationLink>
                   </PaginationItem>
                 );
-              }
-
-              if (!shouldShow) return null;
-
-              return (
-                <PaginationItem key={pageNum}>
-                  <PaginationLink
-                    href="#"
-                    isActive={page === pageNum}
-                    onClick={() => setPage(pageNum)}
-                  >
-                    {pageNum}
-                  </PaginationLink>
+              })}
+              {page < totalPages && (
+                <PaginationItem>
+                  <PaginationNext href="#" onClick={() => setPage(page + 1)} />
                 </PaginationItem>
-              );
-            })}
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext href="#" onClick={() => setPage(page + 1)} />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      </div>)}
+              )}
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {!isLoading && filtered.length === 0 && (
+        <div className="flex justify-center items-center h-32">
+          <p className="text-gray-500 text-lg">No series found matching your criteria</p>
+        </div>
+      )}
     </div>
   );
 }

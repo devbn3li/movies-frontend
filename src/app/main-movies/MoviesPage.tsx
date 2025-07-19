@@ -15,6 +15,9 @@ import moviesData from "@/assets/movies.json";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Movie } from "@/types/index";
+import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
+import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFilteredData";
+import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -23,6 +26,7 @@ export default function MoviesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
 
   useEffect(() => {
     const loadData = async () => {
@@ -34,9 +38,9 @@ export default function MoviesPage() {
     loadData();
   }, []);
 
-  const filtered = movies.filter((item) =>
-    item.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useFilteredData(movies, search, filters);
+  const genres = extractGenres(movies);
+  const years = extractYears(movies);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice(
@@ -44,11 +48,16 @@ export default function MoviesPage() {
     page * ITEMS_PER_PAGE
   );
 
+  const handleFilterChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    setPage(1); // Reset to first page when filters change
+  };
+
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
       <div className="flex w-full justify-center items-center mb-4 gap-5">
         <Input
-          placeholder="Search..."
+          placeholder="Search movies..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -61,9 +70,23 @@ export default function MoviesPage() {
         />
       </div>
 
+      <FilterBar
+        onFilterChange={handleFilterChange}
+        genres={genres}
+        years={years}
+        disabled={isLoading}
+      />
+
+      <ResultsCount
+        total={movies.length}
+        filtered={filtered.length}
+        isLoading={isLoading}
+        itemType="movies"
+      />
+
       <CardsGrid items={paginated} isLoading={isLoading} />
       {!isLoading && filtered.length > ITEMS_PER_PAGE && (
-        <div className="flex justify-center w-full">
+        <div className="flex justify-center w-full mt-8">
           <Pagination className="w-full max-w-3xl">
             <PaginationContent>
               {page > 1 && (
@@ -109,6 +132,12 @@ export default function MoviesPage() {
               )}
             </PaginationContent>
           </Pagination>
+        </div>
+      )}
+
+      {!isLoading && filtered.length === 0 && (
+        <div className="flex justify-center items-center h-32">
+          <p className="text-gray-500 text-lg">No movies found matching your criteria</p>
         </div>
       )}
     </div>
