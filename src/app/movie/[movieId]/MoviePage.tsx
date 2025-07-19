@@ -93,7 +93,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         </div>
 
         <div className="max-w-[1080px] w-full border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl mb-10">
-          <div className="flex items-center justify-between gap-5 mb-4 w-full">
+          <div className="flex max-sm:flex-col items-center justify-between gap-5 mb-4 w-full">
             <h1 className="text-3xl font-bold text-white">{title}</h1>
             <div className="flex items-center gap-4">
               <span className="text-xl text-yellow-400">

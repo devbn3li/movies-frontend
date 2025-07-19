@@ -205,9 +205,7 @@ function CardsGrid({
               key={`skeleton-${index}`}
               className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
             >
-              <Skeleton className="rounded h-[450px] w-[330px] mb-2" />
-              <Skeleton className="w-24 h-4 mt-2" />
-              <Skeleton className="w-10 h-4 mt-2" />
+              <Skeleton className="rounded h-[345px] w-[230px] mb-2" />
             </div>
           ))}
         </div>
@@ -226,7 +224,7 @@ function CardsGrid({
   return (
     <div className="w-full flex justify-center">
       <div
-        className="grid justify-center px-20 pb-20"
+        className="grid justify-center sm:px-20 pb-20"
         style={{
           gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
           width: "100%",

@@ -57,7 +57,7 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
   ];
 
   return (
-    <div className="flex gap-4 mb-6 p-4  rounded-lg border dark:border-[#333333]">
+    <div className="flex max-sm:flex-col  gap-4 mb-6 p-4  rounded-lg border dark:border-[#333333]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
