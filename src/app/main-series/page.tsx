@@ -71,20 +71,20 @@ export default function TVShowsPage() {
           disabled={isLoading}
         />
       </div>
-
-      <FilterBar
+      <div className="sm:mx-25">      <FilterBar
         onFilterChange={handleFilterChange}
         genres={genres}
         years={years}
         disabled={isLoading}
       />
 
-      <ResultsCount
-        total={data.length}
-        filtered={filtered.length}
-        isLoading={isLoading}
-        itemType="series"
-      />
+        <ResultsCount
+          total={data.length}
+          filtered={filtered.length}
+          isLoading={isLoading}
+          itemType="series"
+        /></div>
+
 
       <CardsGrid items={paginated} type="tv" isLoading={isLoading} />
 

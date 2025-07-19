@@ -55,7 +55,7 @@ export default function MoviesPage() {
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
-      <div className="flex w-full justify-center items-center mb-4 gap-5">
+      <div className="flex w-full justify-center items-center mb-4">
         <Input
           placeholder="Search movies..."
           value={search}
@@ -63,26 +63,29 @@ export default function MoviesPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="w-full sm:mx-25"
+          className="sm:mx-25"
           type="search"
           autoComplete="on"
           disabled={isLoading}
         />
       </div>
 
-      <FilterBar
-        onFilterChange={handleFilterChange}
-        genres={genres}
-        years={years}
-        disabled={isLoading}
-      />
+      <div className="sm:mx-25">
+        <FilterBar
+          onFilterChange={handleFilterChange}
+          genres={genres}
+          years={years}
+          disabled={isLoading}
+        />
 
-      <ResultsCount
-        total={movies.length}
-        filtered={filtered.length}
-        isLoading={isLoading}
-        itemType="movies"
-      />
+
+        <ResultsCount
+          total={movies.length}
+          filtered={filtered.length}
+          isLoading={isLoading}
+          itemType="movies"
+        />
+      </div>
 
       <CardsGrid items={paginated} isLoading={isLoading} />
       {!isLoading && filtered.length > ITEMS_PER_PAGE && (
