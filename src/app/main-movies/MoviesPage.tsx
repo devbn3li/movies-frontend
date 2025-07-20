@@ -78,7 +78,6 @@ export default function MoviesPage() {
           disabled={isLoading}
         />
 
-
         <ResultsCount
           total={movies.length}
           filtered={filtered.length}
@@ -165,6 +164,10 @@ function CardsGrid({
   };
 
   const getBadge = (movie: Movie) => {
+    if (movie.adult) {
+      return { text: "18+", color: "bg-red-600" };
+    }
+
     if (!movie.vote_average) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "bg-yellow-500" };
@@ -233,11 +236,14 @@ function CardsGrid({
             >
               <div className="relative group overflow-hidden rounded-2xl">
                 {/* Badge */}
-                {getBadge(item) && (
-                  <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full text-xs font-bold text-white ${getBadge(item)?.color}`}>
-                    {getBadge(item)?.text}
-                  </div>
-                )}
+                {(() => {
+                  const badge = getBadge(item);
+                  return badge && (
+                    <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full text-xs font-bold text-white ${badge.color}`}>
+                      {badge.text}
+                    </div>
+                  );
+                })()}
 
                 {/* Rating */}
                 {item.vote_average ? (
@@ -252,7 +258,8 @@ function CardsGrid({
                   alt={item.title}
                   width={230}
                   height={340}
-                  className="rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
+                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${item.adult ? 'blur-sm group-hover:blur-none' : ''
+                    }`}
                 />
 
                 {/* Enhanced Gradient Overlay */}

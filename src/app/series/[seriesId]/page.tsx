@@ -12,6 +12,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import Cast from "@/components/Cast";
 import Loading from "@/components/Loading";
 import WatchProviders from "@/components/WatchProviders";
+import Recommendations from "@/components/Recommendations";
 
 // TMDB TV Show type
 interface TMDBTVShow {
@@ -255,6 +256,7 @@ export default function SeriesPage() {
           {seriesId && <Cast movieId={seriesId} mediaType="tv" />}
         </div>
 
+        {seriesId && <Recommendations movieId={String(seriesId)} type="tv" />}
         {seriesId && <MayLike movieId={String(seriesId)} type={mediaType} />}
         {seriesId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
       </div>

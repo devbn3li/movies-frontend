@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 interface Movie {
-  id: string;
+  id: number;
   title?: string;
   name?: string;
   poster_path: string | null;
@@ -18,14 +18,17 @@ interface Movie {
   vote_average?: number;
   release_date?: string;
   first_air_date?: string;
-  genre_names?: string[];
+  genre_ids?: number[];
   overview?: string;
   popularity?: number;
   adult?: boolean;
+  original_title?: string;
+  original_name?: string;
 }
 
-const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) => {
-  const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
+const Recommendations = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) => {
+  const [recommendations, setRecommendations] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Helper functions
   const getYear = (movie: Movie) => {
@@ -43,10 +46,10 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
       return { text: "18+", color: "bg-red-600" };
     }
 
-    if (!movie.vote_average || !movie.popularity) return null;
+    if (!movie.vote_average) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "bg-yellow-500" };
-    if (movie.popularity >= 1000) return { text: "Popular", color: "bg-red-500" };
+    if (movie.popularity && movie.popularity >= 1000) return { text: "Popular", color: "bg-red-500" };
 
     const releaseDate = movie.release_date || movie.first_air_date;
     if (releaseDate) {
@@ -62,40 +65,63 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength).trim() + "...";
   };
-  useEffect(() => {
-    console.log("Similar movie IDs:", similarMovies.map(m => m.id));
-  }, [similarMovies]);
 
   useEffect(() => {
-    const url = `https://api.themoviedb.org/3/${type}/${movieId}/similar?language=en-US&page=1`;
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+    const fetchRecommendations = async () => {
+      setIsLoading(true);
+
+      const url = `https://api.themoviedb.org/3/${type}/${movieId}/recommendations?language=en-US&page=1`;
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        }
+      };
+
+      try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+
+        // Filter out items without poster_path
+        const filtered = data.results.filter((movie: Movie) => movie.poster_path);
+        setRecommendations(filtered);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetch(url, options)
-      .then(res => res.json())
-      .then(data => {
-        const filtered = data.results.filter((movie: Movie) => movie.poster_path);
-        setSimilarMovies(filtered);
-      })
-      .catch(err => console.error(err));
+    fetchRecommendations();
   }, [movieId, type]);
 
-  if (!similarMovies.length) return null;
+  if (isLoading) {
+    return (
+      <div className="max-w-[1080px] w-full mt-10 relative px-2">
+        <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-white mb-4">
+          Recommended for You
+        </h2>
+        <div className="flex gap-4 overflow-hidden">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="min-w-[200px] h-[300px] bg-gray-700 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!recommendations.length) return null;
 
   return (
     <div className="max-w-[1080px] w-full mt-10 relative px-2">
       <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-white mb-4">
-        You Might Also Like
+        Recommended for You
       </h2>
 
       <Carousel opts={{ align: "center" }} className="w-full relative">
         <CarouselContent>
-          {similarMovies.map((movie) => (
+          {recommendations.map((movie) => (
             <CarouselItem
               key={movie.id}
               className="
@@ -107,8 +133,8 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
                 flex justify-center
               "
             >
-              <Link href={`/movie/${movie.id}`} className="p-2 block">
-                <div className="relative group overflow-hidden rounded-2xl">
+              <Link href={`/${type === 'tv' ? 'series' : 'movie'}/${movie.id}`} className="p-2 block group">
+                <div className="relative overflow-hidden rounded-2xl">
                   {/* Badge */}
                   {getBadge(movie) && (
                     <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full text-xs font-bold text-white ${getBadge(movie)?.color}`}>
@@ -142,16 +168,16 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
                       {movie.title || movie.name}
                     </h3>
 
-                    {/* Year and Genre */}
+                    {/* Year and Rating */}
                     <div className="flex items-center gap-2 mb-2">
                       {getYear(movie) && (
                         <span className="text-white/80 text-sm bg-white/20 px-2 py-1 rounded">
                           {getYear(movie)}
                         </span>
                       )}
-                      {movie.genre_names && movie.genre_names[0] && (
+                      {movie.vote_average && (
                         <span className="text-white/80 text-sm bg-white/20 px-2 py-1 rounded">
-                          {movie.genre_names[0]}
+                          ⭐ {movie.vote_average.toFixed(1)}
                         </span>
                       )}
                     </div>
@@ -177,4 +203,4 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
   );
 };
 
-export default MayLike;
+export default Recommendations;

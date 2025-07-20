@@ -15,7 +15,8 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TVShow } from "@/types/index";
 import Loading from "@/components/Loading";
-import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
+import FilterBar from "@/components/common/FilterBar/FilterBar";
+import { FilterOptions } from "@/components/common/FilterBar/FilterBar";
 import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFilteredData";
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 
@@ -167,6 +168,11 @@ function CardsGrid({
   };
 
   const getBadge = (show: TVShow) => {
+    // Priority: Adult content first
+    if (show.adult) {
+      return { text: "18+", color: "bg-red-600" };
+    }
+
     if (!show.vote_average) return null;
 
     if (show.vote_average >= 8) return { text: "High Rated", color: "bg-yellow-500" };

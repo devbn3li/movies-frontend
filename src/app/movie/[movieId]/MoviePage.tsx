@@ -12,6 +12,7 @@ import Cast from "@/components/Cast";
 import Head from "next/head";
 import Loading from "@/components/Loading";
 import WatchProviders from "@/components/WatchProviders";
+import Recommendations from "@/components/Recommendations";
 
 type Media = Movie | TVShow;
 
@@ -202,7 +203,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
             </div>
           </div>
           <p className="text-[#FFFFFF] mb-2 text-lg font-medium">
-            {rDate?.slice(0, 4)} | {item.adult ? "18+" : "+13"} |{" "}
+            {rDate?.slice(0, 4)} | {item.adult ? "18+" : "+16"} |{" "}
             {item.genre_names[0] || "Unknown Genre"}
           </p>
           <p className="mb-2 text-white text-lg font-medium">
@@ -273,6 +274,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} />}
         </div>
 
+        {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} />}
         {movieId && <MayLike movieId={movieId} type={mediaType} />}
         {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
       </div>

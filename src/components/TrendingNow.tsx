@@ -21,6 +21,7 @@ interface Movie {
   genre_names?: string[];
   overview?: string;
   popularity?: number;
+  adult?: boolean;
 }
 
 const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: string; isLarge: boolean }) => {
@@ -39,6 +40,11 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
   };
 
   const getBadge = (movie: Movie) => {
+    // Priority: Adult content first
+    if (movie.adult) {
+      return { text: "18+", color: "bg-red-600" };
+    }
+
     if (!movie.vote_average || !movie.popularity) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "badge-high-rating" };
