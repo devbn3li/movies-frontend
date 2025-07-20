@@ -44,45 +44,44 @@ export function useFilteredData<T extends MediaItem>(
         }
       }
 
-      // Age Rating filter
-      if (filters.ageRating) {
-        if (filters.ageRating === "adult") {
-          if (!item.adult) return false;
-        }
-      }
-
       return true;
     });
 
     // Sorting
     if (filters.sortBy && filters.sortBy !== "default") {
-      filtered = [...filtered].sort((a, b) => {
-        switch (filters.sortBy) {
-          case "popularity":
-            return (b.popularity || 0) - (a.popularity || 0);
+      if (filters.sortBy === "adult") {
+        // Filter for adult content only
+        filtered = filtered.filter((item) => item.adult);
+      } else {
+        // Apply normal sorting
+        filtered = [...filtered].sort((a, b) => {
+          switch (filters.sortBy) {
+            case "popularity":
+              return (b.popularity || 0) - (a.popularity || 0);
 
-          case "rating":
-            return (b.vote_average || 0) - (a.vote_average || 0);
+            case "rating":
+              return (b.vote_average || 0) - (a.vote_average || 0);
 
-          case "release_date": {
-            const dateA =
-              "release_date" in a ? a.release_date : a.first_air_date;
-            const dateB =
-              "release_date" in b ? b.release_date : b.first_air_date;
-            if (!dateA || !dateB) return 0;
-            return new Date(dateB).getTime() - new Date(dateA).getTime();
+            case "release_date": {
+              const dateA =
+                "release_date" in a ? a.release_date : a.first_air_date;
+              const dateB =
+                "release_date" in b ? b.release_date : b.first_air_date;
+              if (!dateA || !dateB) return 0;
+              return new Date(dateB).getTime() - new Date(dateA).getTime();
+            }
+
+            case "title": {
+              const titleA = "title" in a ? a.title : a.name;
+              const titleB = "title" in b ? b.title : b.name;
+              return titleA.localeCompare(titleB);
+            }
+
+            default:
+              return 0;
           }
-
-          case "title": {
-            const titleA = "title" in a ? a.title : a.name;
-            const titleB = "title" in b ? b.title : b.name;
-            return titleA.localeCompare(titleB);
-          }
-
-          default:
-            return 0;
-        }
-      });
+        });
+      }
     }
 
     return filtered;

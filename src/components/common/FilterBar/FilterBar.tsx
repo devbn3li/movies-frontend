@@ -11,11 +11,10 @@ import {
 import { ChevronDown, Filter, X } from "lucide-react";
 
 export type FilterOptions = {
-  sortBy: "popularity" | "rating" | "release_date" | "title" | "default";
+  sortBy: "popularity" | "rating" | "release_date" | "title" | "default" | "adult";
   year?: string;
   genre?: string;
   minRating?: number;
-  ageRating?: "all" | "adult";
 };
 
 export type FilterBarProps = {
@@ -40,7 +39,7 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
     onFilterChange(defaultFilters);
   };
 
-  const hasActiveFilters = filters.sortBy !== "default" || filters.year || filters.genre || filters.minRating || filters.ageRating;
+  const hasActiveFilters = filters.sortBy !== "default" || filters.year || filters.genre || filters.minRating;
 
   const sortOptions = [
     { value: "default", label: "Default" },
@@ -48,6 +47,7 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
     { value: "rating", label: "Highest Rated" },
     { value: "release_date", label: "Latest Release" },
     { value: "title", label: "Title A-Z" },
+    { value: "adult", label: "Adult Only" },
   ];
 
   const ratingOptions = [
@@ -55,11 +55,6 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
     { value: 7, label: "7+ Stars" },
     { value: 8, label: "8+ Stars" },
     { value: 9, label: "9+ Stars" },
-  ];
-
-  const ageOptions = [
-    { value: undefined, label: "All" },
-    { value: "adult", label: "Adult Only" },
   ];
 
   return (
@@ -175,29 +170,6 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
                 key={option.value || "all"}
                 onClick={() => updateFilter("minRating", option.value)}
                 className={filters.minRating === option.value ? "bg-blue-50 dark:bg-blue-900/20" : ""}
-              >
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Age */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={disabled}>
-            <Button variant="outline" size="sm" className="h-8 min-w-[80px] justify-between">
-              <span className="truncate">
-                {filters.ageRating === "adult" ? "Adult Only" : "Age"}
-              </span>
-              <ChevronDown size={14} className="ml-1 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {ageOptions.map((option) => (
-              <DropdownMenuItem
-                key={option.value || "all"}
-                onClick={() => updateFilter("ageRating", option.value)}
-                className={filters.ageRating === option.value ? "bg-blue-50 dark:bg-blue-900/20" : ""}
               >
                 {option.label}
               </DropdownMenuItem>

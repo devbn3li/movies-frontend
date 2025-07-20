@@ -263,7 +263,8 @@ function CardsGrid({
                 alt={item.name}
                 width={230}
                 height={340}
-                className="rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
+                className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${item.adult ? 'blur-sm group-hover:blur-none' : ''
+                  }`}
               />
 
               {/* Enhanced Gradient Overlay */}
