@@ -7,12 +7,32 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, TrendingUp, Star, Calendar, Eye } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useAuth } from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
 
 const DashboardPage = () => {
   const [movies, setMovies] = useState<Movie[]>([])
   const [tvShows, setTvShows] = useState<TVShow[]>([])
   const [tab, setTab] = useState<"movies" | "tv">("movies")
+  const { loading, isAdmin, isAuthenticated } = useAuth()
+  const router = useRouter()
 
+  useEffect(() => {
+    // التحقق من المصادقة والصلاحيات
+    if (!loading) {
+      if (!isAuthenticated) {
+        // إذا لم يعمل تسجيل دخول، إعادة توجيه لصفحة تسجيل الدخول
+        router.push('/login')
+        return
+      }
+
+      if (!isAdmin) {
+        // إذا لم يكن أدمن، إعادة توجيه للصفحة الرئيسية
+        router.push('/')
+        return
+      }
+    }
+  }, [loading, isAuthenticated, isAdmin, router])
 
   useEffect(() => {
     setMovies((mediaData as { movies: Movie[] }).movies)
@@ -76,6 +96,20 @@ const DashboardPage = () => {
       topGenres
     }
   }, [data])
+
+  // عرض Loading state أثناء التحقق من المصادقة
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
+      </div>
+    )
+  }
+
+  // إذا لم يكن مصادق أو ليس أدمن، لا تعرض شيء (سيتم إعادة التوجيه)
+  if (!isAuthenticated || !isAdmin) {
+    return null
+  }
 
   return (
     <div className="p-5 sm:px-20 pb-20">
