@@ -102,7 +102,7 @@ export default function RootLayout({
           storageKey="theme"
           disableTransitionOnChange
         >
-          <SidebarProvider>
+          <SidebarProvider defaultOpen={false}>
             <div className="min-h-screen w-full">
               <div className="relative">
                 <div className="fixed top-0 left-0 w-full z-50">

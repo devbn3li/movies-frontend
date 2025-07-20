@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -24,7 +24,8 @@ import { useSearchParams } from "next/navigation";
 
 const ITEMS_PER_PAGE = 24;
 
-export default function MoviesPage() {
+// مكون منفصل للمحتوى اللي بيستخدم useSearchParams
+function MoviesContent() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -319,5 +320,13 @@ function CardsGrid({
           ))}
       </div>
     </div>
+  );
+}
+
+export default function MoviesPage() {
+  return (
+    <Suspense fallback={<div>Loading movies...</div>}>
+      <MoviesContent />
+    </Suspense>
   );
 }

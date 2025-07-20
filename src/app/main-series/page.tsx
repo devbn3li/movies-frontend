@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -25,7 +25,8 @@ import { useSearchParams } from "next/navigation";
 
 const ITEMS_PER_PAGE = 24;
 
-export default function TVShowsPage() {
+// مكون منفصل للمحتوى اللي بيستخدم useSearchParams
+function TVShowsContent() {
   const [tvShows, setTvShows] = useState<TVShow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -324,5 +325,13 @@ function CardsGrid({
         ))}
       </div>
     </div>
+  );
+}
+
+export default function TVShowsPage() {
+  return (
+    <Suspense fallback={<div>Loading TV shows...</div>}>
+      <TVShowsContent />
+    </Suspense>
   );
 }
