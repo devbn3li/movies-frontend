@@ -170,3 +170,59 @@ export const getPersonExternalIds = async (personId: number) => {
     return null;
   }
 };
+
+// Watch Providers API functions
+export const getMovieWatchProviders = async (movieId: number) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/movie/${movieId}/watch/providers`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch movie watch providers: ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching movie watch providers:", error);
+    return null;
+  }
+};
+
+export const getTVWatchProviders = async (tvId: number) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/tv/${tvId}/watch/providers`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV watch providers: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching TV watch providers:", error);
+    return null;
+  }
+};
+
+export const getWatchProviders = async (
+  id: number,
+  mediaType: "movie" | "tv"
+) => {
+  if (mediaType === "movie") {
+    return await getMovieWatchProviders(id);
+  } else {
+    return await getTVWatchProviders(id);
+  }
+};

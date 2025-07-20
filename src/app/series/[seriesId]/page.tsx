@@ -11,6 +11,7 @@ import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
 import Cast from "@/components/Cast";
 import Loading from "@/components/Loading";
+import WatchProviders from "@/components/WatchProviders";
 
 // TMDB TV Show type
 interface TMDBTVShow {
@@ -67,7 +68,7 @@ export default function SeriesPage() {
 
     const fetchSeriesData = async () => {
       setIsLoading(true);
-      
+
       // First, try to find in local data
       const { tv_shows } = mediaData as { tv_shows: TVShow[] };
       const localItem = tv_shows.find((m) => m.id === seriesId);
@@ -86,12 +87,12 @@ export default function SeriesPage() {
           method: 'GET',
           headers: {
             accept: 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDU2NDBlODJmOTQxOTdiYzU3MWUyMDA2NDhlZjEwNSIsIm5iZiI6MTc1MTA5NjA3MC4xMzkwMDAyLCJzdWIiOiI2ODVmOWIwNmQ5ZjAwYjdjNTQzMDM3N2MiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.e4jNVZYjfYuUJwr1vvInG1Yngo98IdJClQFTzTvH5qk'
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
           }
         };
 
         const response = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}`, options);
-        
+
         if (response.ok) {
           const tmdbData: TMDBTVShow = await response.json();
           console.log(`✅ Successfully fetched series ${seriesId} from TMDB:`, tmdbData.name);
@@ -105,7 +106,7 @@ export default function SeriesPage() {
         console.error('Error fetching from TMDB:', error);
         setItem(null);
       }
-      
+
       setIsLoading(false);
     };
 
@@ -243,6 +244,11 @@ export default function SeriesPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Watch Providers Section */}
+        <div className="max-w-[1080px] w-full mt-6">
+          {seriesId && <WatchProviders id={seriesId} mediaType="tv" />}
         </div>
 
         <div className="mt-10">

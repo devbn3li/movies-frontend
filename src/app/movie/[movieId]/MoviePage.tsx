@@ -11,6 +11,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import Cast from "@/components/Cast";
 import Head from "next/head";
 import Loading from "@/components/Loading";
+import WatchProviders from "@/components/WatchProviders";
 
 type Media = Movie | TVShow;
 
@@ -63,7 +64,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
     const fetchMovieData = async () => {
       setIsLoading(true);
-      
+
       // First, try to find in local data
       const { movies, tv_shows } = mediaData as {
         movies: Movie[];
@@ -86,12 +87,12 @@ export default function MoviePage({ movieId }: { movieId: string }) {
           method: 'GET',
           headers: {
             accept: 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyZDU2NDBlODJmOTQxOTdiYzU3MWUyMDA2NDhlZjEwNSIsIm5iZiI6MTc1MTA5NjA3MC4xMzkwMDAyLCJzdWIiOiI2ODVmOWIwNmQ5ZjAwYjdjNTQzMDM3N2MiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.e4jNVZYjfYuUJwr1vvInG1Yngo98IdJClQFTzTvH5qk'
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
           }
         };
 
         const response = await fetch(`https://api.themoviedb.org/3/movie/${id}`, options);
-        
+
         if (response.ok) {
           const tmdbData: TMDBMovie = await response.json();
           console.log(`✅ Successfully fetched movie ${id} from TMDB:`, tmdbData.title);
@@ -105,7 +106,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         console.error('Error fetching from TMDB:', error);
         setItem(null);
       }
-      
+
       setIsLoading(false);
     };
 
@@ -261,6 +262,11 @@ export default function MoviePage({ movieId }: { movieId: string }) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Watch Providers Section */}
+        <div className="max-w-[1080px] w-full mt-6">
+          <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
         </div>
 
         <div className="mt-10">
