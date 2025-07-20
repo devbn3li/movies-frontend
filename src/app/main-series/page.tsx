@@ -20,6 +20,7 @@ import { FilterOptions } from "@/components/common/FilterBar/FilterBar";
 import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFilteredData";
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -29,6 +30,7 @@ export default function TVShowsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
+  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
 
   // Simulate loading data (since moviesdb.json is static)
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function TVShowsPage() {
   }, []);
 
   const data = tvShows;
-  const filtered = useFilteredData(data, search, filters);
+  const filtered = useFilteredData(data, search, filters, isAdmin);
   const genres = extractGenres(data);
   const years = extractYears(data);
 
@@ -78,6 +80,7 @@ export default function TVShowsPage() {
         genres={genres}
         years={years}
         disabled={isLoading}
+        showAdultFilter={isAdmin} // إظهار فلتر Adult فقط للأدمن
       />
 
         <ResultsCount

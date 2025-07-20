@@ -22,9 +22,10 @@ export type FilterBarProps = {
   genres: string[];
   years: string[];
   disabled?: boolean;
+  showAdultFilter?: boolean;
 };
 
-export default function FilterBar({ onFilterChange, genres, years, disabled = false }: FilterBarProps) {
+export default function FilterBar({ onFilterChange, genres, years, disabled = false, showAdultFilter = false }: FilterBarProps) {
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
 
   const updateFilter = (key: keyof FilterOptions, value: FilterOptions[keyof FilterOptions]) => {
@@ -41,14 +42,17 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
 
   const hasActiveFilters = filters.sortBy !== "default" || filters.year || filters.genre || filters.minRating;
 
-  const sortOptions = [
+  const baseSortOptions = [
     { value: "default", label: "Default" },
     { value: "popularity", label: "Most Popular" },
     { value: "rating", label: "Highest Rated" },
     { value: "release_date", label: "Latest Release" },
     { value: "title", label: "Title A-Z" },
-    { value: "adult", label: "Adult Only" },
   ];
+
+  const sortOptions = showAdultFilter
+    ? [...baseSortOptions, { value: "adult", label: "Adult Only" }]
+    : baseSortOptions;
 
   const ratingOptions = [
     { value: undefined, label: "All Ratings" },

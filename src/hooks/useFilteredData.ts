@@ -8,7 +8,8 @@ type MediaItem = Movie | TVShow;
 export function useFilteredData<T extends MediaItem>(
   data: T[],
   searchQuery: string,
-  filters: FilterOptions
+  filters: FilterOptions,
+  allowAdultContent: boolean = false // إضافة معامل للتحكم في عرض المحتوى Adult
 ) {
   const filteredAndSorted = useMemo(() => {
     if (!data.length) return [];
@@ -51,11 +52,18 @@ export function useFilteredData<T extends MediaItem>(
     // Sorting
     if (filters.sortBy && filters.sortBy !== "default") {
       if (filters.sortBy === "adult") {
-        // Filter for adult content and sensitive content
-        filtered = filtered.filter((item) => {
-          const title = "title" in item ? item.title : item.name;
-          return item.adult || containsSensitiveContent(title);
-        });
+        // التحقق من الصلاحيات قبل تطبيق فلتر Adult
+        if (allowAdultContent) {
+          // Filter for adult content and sensitive content
+          filtered = filtered.filter((item) => {
+            const title = "title" in item ? item.title : item.name;
+            return item.adult || containsSensitiveContent(title);
+          });
+        } else {
+          // إذا لم يكن مسموح له، إعادة الفلتر إلى default
+          // لا نطبق فلتر Adult
+          filtered = filtered;
+        }
       } else {
         // Apply normal sorting
         filtered = [...filtered].sort((a, b) => {
@@ -89,7 +97,7 @@ export function useFilteredData<T extends MediaItem>(
     }
 
     return filtered;
-  }, [data, searchQuery, filters]);
+  }, [data, searchQuery, filters, allowAdultContent]);
 
   return filteredAndSorted;
 }
