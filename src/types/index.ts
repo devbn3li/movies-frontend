@@ -100,6 +100,7 @@ export type PersonMovieCredit = {
   job?: string;
   department?: string;
   credit_id: string;
+  adult?: boolean;
 };
 
 export type PersonTVCredit = {
@@ -119,6 +120,7 @@ export type PersonTVCredit = {
   department?: string;
   credit_id: string;
   episode_count?: number;
+  adult?: boolean;
 };
 
 export type PersonCredits = {

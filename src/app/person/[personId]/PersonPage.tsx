@@ -379,39 +379,53 @@ function FilmographyGrid({
   return (
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {displayedCredits.map((credit) => (
-          <div key={credit.credit_id} className="group">
-            <Link href={`/${mediaType === 'movie' ? 'movie' : 'series'}/${credit.id}`}>
-              <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-                <Image
-                  src={
-                    credit.poster_path
-                      ? `https://image.tmdb.org/t/p/w300${credit.poster_path}`
-                      : '/placeholder-avatar.svg'
-                  }
-                  alt={mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-200"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
-              </div>
-              <div className="mt-2">
-                <h3 className="text-white text-sm font-medium line-clamp-2">
-                  {mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
-                </h3>
-                <p className="text-gray-400 text-xs">
-                  {credit.character || credit.job}
-                </p>
-                <p className="text-gray-500 text-xs">
-                  {mediaType === 'movie'
-                    ? (credit as PersonMovieCredit).release_date?.substring(0, 4)
-                    : (credit as PersonTVCredit).first_air_date?.substring(0, 4)
-                  }
-                </p>
-              </div>
-            </Link>
-          </div>
-        ))}
+        {displayedCredits.map((credit) => {
+          const isAdult = credit.adult || false;
+          
+          return (
+            <div key={credit.credit_id} className="group">
+              <Link href={`/${mediaType === 'movie' ? 'movie' : 'series'}/${credit.id}`}>
+                <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+                  <Image
+                    src={
+                      credit.poster_path
+                        ? `https://image.tmdb.org/t/p/w300${credit.poster_path}`
+                        : '/placeholder-avatar.svg'
+                    }
+                    alt={mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
+                    fill
+                    className={`object-cover group-hover:scale-105 transition-all duration-200 ${
+                      isAdult ? 'blur-sm group-hover:blur-none' : ''
+                    }`}
+                  />
+                  
+                  {/* Adult Content Badge */}
+                  {isAdult && (
+                    <div className="absolute top-2 right-2 bg-red-600/90 backdrop-blur-sm px-2 rounded-md group-hover:opacity-0 transition-opacity duration-200">
+                      <span className="text-white text-xs font-bold">18+</span>
+                    </div>
+                  )}
+                  
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
+                </div>
+                <div className="mt-2">
+                  <h3 className="text-white text-sm font-medium line-clamp-2">
+                    {mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
+                  </h3>
+                  <p className="text-gray-400 text-xs">
+                    {credit.character || credit.job}
+                  </p>
+                  <p className="text-gray-500 text-xs">
+                    {mediaType === 'movie'
+                      ? (credit as PersonMovieCredit).release_date?.substring(0, 4)
+                      : (credit as PersonTVCredit).first_air_date?.substring(0, 4)
+                    }
+                  </p>
+                </div>
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       {credits.length > 12 && (
