@@ -46,10 +46,8 @@ export function useFilteredData<T extends MediaItem>(
 
       // Age Rating filter
       if (filters.ageRating) {
-        if (filters.ageRating === "18+") {
+        if (filters.ageRating === "adult") {
           if (!item.adult) return false;
-        } else if (filters.ageRating === "13+") {
-          if (item.adult) return false;
         }
       }
 
