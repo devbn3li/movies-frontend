@@ -23,6 +23,8 @@ interface MediaItem {
   genre_names?: string[];
 }
 
+const EXCLUDED_GENRES = ['Adventure'];
+
 // دالة لاستخراج الأنواع من البيانات
 const extractGenres = (data: MediaItem[] | MediaItem | unknown) => {
   if (!Array.isArray(data)) {
@@ -31,7 +33,11 @@ const extractGenres = (data: MediaItem[] | MediaItem | unknown) => {
   const genresSet = new Set<string>();
   data.forEach((item: MediaItem) => {
     if (item.genre_names && Array.isArray(item.genre_names)) {
-      item.genre_names.forEach((genre: string) => genresSet.add(genre));
+      item.genre_names.forEach((genre: string) => {
+        if (!EXCLUDED_GENRES.includes(genre)) {
+          genresSet.add(genre);
+        }
+      });
     }
   });
   return Array.from(genresSet).sort();
