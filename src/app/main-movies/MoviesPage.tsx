@@ -20,6 +20,7 @@ import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFiltere
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchParams } from "next/navigation";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -30,6 +31,7 @@ export default function MoviesPage() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
   const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const loadData = async () => {
@@ -40,6 +42,17 @@ export default function MoviesPage() {
     };
     loadData();
   }, []);
+
+  // قراءة معاملات URL وتطبيق الفلاتر
+  useEffect(() => {
+    const genre = searchParams.get('genre');
+    if (genre) {
+      setFilters(prev => ({
+        ...prev,
+        genre: genre
+      }));
+    }
+  }, [searchParams]);
 
   const filtered = useFilteredData(movies, search, filters, isAdmin);
   const genres = extractGenres(movies);

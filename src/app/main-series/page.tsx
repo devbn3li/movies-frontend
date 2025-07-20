@@ -21,6 +21,7 @@ import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFiltere
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchParams } from "next/navigation";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -31,6 +32,7 @@ export default function TVShowsPage() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
   const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const searchParams = useSearchParams();
 
   // Simulate loading data (since moviesdb.json is static)
   useEffect(() => {
@@ -42,6 +44,17 @@ export default function TVShowsPage() {
     };
     loadData();
   }, []);
+
+  // قراءة معاملات URL وتطبيق الفلاتر
+  useEffect(() => {
+    const genre = searchParams.get('genre');
+    if (genre) {
+      setFilters(prev => ({
+        ...prev,
+        genre: genre
+      }));
+    }
+  }, [searchParams]);
 
   const data = tvShows;
   const filtered = useFilteredData(data, search, filters, isAdmin);

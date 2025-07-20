@@ -1,7 +1,12 @@
+"use client"
 import { Home } from "lucide-react"
 import { MdLiveTv } from "react-icons/md";
 import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import moviesData from "@/assets/movies.json";
+import tvData from "@/assets/tv.json";
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +18,23 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+interface MediaItem {
+  genre_names?: string[];
+}
+
+// دالة لاستخراج الأنواع من البيانات
+const extractGenres = (data: MediaItem[] | MediaItem | unknown) => {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  const genresSet = new Set<string>();
+  data.forEach((item: MediaItem) => {
+    if (item.genre_names && Array.isArray(item.genre_names)) {
+      item.genre_names.forEach((genre: string) => genresSet.add(genre));
+    }
+  });
+  return Array.from(genresSet).sort();
+};
 
 // Menu items.
 const items = [
@@ -33,37 +55,30 @@ const items = [
   },
 ]
 
-const Categories = [
-  {
-    title: "Action",
-    url: "#",
-    icon: RiMovieLine,
-  },
-  {
-    title: "Comedy",
-    url: "#",
-    icon: RiMovieLine,
-  },
-  {
-    title: "Drama",
-    url: "#",
-    icon: RiMovieLine,
-  },
-  {
-    title: "Horror",
-    url: "#",
-    icon: RiMovieLine,
-  },
-  {
-    title: "Romance",
-    url: "#",
-    icon: RiMovieLine,
-  },
-];
-
 export function AppSidebar() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [movieGenres, setMovieGenres] = useState<string[]>([]);
+  const [tvGenres, setTvGenres] = useState<string[]>([]);
+  
+  // التحقق من الفلتر النشط
+  const activeGenre = searchParams.get('genre');
+  
+  const isGenreActive = (genre: string) => {
+    return activeGenre === genre;
+  };
+
+  useEffect(() => {
+    // استخراج الأنواع من البيانات
+    const movieGenresList = extractGenres(moviesData);
+    const tvGenresList = extractGenres(tvData);
+    
+    setMovieGenres(movieGenresList);
+    setTvGenres(tvGenresList);
+  }, []);
+
   return (
-    <Sidebar  className="fixed top-[64px] left-0 z-40 h-[calc(100vh-64px)] w-64 ">
+    <Sidebar className="fixed top-[64px] left-0 z-40 h-[calc(100vh-64px)] w-64 ">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
@@ -84,19 +99,60 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {/* Movie Categories */}
         <SidebarGroup>
           <SidebarGroupLabel>
-            Categories
+            <BiMoviePlay className="mr-2 h-4 w-4" />
+            Movie Categories
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {Categories.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+              {movieGenres.map((genre) => (
+                <SidebarMenuItem key={`movie-${genre}`}>
+                  <SidebarMenuButton 
+                    className={`cursor-pointer ${
+                      isGenreActive(genre) 
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                        : ''
+                    }`}
+                    onClick={() => router.push(`/main-movies?genre=${encodeURIComponent(genre)}`)}
+                  >
+                    <RiMovieLine />
+                    <span>{genre}</span>
+                    {isGenreActive(genre) && (
+                      <span className="ml-auto h-2 w-2 bg-blue-500 rounded-full" />
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* TV Show Categories */}
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <MdLiveTv className="mr-2 h-4 w-4" />
+            TV Show Categories
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {tvGenres.map((genre) => (
+                <SidebarMenuItem key={`tv-${genre}`}>
+                  <SidebarMenuButton 
+                    className={`cursor-pointer ${
+                      isGenreActive(genre) 
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                        : ''
+                    }`}
+                    onClick={() => router.push(`/main-series?genre=${encodeURIComponent(genre)}`)}
+                  >
+                    <RiMovieLine />
+                    <span>{genre}</span>
+                    {isGenreActive(genre) && (
+                      <span className="ml-auto h-2 w-2 bg-green-500 rounded-full" />
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
