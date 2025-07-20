@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Movie, TVShow } from "@/types";
 import { FilterOptions } from "@/components/common/FilterBar/FilterBar";
+import { containsSensitiveContent } from "@/lib/utils";
 
 type MediaItem = Movie | TVShow;
 
@@ -50,8 +51,11 @@ export function useFilteredData<T extends MediaItem>(
     // Sorting
     if (filters.sortBy && filters.sortBy !== "default") {
       if (filters.sortBy === "adult") {
-        // Filter for adult content only
-        filtered = filtered.filter((item) => item.adult);
+        // Filter for adult content and sensitive content
+        filtered = filtered.filter((item) => {
+          const title = "title" in item ? item.title : item.name;
+          return item.adult || containsSensitiveContent(title);
+        });
       } else {
         // Apply normal sorting
         filtered = [...filtered].sort((a, b) => {

@@ -8,6 +8,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { containsSensitiveContent } from "@/lib/utils";
 
 interface Movie {
   id: number;
@@ -43,6 +44,12 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
     // Priority: Adult content first
     if (movie.adult) {
       return { text: "18+", color: "bg-red-600" };
+    }
+
+    // التحقق من المحتوى الحساس في العنوان
+    const title = movie.title || movie.name || "";
+    if (containsSensitiveContent(title)) {
+      return { text: "Sensitive", color: "bg-orange-600" };
     }
 
     if (!movie.vote_average || !movie.popularity) return null;
@@ -130,7 +137,8 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
                   <Image
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title || movie.name || "Trending Movie"}
-                    className="object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
+                    className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${movie.adult || containsSensitiveContent(movie.title || movie.name || "") ? 'blur-sm group-hover:blur-none' : ''
+                      }`}
                     width={280}
                     height={420}
                   />

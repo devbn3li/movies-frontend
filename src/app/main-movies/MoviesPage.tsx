@@ -18,6 +18,7 @@ import { Movie } from "@/types/index";
 import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
 import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFilteredData";
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
+import { containsSensitiveContent } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -168,6 +169,11 @@ function CardsGrid({
       return { text: "18+", color: "bg-red-600" };
     }
 
+    // التحقق من المحتوى الحساس في العنوان
+    if (containsSensitiveContent(movie.title)) {
+      return { text: "Sensitive", color: "bg-orange-600" };
+    }
+
     if (!movie.vote_average) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "bg-yellow-500" };
@@ -258,7 +264,7 @@ function CardsGrid({
                   alt={item.title}
                   width={230}
                   height={340}
-                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${item.adult ? 'blur-sm group-hover:blur-none' : ''
+                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${item.adult || containsSensitiveContent(item.title) ? 'blur-sm group-hover:blur-none' : ''
                     }`}
                 />
 
