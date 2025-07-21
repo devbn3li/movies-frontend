@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Search, X, Film, Tv, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,6 +48,41 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Memoize adult content setting
+  const hideAdultContent = useMemo(() => shouldHideAdultContent(), []);
+
+  // Memoize filtered results for better performance
+  const { filteredResults, hiddenCount } = useMemo(() => {
+    const filtered = results.filter((result) => {
+      const isSensitive = result.adult || containsSensitiveContent(result.title || result.name || "");
+      
+      if (hideAdultContent && !isAdmin && isSensitive) {
+        return false;
+      }
+      return true;
+    });
+
+    return {
+      filteredResults: filtered,
+      hiddenCount: results.length - filtered.length
+    };
+  }, [results, hideAdultContent, isAdmin]);
+
+  const handleResultClick = useCallback((result: SearchResult) => {
+    const title = result.title || result.name || "";
+    setQuery(title);
+    setIsOpen(false);
+    setSelectedIndex(-1);
+
+    if (result.media_type === "movie") {
+      window.location.href = `/movie/${result.id}`;
+    } else if (result.media_type === "tv") {
+      window.location.href = `/series/${result.id}`;
+    } else if (result.media_type === "person") {
+      window.location.href = `/person/${result.id}`;
+    }
+  }, []);
+
   // Close search when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,7 +95,6 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      // Cleanup timeout on unmount
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
@@ -71,21 +104,21 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isOpen || results.length === 0) return;
+      if (!isOpen || filteredResults.length === 0) return;
 
       switch (event.key) {
         case "ArrowDown":
           event.preventDefault();
-          setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : 0));
+          setSelectedIndex(prev => (prev < filteredResults.length - 1 ? prev + 1 : 0));
           break;
         case "ArrowUp":
           event.preventDefault();
-          setSelectedIndex(prev => (prev > 0 ? prev - 1 : results.length - 1));
+          setSelectedIndex(prev => (prev > 0 ? prev - 1 : filteredResults.length - 1));
           break;
         case "Enter":
           event.preventDefault();
           if (selectedIndex >= 0) {
-            handleResultClick(results[selectedIndex]);
+            handleResultClick(filteredResults[selectedIndex]);
           }
           break;
         case "Escape":
@@ -98,9 +131,9 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, selectedIndex]);
+  }, [isOpen, filteredResults, selectedIndex, handleResultClick]);
 
-  const searchMulti = async (searchQuery: string, page: number = 1, appendResults: boolean = false) => {
+  const searchMulti = useCallback(async (searchQuery: string, page: number = 1, appendResults: boolean = false) => {
     if (!searchQuery.trim()) {
       setResults([]);
       setCurrentPage(1);
@@ -131,77 +164,32 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       };
 
       const encodedQuery = encodeURIComponent(searchQuery);
-
-      // Use single multi-search endpoint with pagination
       const response = await fetch(`https://api.themoviedb.org/3/search/multi?query=${encodedQuery}&include_adult=true&language=en-US&page=${page}`, options);
       const data = await response.json();
 
-      // Format results
       const newResults: SearchResult[] = [];
 
       if (data.results) {
         data.results.forEach((result: SearchResult) => {
-          // Ensure media_type is set correctly
           if (result.media_type === 'movie' || result.media_type === 'tv' || result.media_type === 'person') {
             newResults.push(result);
           }
         });
       }
 
-      // Update pagination info
       setCurrentPage(page);
       setTotalPages(data.total_pages || 1);
       setHasMoreResults(page < (data.total_pages || 1));
 
-      // Sort by popularity
       const sortedResults = newResults.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
       if (appendResults) {
-        // Append to existing results
         setResults(prev => [...prev, ...sortedResults]);
       } else {
-        // Replace results
         setResults(sortedResults);
       }
     } catch (error) {
       console.error("Search error:", error);
-      // Fallback to mock data if API fails
-      const mockResults: SearchResult[] = [
-        {
-          id: 1,
-          title: "The Dark Knight",
-          overview: "Batman raises the stakes in his war on crime...",
-          poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-          media_type: "movie" as const,
-          release_date: "2008-07-18",
-          popularity: 85.5
-        },
-        {
-          id: 2,
-          name: "Breaking Bad",
-          overview: "A high school chemistry teacher turned meth cook...",
-          poster_path: "/3xnWaLQjelJDDF7LT1WBo6f4BRe.jpg",
-          media_type: "tv" as const,
-          first_air_date: "2008-01-20",
-          popularity: 92.3
-        },
-        {
-          id: 3,
-          name: "Christian Bale",
-          known_for_department: "Acting",
-          profile_path: "/3qx2QFUbG6t6IlzR0F9k3Z6Yhf7.jpg",
-          media_type: "person" as const,
-          popularity: 75.8
-        }
-      ].filter(item =>
-        (item.title || item.name || "").toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
-      if (appendResults) {
-        setResults(prev => [...prev, ...mockResults]);
-      } else {
-        setResults(mockResults);
-      }
       setHasMoreResults(false);
     } finally {
       if (appendResults) {
@@ -210,14 +198,13 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
         setIsLoading(false);
       }
     }
-  };
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     setSelectedIndex(-1);
 
-    // Clear previous timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
@@ -225,12 +212,9 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     if (value.trim()) {
       setIsOpen(true);
       setIsLoading(true);
-
-      // Reset pagination when starting new search
       setCurrentPage(1);
       setHasMoreResults(false);
 
-      // Debounce search requests
       debounceTimeoutRef.current = setTimeout(() => {
         searchMulti(value, 1, false);
       }, 300);
@@ -241,25 +225,9 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       setCurrentPage(1);
       setHasMoreResults(false);
     }
-  };
+  }, [searchMulti]);
 
-  const handleResultClick = (result: SearchResult) => {
-    const title = result.title || result.name || "";
-    setQuery(title);
-    setIsOpen(false);
-    setSelectedIndex(-1);
-
-    // Navigate to the appropriate page
-    if (result.media_type === "movie") {
-      window.location.href = `/movie/${result.id}`;
-    } else if (result.media_type === "tv") {
-      window.location.href = `/series/${result.id}`;
-    } else if (result.media_type === "person") {
-      window.location.href = `/person/${result.id}`;
-    }
-  };
-
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setQuery("");
     setResults([]);
     setIsOpen(false);
@@ -267,16 +235,16 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     setCurrentPage(1);
     setHasMoreResults(false);
     inputRef.current?.focus();
-  };
+  }, []);
 
-  const loadMoreResults = () => {
+  const loadMoreResults = useCallback(() => {
     if (hasMoreResults && !isLoadingMore && query.trim()) {
       const nextPage = currentPage + 1;
       searchMulti(query, nextPage, true);
     }
-  };
+  }, [hasMoreResults, isLoadingMore, query, currentPage, searchMulti]);
 
-  const getMediaIcon = (mediaType?: string) => {
+  const getMediaIcon = useCallback((mediaType?: string) => {
     switch (mediaType) {
       case "movie":
         return <Film className="h-4 w-4 text-blue-400" />;
@@ -287,21 +255,16 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       default:
         return <Search className="h-4 w-4 text-gray-400" />;
     }
-  };
+  }, []);
 
-  const getYear = (result: SearchResult) => {
+  const getYear = useCallback((result: SearchResult) => {
     const date = result.release_date || result.first_air_date;
     return date ? new Date(date).getFullYear() : "";
-  };
+  }, []);
 
   return (
     <div ref={searchRef} className={`relative w-full ${className}`}>
-      <motion.div
-        className="relative"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="relative">
         <div className="relative">
           <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-white/60" />
           <Input
@@ -324,10 +287,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
         </div>
 
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+          <div
             className="absolute top-full mt-2 w-full bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto overflow-x-hidden"
             style={{ zIndex: 9999 }}
           >
@@ -338,85 +298,60 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
               </div>
             ) : results.length > 0 ? (
               <div className="py-2 overflow-x-hidden">
-                {(() => {
-                  // Check localStorage every time for the most current setting
-                  const hideAdult = shouldHideAdultContent();
+                {hiddenCount > 0 && (
+                  <div className="px-4 py-2 mb-2 bg-yellow-600/20 border border-yellow-600/30 rounded-lg mx-2">
+                    <p className="text-yellow-200 text-sm text-center">
+                      {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings
+                    </p>
+                  </div>
+                )}
+                
+                {filteredResults.map((result, index) => (
+                  <div
+                    key={`${result.media_type}-${result.id}-${index}`}
+                    onClick={() => handleResultClick(result)}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex
+                      ? "bg-white/20"
+                      : "hover:bg-white/10"
+                      }`}
+                  >
+                    <div className="flex-shrink-0">
+                      {getMediaIcon(result.media_type)}
+                    </div>
 
-                  const filteredResults = results.filter((result) => {
-                    const isSensitive = result.adult || containsSensitiveContent(result.title || result.name || "");
+                    {(result.poster_path || result.profile_path) && (
+                      <div className="flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800">
+                        <Image
+                          src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
+                          alt={result.title || result.name || ""}
+                          fill
+                          className="object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
 
-                    // If user wants to hide adult content and user is not admin, filter out sensitive content
-                    if (hideAdult && !isAdmin && isSensitive) {
-                      return false;
-                    }
-                    return true;
-                  });
-
-                  const hiddenCount = results.length - filteredResults.length;
-
-                  return (
-                    <>
-                      {hiddenCount > 0 && (
-                        <div className="px-4 py-2 mb-2 bg-yellow-600/20 border border-yellow-600/30 rounded-lg mx-2">
-                          <p className="text-yellow-200 text-sm text-center">
-                            {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings
-                          </p>
-                        </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <h3 className="text-white font-medium truncate text-left">
+                        {result.title || result.name}
+                      </h3>
+                      <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
+                        {result.media_type}
+                        {result.known_for_department && ` • ${result.known_for_department}`}
+                        {getYear(result) && ` • ${getYear(result)}`}
+                        {result.vote_average && result.vote_average > 0 && (
+                          <span className="text-yellow-400">⭐ {result.vote_average.toFixed(1)}</span>
+                        )}
+                      </p>
+                      {result.overview && (
+                        <p className="text-white/50 text-xs mt-1 truncate text-left">
+                          {result.overview}
+                        </p>
                       )}
+                    </div>
+                  </div>
+                ))}
 
-                      {filteredResults.map((result, index) => {
-                        return (
-                          <motion.div
-                            key={`${result.media_type}-${result.id}-${index}`}
-                            onClick={() => handleResultClick(result)}
-                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex
-                              ? "bg-white/20"
-                              : "hover:bg-white/10"
-                              }`}
-                            whileHover={{ scale: 1.04 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div className="flex-shrink-0">
-                              {getMediaIcon(result.media_type)}
-                            </div>
-
-                            {(result.poster_path || result.profile_path) && (
-                              <div className="flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800 transition-all duration-300">
-                                <Image
-                                  src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
-                                  alt={result.title || result.name || ""}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                            )}
-
-                            <div className="flex-1 min-w-0 text-left">
-                              <h3 className="text-white font-medium truncate text-left">
-                                {result.title || result.name}
-                              </h3>
-                              <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
-                                {result.media_type}
-                                {result.known_for_department && ` • ${result.known_for_department}`}
-                                {getYear(result) && ` • ${getYear(result)}`}
-                                {result.vote_average && result.vote_average > 0 && (
-                                  <span className="text-yellow-400">⭐ {result.vote_average.toFixed(1)}</span>
-                                )}
-                              </p>
-                              {result.overview && (
-                                <p className="text-white/50 text-xs mt-1 truncate text-left">
-                                  {result.overview}
-                                </p>
-                              )}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </>
-                  );
-                })()}
-
-                {/* Load More Button */}
                 {hasMoreResults && (
                   <div className="p-4 border-t border-white/10">
                     <button
@@ -445,9 +380,9 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
                 <p>No results found for &quot;{query}&quot;</p>
               </div>
             ) : null}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }
