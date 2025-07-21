@@ -175,6 +175,8 @@ function CardsGrid({
   type: "tv";
   isLoading: boolean;
 }) {
+  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+
   // Helper functions
   const getYear = (show: TVShow) => {
     return show.first_air_date ? new Date(show.first_air_date).getFullYear() : null;
@@ -282,12 +284,15 @@ function CardsGrid({
               ) : null}
 
               <Image
-                src={item.poster_url}
+                src={item.poster_url || "/placeholder.jpg"}
                 alt={item.name}
                 width={230}
                 height={340}
-                className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${item.adult || containsSensitiveContent(item.name) ? 'blur-sm group-hover:blur-none' : ''
-                  }`}
+                className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${
+                  !isAdmin && (item.adult || containsSensitiveContent(item.name)) 
+                    ? 'blur-sm group-hover:blur-none' 
+                    : ''
+                }`}
               />
 
               {/* Enhanced Gradient Overlay */}

@@ -118,7 +118,7 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
                 <div className="relative group overflow-hidden rounded-2xl">
                   {/* Badge */}
                   {getBadge(movie) && (
-                    <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-full text-xs font-bold text-white ${getBadge(movie)?.color}`}>
+                    <div className={`absolute top-2 left-2 z-20 px-2 rounded-full font-bold text-white ${getBadge(movie)?.color}`}>
                       {getBadge(movie)?.text}
                     </div>
                   )}

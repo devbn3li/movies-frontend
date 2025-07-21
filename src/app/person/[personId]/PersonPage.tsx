@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, MapPin, Star, Film, Tv, Camera } from "lucide-react";
 import SocialMediaLinks from "@/components/common/SocialMediaLinks/SocialMediaLinks";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PersonPageProps {
   personId: number;
@@ -37,6 +38,7 @@ export default function PersonPage({ personId }: PersonPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFullBio, setShowFullBio] = useState(false);
+  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
 
   useEffect(() => {
     const fetchPersonData = async () => {
@@ -336,11 +338,11 @@ export default function PersonPage({ personId }: PersonPageProps) {
                     </div>
 
                     <TabsContent value="movies" className="p-4 sm:p-6 mt-0">
-                      <FilmographyGrid credits={allMovieCredits} mediaType="movie" />
+                      <FilmographyGrid credits={allMovieCredits} mediaType="movie" isAdmin={isAdmin} />
                     </TabsContent>
 
                     <TabsContent value="tv" className="p-4 sm:p-6 mt-0">
-                      <FilmographyGrid credits={allTVCredits} mediaType="tv" />
+                      <FilmographyGrid credits={allTVCredits} mediaType="tv" isAdmin={isAdmin} />
                     </TabsContent>
 
                     <TabsContent value="photos" className="p-4 sm:p-6 mt-0">
@@ -360,10 +362,12 @@ export default function PersonPage({ personId }: PersonPageProps) {
 // Filmography Grid Component
 function FilmographyGrid({
   credits,
-  mediaType
+  mediaType,
+  isAdmin
 }: {
   credits: (PersonMovieCredit | PersonTVCredit)[],
-  mediaType: 'movie' | 'tv'
+  mediaType: 'movie' | 'tv',
+  isAdmin: boolean
 }) {
   const [showAll, setShowAll] = useState(false);
   const displayedCredits = showAll ? credits : credits.slice(0, 12);
@@ -395,14 +399,14 @@ function FilmographyGrid({
                     alt={mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
                     fill
                     className={`object-cover group-hover:scale-105 transition-all duration-200 ${
-                      isAdult ? 'blur-sm group-hover:blur-none' : ''
+                      !isAdmin && isAdult ? 'blur-sm group-hover:blur-none' : ''
                     }`}
                   />
                   
                   {/* Adult Content Badge */}
                   {isAdult && (
-                    <div className="absolute top-2 right-2 bg-red-600/90 backdrop-blur-sm px-2 rounded-md group-hover:opacity-0 transition-opacity duration-200">
-                      <span className="text-white text-xs font-bold">18+</span>
+                    <div className="absolute top-2 right-2 bg-red-600/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs group-hover:opacity-0 transition-opacity duration-200">
+                      <span className="text-white font-bold">18+</span>
                     </div>
                   )}
                   
