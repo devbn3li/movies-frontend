@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Search, X, Film, Tv, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { containsSensitiveContent, shouldHideAdultContent } from "@/lib/utils";
 import Image from "next/image";
 
 interface SearchResult {
@@ -337,62 +338,83 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
               </div>
             ) : results.length > 0 ? (
               <div className="py-2 overflow-x-hidden">
-                {results.map((result, index) => (
-                  <motion.div
-                    key={`${result.media_type}-${result.id}-${index}`}
-                    onClick={() => handleResultClick(result)}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex
-                      ? "bg-white/20"
-                      : "hover:bg-white/10"
-                      }`}
-                    whileHover={{ scale: 1.04 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex-shrink-0">
-                      {getMediaIcon(result.media_type)}
-                    </div>
+                {(() => {
+                  // Check localStorage every time for the most current setting
+                  const hideAdult = shouldHideAdultContent();
 
-                    {(result.poster_path || result.profile_path) && (
-                      <div className={`flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800 transition-all duration-300 ${
-                        result.adult && !isAdmin ? 'blur-sm group-hover:blur-none' : ''
-                      }`}>
-                        <Image
-                          src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
-                          alt={result.title || result.name || ""}
-                          fill
-                          className="object-cover"
-                        />
-                        {result.adult && !isAdmin && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-300">
-                            <span className="text-white text-xs font-bold">18+</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                  const filteredResults = results.filter((result) => {
+                    const isSensitive = result.adult || containsSensitiveContent(result.title || result.name || "");
 
-                    <div className="flex-1 min-w-0 text-left">
-                      <h3 className="text-white font-medium truncate text-left">
-                        {result.title || result.name}
-                      </h3>
-                      <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
-                        {result.media_type}
-                        {result.adult && (
-                          <span className=" text-white/60 text-sm"> • Adult</span>
-                        )}
-                        {result.known_for_department && ` • ${result.known_for_department}`}
-                        {getYear(result) && ` • ${getYear(result)}`}
-                        {result.vote_average && result.vote_average > 0 && (
-                          <span className="text-yellow-400">⭐ {result.vote_average.toFixed(1)}</span>
-                        )}
-                      </p>
-                      {result.overview && (
-                        <p className="text-white/50 text-xs mt-1 truncate text-left">
-                          {result.overview}
-                        </p>
+                    // If user wants to hide adult content and user is not admin, filter out sensitive content
+                    if (hideAdult && !isAdmin && isSensitive) {
+                      return false;
+                    }
+                    return true;
+                  });
+
+                  const hiddenCount = results.length - filteredResults.length;
+
+                  return (
+                    <>
+                      {hiddenCount > 0 && (
+                        <div className="px-4 py-2 mb-2 bg-yellow-600/20 border border-yellow-600/30 rounded-lg mx-2">
+                          <p className="text-yellow-200 text-sm text-center">
+                            {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings
+                          </p>
+                        </div>
                       )}
-                    </div>
-                  </motion.div>
-                ))}
+
+                      {filteredResults.map((result, index) => {
+                        return (
+                          <motion.div
+                            key={`${result.media_type}-${result.id}-${index}`}
+                            onClick={() => handleResultClick(result)}
+                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex
+                              ? "bg-white/20"
+                              : "hover:bg-white/10"
+                              }`}
+                            whileHover={{ scale: 1.04 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div className="flex-shrink-0">
+                              {getMediaIcon(result.media_type)}
+                            </div>
+
+                            {(result.poster_path || result.profile_path) && (
+                              <div className="flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800 transition-all duration-300">
+                                <Image
+                                  src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
+                                  alt={result.title || result.name || ""}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+
+                            <div className="flex-1 min-w-0 text-left">
+                              <h3 className="text-white font-medium truncate text-left">
+                                {result.title || result.name}
+                              </h3>
+                              <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
+                                {result.media_type}
+                                {result.known_for_department && ` • ${result.known_for_department}`}
+                                {getYear(result) && ` • ${getYear(result)}`}
+                                {result.vote_average && result.vote_average > 0 && (
+                                  <span className="text-yellow-400">⭐ {result.vote_average.toFixed(1)}</span>
+                                )}
+                              </p>
+                              {result.overview && (
+                                <p className="text-white/50 text-xs mt-1 truncate text-left">
+                                  {result.overview}
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
 
                 {/* Load More Button */}
                 {hasMoreResults && (

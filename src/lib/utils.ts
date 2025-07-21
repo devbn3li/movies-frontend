@@ -30,3 +30,9 @@ export function containsSensitiveContent(title: string): boolean {
   const titleLower = title.toLowerCase();
   return sensitiveWords.some((word) => titleLower.includes(word));
 }
+
+export function shouldHideAdultContent(): boolean {
+  if (typeof window === "undefined") return true; // SSR fallback
+  const stored = localStorage.getItem("hideAdultContent");
+  return stored ? JSON.parse(stored) : true;
+}

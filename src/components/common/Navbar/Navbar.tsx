@@ -14,16 +14,19 @@ import {
   DropdownMenuGroup,
   DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu"
+import { Switch } from "@/components/ui/switch";
 import { LuLogOut } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 import { CgProfile } from "react-icons/cg";
 import { RxDashboard } from "react-icons/rx";
+import { useAdultContent } from "@/hooks/useAdultContent";
 
 export default function Navbar() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const dropdownRef = useRef(null);
+  const { hideAdultContent, toggleAdultContent } = useAdultContent();
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -89,6 +92,19 @@ export default function Navbar() {
                     </DropdownMenuItem>
                   </Link>
                 )}
+
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <div className="flex items-center justify-between w-full">
+                    <span>Hide Adult Content</span>
+                    <Switch
+                      checked={hideAdultContent}
+                      onCheckedChange={() => {
+                        toggleAdultContent();
+                      }}
+                      className="ml-2"
+                    />
+                  </div>
+                </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
