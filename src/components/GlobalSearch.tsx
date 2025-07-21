@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, X, Film, Tv, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
 
 interface SearchResult {
@@ -33,6 +34,7 @@ interface GlobalSearchProps {
 }
 
 export default function GlobalSearch({ className }: GlobalSearchProps) {
+  const { isAdmin } = useAuth();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -339,7 +341,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
                   <motion.div
                     key={`${result.media_type}-${result.id}-${index}`}
                     onClick={() => handleResultClick(result)}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${index === selectedIndex
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex
                       ? "bg-white/20"
                       : "hover:bg-white/10"
                       }`}
@@ -351,13 +353,20 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
                     </div>
 
                     {(result.poster_path || result.profile_path) && (
-                      <div className="flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800">
+                      <div className={`flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800 transition-all duration-300 ${
+                        result.adult && !isAdmin ? 'blur-sm group-hover:blur-none' : ''
+                      }`}>
                         <Image
                           src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
                           alt={result.title || result.name || ""}
                           fill
                           className="object-cover"
                         />
+                        {result.adult && !isAdmin && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-300">
+                            <span className="text-white text-xs font-bold">18+</span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -368,7 +377,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
                       <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
                         {result.media_type}
                         {result.adult && (
-                          <span className="text-white text-sm">• 18+</span>
+                          <span className=" text-white/60 text-sm"> • Adult</span>
                         )}
                         {result.known_for_department && ` • ${result.known_for_department}`}
                         {getYear(result) && ` • ${getYear(result)}`}
