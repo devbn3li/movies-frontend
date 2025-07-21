@@ -29,7 +29,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      images: [{ url: item.poster_url, width: 1200, height: 630, alt: title }],
+      images: [{ url: item.poster_url || '/placeholder.jpg', width: 1200, height: 630, alt: title }],
       type: "article",
       url,
     },
@@ -37,7 +37,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [item.poster_url],
+      images: [item.poster_url || '/placeholder.jpg'],
     },
     alternates: {
       canonical: url,

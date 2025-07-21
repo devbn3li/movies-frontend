@@ -7,7 +7,7 @@ export type WatchlistItem = {
   id: number;
   type: "movie" | "tv";
   title: string;
-  poster_url: string;
+  poster_url: string | null;
   release_date?: string;
   first_air_date?: string;
   vote_average: number;

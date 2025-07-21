@@ -413,7 +413,7 @@ const DashboardPage = () => {
                   >
                     <div className="relative">
                       <Image
-                        src={item.poster_url}
+                        src={item.poster_url || "/placeholder.jpg"}
                         alt={"title" in item ? item.title : item.name}
                         width={60}
                         height={90}
