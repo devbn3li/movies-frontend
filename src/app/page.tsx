@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import TrendingNow from "@/components/TrendingNow";
+import AuthModal from "@/components/AuthModal";
 import poster from "@/assets/larg_bg_en.jpg";
 import Image from "next/image";
 
@@ -59,16 +60,18 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 1.6 }}
           >
-            <motion.button
-              className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect"
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 10px 25px rgba(255, 255, 255, 0.2)"
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Start Watching
-            </motion.button>
+            <AuthModal>
+              <motion.button
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect"
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px rgba(255, 255, 255, 0.2)"
+                }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Start Watching
+              </motion.button>
+            </AuthModal>
           </motion.div>
         </motion.header>
       </section>
