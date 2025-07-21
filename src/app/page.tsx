@@ -2,18 +2,22 @@
 import { motion } from "framer-motion";
 import TrendingNow from "@/components/TrendingNow";
 import AuthModal from "@/components/AuthModal";
+import GlobalSearch from "@/components/GlobalSearch";
+import { useAuth } from "@/hooks/useAuth";
 import poster from "@/assets/larg_bg_en.jpg";
 import Image from "next/image";
 
 export default function HomePage() {
+  const { isAuthenticated, loading } = useAuth();
+
   return (
     <main className="flex flex-col">
-      <section className="relative h-[calc(100vh-4rem)] w-full overflow-hidden">
+      <section className="relative h-[calc(100vh-4rem)] w-full">
         <motion.div
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.5 }}
-          className="absolute inset-0"
+          className="absolute inset-0 overflow-hidden"
         >
           <Image
             src={poster}
@@ -60,18 +64,31 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 1.6 }}
           >
-            <AuthModal>
-              <motion.button
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect"
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 10px 25px rgba(255, 255, 255, 0.2)"
-                }}
-                whileTap={{ scale: 0.98 }}
+            {!loading && !isAuthenticated && (
+              <AuthModal>
+                <motion.button
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect"
+                  whileHover={{
+                    scale: 1.05,
+                    boxShadow: "0 10px 25px rgba(255, 255, 255, 0.2)"
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Start Watching
+                </motion.button>
+              </AuthModal>
+            )}
+            {!loading && isAuthenticated && (
+              <motion.div
+                className="text-center w-[600px] max-w-7xl mx-auto relative"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{ zIndex: 1000 }}
               >
-                Start Watching
-              </motion.button>
-            </AuthModal>
+                <GlobalSearch className="w-[600px] relative" />
+              </motion.div>
+            )}
           </motion.div>
         </motion.header>
       </section>
