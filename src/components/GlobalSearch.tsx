@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Search, X, Film, Tv, User } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { containsSensitiveContent, shouldHideAdultContent } from "@/lib/utils";
-import Image from "next/image";
+import { containsSensitiveContent } from "@/lib/utils";
+import { SearchResultItem } from "./SearchResultItem";
+import { LoadingSpinner, LoadMoreButton } from "./SearchComponents";
 
 interface SearchResult {
   id: number;
@@ -47,12 +48,23 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Cache for search results to avoid duplicate API calls
+  const searchCacheRef = useRef<Map<string, { results: SearchResult[], timestamp: number }>>(new Map());
 
-  // Memoize adult content setting
-  const hideAdultContent = useMemo(() => shouldHideAdultContent(), []);
+  // Memoize adult content setting to prevent unnecessary re-reads
+  const hideAdultContent = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem('hideAdultContent');
+    return stored === 'true';
+  }, []);
 
   // Memoize filtered results for better performance
   const { filteredResults, hiddenCount } = useMemo(() => {
+    if (results.length === 0) {
+      return { filteredResults: [], hiddenCount: 0 };
+    }
+    
     const filtered = results.filter((result) => {
       const isSensitive = result.adult || containsSensitiveContent(result.title || result.name || "");
       
@@ -142,6 +154,23 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       return;
     }
 
+    // Check cache first (valid for 5 minutes)
+    const cacheKey = `${searchQuery}_${page}`;
+    const cached = searchCacheRef.current.get(cacheKey);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp) < 300000) { // 5 minutes
+      const sortedResults = cached.results.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+      
+      if (appendResults) {
+        setResults(prev => [...prev, ...sortedResults]);
+      } else {
+        setResults(sortedResults);
+      }
+      setHasMoreResults(page < totalPages);
+      return;
+    }
+
     if (appendResults) {
       setIsLoadingMore(true);
     } else {
@@ -177,6 +206,12 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
         });
       }
 
+      // Cache the results
+      searchCacheRef.current.set(cacheKey, {
+        results: newResults,
+        timestamp: now
+      });
+
       setCurrentPage(page);
       setTotalPages(data.total_pages || 1);
       setHasMoreResults(page < (data.total_pages || 1));
@@ -198,7 +233,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [totalPages]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -217,7 +252,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
 
       debounceTimeoutRef.current = setTimeout(() => {
         searchMulti(value, 1, false);
-      }, 300);
+      }, 200); // Reduced from 300ms to 200ms for faster response
     } else {
       setIsOpen(false);
       setResults([]);
@@ -243,24 +278,6 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       searchMulti(query, nextPage, true);
     }
   }, [hasMoreResults, isLoadingMore, query, currentPage, searchMulti]);
-
-  const getMediaIcon = useCallback((mediaType?: string) => {
-    switch (mediaType) {
-      case "movie":
-        return <Film className="h-4 w-4 text-blue-400" />;
-      case "tv":
-        return <Tv className="h-4 w-4 text-green-400" />;
-      case "person":
-        return <User className="h-4 w-4 text-purple-400" />;
-      default:
-        return <Search className="h-4 w-4 text-gray-400" />;
-    }
-  }, []);
-
-  const getYear = useCallback((result: SearchResult) => {
-    const date = result.release_date || result.first_air_date;
-    return date ? new Date(date).getFullYear() : "";
-  }, []);
 
   return (
     <div ref={searchRef} className={`relative w-full ${className}`}>
@@ -292,10 +309,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
             style={{ zIndex: 9999 }}
           >
             {isLoading ? (
-              <div className="p-6 text-center text-white/60">
-                <div className="animate-spin h-8 w-8 border-2 border-white/20 border-t-white/60 rounded-full mx-auto mb-3"></div>
-                <p className="text-sm">Searching movies, TV shows & people...</p>
-              </div>
+              <LoadingSpinner />
             ) : results.length > 0 ? (
               <div className="py-2 overflow-x-hidden">
                 {hiddenCount > 0 && (
@@ -307,71 +321,22 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
                 )}
                 
                 {filteredResults.map((result, index) => (
-                  <div
+                  <SearchResultItem
                     key={`${result.media_type}-${result.id}-${index}`}
-                    onClick={() => handleResultClick(result)}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex
-                      ? "bg-white/20"
-                      : "hover:bg-white/10"
-                      }`}
-                  >
-                    <div className="flex-shrink-0">
-                      {getMediaIcon(result.media_type)}
-                    </div>
-
-                    {(result.poster_path || result.profile_path) && (
-                      <div className="flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800">
-                        <Image
-                          src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
-                          alt={result.title || result.name || ""}
-                          fill
-                          className="object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex-1 min-w-0 text-left">
-                      <h3 className="text-white font-medium truncate text-left">
-                        {result.title || result.name}
-                      </h3>
-                      <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
-                        {result.media_type}
-                        {result.known_for_department && ` • ${result.known_for_department}`}
-                        {getYear(result) && ` • ${getYear(result)}`}
-                        {result.vote_average && result.vote_average > 0 && (
-                          <span className="text-yellow-400">⭐ {result.vote_average.toFixed(1)}</span>
-                        )}
-                      </p>
-                      {result.overview && (
-                        <p className="text-white/50 text-xs mt-1 truncate text-left">
-                          {result.overview}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                    result={result}
+                    index={index}
+                    selectedIndex={selectedIndex}
+                    onResultClick={handleResultClick}
+                  />
                 ))}
 
                 {hasMoreResults && (
-                  <div className="p-4 border-t border-white/10">
-                    <button
-                      onClick={loadMoreResults}
-                      disabled={isLoadingMore}
-                      className="w-full py-3 px-4 bg-white/10 hover:bg-white/20 disabled:bg-white/5 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      {isLoadingMore ? (
-                        <>
-                          <div className="animate-spin h-4 w-4 border-2 border-white/20 border-t-white/60 rounded-full"></div>
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          Load More Results
-                          <span className="text-white/60">({currentPage}/{totalPages})</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  <LoadMoreButton
+                    onClick={loadMoreResults}
+                    isLoading={isLoadingMore}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                  />
                 )}
               </div>
             ) : query.trim() ? (
