@@ -42,8 +42,8 @@ const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
   overview: tmdbMovie.overview,
   release_date: tmdbMovie.release_date,
   genre_names: tmdbMovie.genres.map(g => g.name),
-  poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : "/placeholder.jpg",
-  backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbMovie.backdrop_path}` : "/placeholder.jpg",
+  poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+  backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbMovie.backdrop_path}` : null,
   popularity: tmdbMovie.popularity,
   vote_average: tmdbMovie.vote_average,
   vote_count: tmdbMovie.vote_count,
@@ -126,8 +126,11 @@ export default function MoviePage({ movieId }: { movieId: string }) {
   const rDate = "release_date" in item ? item.release_date : item.first_air_date;
   const original_title = "original_title" in item ? item.original_title : item.original_name;
   const poster = item.poster_url || "/placeholder.jpg";
-  const backdrop = item.backdrop_url || poster;
+  const backdrop = item.backdrop_url || item.poster_url || "/placeholder.jpg";
   const mediaType = "title" in item ? "movie" : "tv";
+
+  // Check if we're using poster as backdrop (no backdrop available)
+  const isUsingPosterAsBackdrop = !item.backdrop_url && item.poster_url;
 
   return (
     <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
@@ -182,9 +185,12 @@ export default function MoviePage({ movieId }: { movieId: string }) {
             <Image
               src={backdrop}
               alt={title}
-              className="object-cover mb-4 aspect-video rounded-2xl shadow-xl"
-              width={1080}
-              height={480}
+              className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
+                  ? "aspect-[2/3] max-w-md mx-auto"
+                  : "aspect-video"
+                }`}
+              width={isUsingPosterAsBackdrop ? 400 : 1080}
+              height={isUsingPosterAsBackdrop ? 600 : 480}
             />
           </div>
         </div>

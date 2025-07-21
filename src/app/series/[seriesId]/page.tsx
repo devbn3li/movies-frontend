@@ -40,8 +40,8 @@ const convertTMDBToLocal = (tmdbShow: TMDBTVShow): TVShow => ({
   overview: tmdbShow.overview,
   first_air_date: tmdbShow.first_air_date,
   genre_names: tmdbShow.genres.map(g => g.name),
-  poster_url: tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}` : "/placeholder.jpg",
-  backdrop_url: tmdbShow.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbShow.backdrop_path}` : "/placeholder.jpg",
+  poster_url: tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}` : null,
+  backdrop_url: tmdbShow.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbShow.backdrop_path}` : null,
   popularity: tmdbShow.popularity,
   vote_average: tmdbShow.vote_average,
   vote_count: tmdbShow.vote_count,
@@ -126,8 +126,11 @@ export default function SeriesPage() {
   const rDate = item.first_air_date;
   const original_title = item.original_name;
   const poster = item.poster_url || "/placeholder.jpg";
-  const backdrop = item.backdrop_url || poster;
+  const backdrop = item.backdrop_url || item.poster_url || "/placeholder.jpg";
   const mediaType = "tv";
+
+  // Check if we're using poster as backdrop (no backdrop available)
+  const isUsingPosterAsBackdrop = !item.backdrop_url && item.poster_url;
 
   return (
     <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
@@ -167,9 +170,12 @@ export default function SeriesPage() {
             <Image
               src={backdrop}
               alt={title}
-              className="object-cover mb-4 aspect-video rounded-2xl shadow-xl"
-              width={1080}
-              height={480}
+              className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
+                  ? "aspect-[2/3] max-w-md mx-auto"
+                  : "aspect-video"
+                }`}
+              width={isUsingPosterAsBackdrop ? 400 : 1080}
+              height={isUsingPosterAsBackdrop ? 600 : 480}
             />
           </div>
         </div>

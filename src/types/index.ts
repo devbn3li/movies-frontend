@@ -5,8 +5,8 @@ export type Movie = {
   overview: string;
   release_date: string;
   genre_names: string[];
-  poster_url: string;
-  backdrop_url: string;
+  poster_url: string | null;
+  backdrop_url: string | null;
   popularity: number;
   vote_average: number;
   vote_count: number;
@@ -22,8 +22,8 @@ export type TVShow = {
   overview: string;
   first_air_date: string;
   genre_names: string[];
-  poster_url: string;
-  backdrop_url: string;
+  poster_url: string | null;
+  backdrop_url: string | null;
   popularity: number;
   vote_average: number;
   vote_count: number;
