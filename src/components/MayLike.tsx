@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { containsSensitiveContent } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Movie {
   id: string;
@@ -27,6 +28,7 @@ interface Movie {
 
 const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) => {
   const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
+  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
 
   // Helper functions
   const getYear = (movie: Movie) => {
@@ -134,7 +136,9 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
                   <Image
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title || movie.name || "Poster"}
-                    className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${movie.adult || containsSensitiveContent(movie.title || movie.name || "") ? 'blur-sm group-hover:blur-none' : ''
+                    className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movie.title || movie.name || ""))
+                        ? 'blur-sm group-hover:blur-none'
+                        : ''
                       }`}
                     width={280}
                     height={420}
