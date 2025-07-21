@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, MapPin, Star, Film, Tv, Camera } from "lucide-react";
 import SocialMediaLinks from "@/components/common/SocialMediaLinks/SocialMediaLinks";
 import { useAuth } from "@/hooks/useAuth";
+import { containsSensitiveContent } from "@/lib/utils";
 
 interface PersonPageProps {
   personId: number;
@@ -385,7 +386,13 @@ function FilmographyGrid({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {displayedCredits.map((credit) => {
           const isAdult = credit.adult || false;
-          
+          const title = mediaType === 'movie' 
+            ? (credit as PersonMovieCredit).title || ''
+            : (credit as PersonTVCredit).name || '';
+          const isSensitive = containsSensitiveContent(title);
+          const shouldBlur = !isAdmin && (isAdult || isSensitive);
+          const shouldShowBadge = isAdult || isSensitive;
+
           return (
             <div key={credit.credit_id} className="group">
               <Link href={`/${mediaType === 'movie' ? 'movie' : 'series'}/${credit.id}`}>
@@ -396,25 +403,27 @@ function FilmographyGrid({
                         ? `https://image.tmdb.org/t/p/w300${credit.poster_path}`
                         : '/placeholder-avatar.svg'
                     }
-                    alt={mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
+                    alt={title}
                     fill
-                    className={`object-cover group-hover:scale-105 transition-all duration-200 ${
-                      !isAdmin && isAdult ? 'blur-sm group-hover:blur-none' : ''
-                    }`}
+                    className={`object-cover group-hover:scale-105 transition-all duration-200 ${shouldBlur ? 'blur-sm group-hover:blur-none' : ''
+                      }`}
                   />
-                  
-                  {/* Adult Content Badge */}
-                  {isAdult && (
-                    <div className="absolute top-2 right-2 bg-red-600/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs group-hover:opacity-0 transition-opacity duration-200">
-                      <span className="text-white font-bold">18+</span>
+
+                  {/* Content Badge */}
+                  {shouldShowBadge && (
+                    <div className={`absolute top-2 right-2 backdrop-blur-sm px-2 py-1 rounded-full text-xs group-hover:opacity-0 transition-opacity duration-200 ${isAdult ? 'bg-red-600/90' : 'bg-orange-600/90'
+                      }`}>
+                      <span className="text-white font-bold">
+                        {isAdult ? '18+' : 'SENSITIVE'}
+                      </span>
                     </div>
                   )}
-                  
+
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                 </div>
                 <div className="mt-2">
                   <h3 className="text-white text-sm font-medium line-clamp-2">
-                    {mediaType === 'movie' ? (credit as PersonMovieCredit).title : (credit as PersonTVCredit).name}
+                    {title}
                   </h3>
                   <p className="text-gray-400 text-xs">
                     {credit.character || credit.job}

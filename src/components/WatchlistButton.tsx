@@ -33,17 +33,17 @@ const WatchlistButton: React.FC<WatchlistButtonProps> = ({
   return (
     <button
       onClick={handleToggle}
-      className={`group flex items-center gap-2 p-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${inWatchlist
-          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
-          : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 hover:shadow-lg'
+      className={`group flex items-center gap-2 p-2 rounded-lg transition-all duration-300 transform hover:scale-105 backdrop-blur-md border border-white/20 ${inWatchlist
+        ? 'bg-red-500/80 hover:bg-red-600/90 text-white shadow-lg shadow-red-500/20'
+        : 'bg-white/10 hover:bg-white/20 text-white hover:shadow-lg shadow-black/10'
         } ${className}`}
       title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
     >
       <Heart
         size={20}
         className={`transition-all duration-300 ${inWatchlist
-            ? 'fill-current animate-pulse'
-            : 'group-hover:scale-110'
+          ? 'fill-current animate-pulse'
+          : 'group-hover:scale-110'
           }`}
       />
       {showText && (

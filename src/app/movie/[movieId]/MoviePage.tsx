@@ -276,7 +276,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
           <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
         </div>
 
-        <div className="mt-10">
+        <div className="mt-10 max-w-[1080px] w-full">
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} />}
         </div>
 
