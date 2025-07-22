@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdultContentFilter } from "@/hooks/useAdultContentFilter";
 import { containsSensitiveContent } from "@/lib/utils";
+import { trackSearch } from "@/lib/analytics";
 import { SearchResultItem } from "./SearchResultItem";
 import { LoadingSpinner, LoadMoreButton } from "./SearchComponents";
 
@@ -224,6 +225,8 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
         setResults(prev => [...prev, ...sortedResults]);
       } else {
         setResults(sortedResults);
+        // Track search event only for new searches (not pagination)
+        trackSearch(searchQuery, sortedResults.length);
       }
     } catch (error) {
       console.error("Search error:", error);

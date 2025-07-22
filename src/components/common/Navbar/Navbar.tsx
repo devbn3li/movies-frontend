@@ -4,6 +4,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { trackNavigationClick } from "@/lib/analytics";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +49,11 @@ export default function Navbar() {
 
   return (
     <div className="p-4 flex justify-between bg-white items-center border-b dark:border-[#333333] sm:px-20 sticky top-0 dark:bg-black/70 dark:backdrop-blur-md dark:shadow-xl z-50">
-      <Link href="/" className="text-xl font-bold max-sm:ml-8">
+      <Link 
+        href="/" 
+        className="text-xl font-bold max-sm:ml-8"
+        onClick={() => trackNavigationClick('Logo/Home', '/')}
+      >
         Movie Zone
       </Link>
 
@@ -77,7 +82,11 @@ export default function Navbar() {
               <DropdownMenuSeparator />
 
               <DropdownMenuGroup>
-                <Link href="/profile" passHref>
+                <Link 
+                  href="/profile" 
+                  passHref
+                  onClick={() => trackNavigationClick('Profile', '/profile')}
+                >
                   <DropdownMenuItem>
                     Profile
                     <DropdownMenuShortcut><CgProfile /></DropdownMenuShortcut>
@@ -85,7 +94,11 @@ export default function Navbar() {
                 </Link>
 
                 {user.isAdmin && (
-                  <Link href="/dashboard" passHref>
+                  <Link 
+                    href="/dashboard" 
+                    passHref
+                    onClick={() => trackNavigationClick('Dashboard', '/dashboard')}
+                  >
                     <DropdownMenuItem>
                       Dashboard
                       <DropdownMenuShortcut><RxDashboard /></DropdownMenuShortcut>

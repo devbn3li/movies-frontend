@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Film, Tv, User, Search } from "lucide-react";
 import Image from "next/image";
 import { containsSensitiveContent } from "@/lib/utils";
+import { trackSearchResultClick } from "@/lib/analytics";
 
 interface SearchResult {
   id: number;
@@ -63,9 +64,18 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
   selectedIndex,
   onResultClick
 }) {
+  const handleClick = () => {
+    // Track Analytics event
+    const title = result.title || result.name || 'Unknown';
+    trackSearchResultClick(title, result.id, index + 1);
+    
+    // Call the original click handler
+    onResultClick(result);
+  };
+
   return (
     <div
-      onClick={() => onResultClick(result)}
+      onClick={handleClick}
       className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex ? "bg-white/20" : "hover:bg-white/10"
         }`}
     >

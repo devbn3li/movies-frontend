@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CastMember, Credits } from "@/types/index";
 import { getCredits } from "@/lib/api";
+import { trackCastMemberClick } from "@/lib/analytics";
 
 /**
  * Cast component displays cast and crew information for movies and TV shows
@@ -13,9 +14,10 @@ import { getCredits } from "@/lib/api";
 interface CastProps {
   movieId: number; // Can be movie ID or TV show ID
   mediaType: 'movie' | 'tv';
+  movieTitle?: string; // Add movie title for analytics
 }
 
-export default function Cast({ movieId, mediaType }: CastProps) {
+export default function Cast({ movieId, mediaType, movieTitle = 'Unknown Title' }: CastProps) {
   const [credits, setCredits] = useState<Credits | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +121,7 @@ export default function Cast({ movieId, mediaType }: CastProps) {
             href={`/person/${castMember.id}`}
             key={castMember.cast_id}
             className="text-center group cursor-pointer"
+            onClick={() => trackCastMemberClick(castMember.name, movieTitle)}
           >
             <div className="relative mb-2">
               <Image

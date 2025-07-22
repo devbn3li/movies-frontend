@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Share2, Download, Copy, Check, MessageCircle, Send, Twitter, Facebook } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackShareClick, trackDownloadClick } from "@/lib/analytics";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +55,8 @@ Watch on MoviesDB: ${itemUrl}`;
       await navigator.clipboard.writeText(itemUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      // Track Analytics event
+      trackShareClick(title, id, 'copy_link');
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -64,6 +67,8 @@ Watch on MoviesDB: ${itemUrl}`;
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        // Track Analytics event
+        trackShareClick(title, id, 'native_share');
       } catch (err) {
         console.error("Share failed:", err);
       }
@@ -77,23 +82,31 @@ Watch on MoviesDB: ${itemUrl}`;
   const shareWhatsApp = () => {
     const whatsappText = encodeURIComponent(shareText);
     window.open(`https://wa.me/?text=${whatsappText}`, "_blank");
+    // Track Analytics event
+    trackShareClick(title, id, 'whatsapp');
   };
 
   // مشاركة عبر Telegram
   const shareTelegram = () => {
     const telegramText = encodeURIComponent(shareText);
     window.open(`https://t.me/share/url?url=${encodeURIComponent(itemUrl)}&text=${telegramText}`, "_blank");
+    // Track Analytics event
+    trackShareClick(title, id, 'telegram');
   };
 
   // مشاركة عبر Twitter
   const shareTwitter = () => {
     const twitterText = encodeURIComponent(`Check out "${title}" on MoviesDB! ${rating ? `⭐ ${rating.toFixed(1)}/10` : ""}`);
     window.open(`https://twitter.com/intent/tweet?text=${twitterText}&url=${encodeURIComponent(itemUrl)}`, "_blank");
+    // Track Analytics event
+    trackShareClick(title, id, 'twitter');
   };
 
   // مشاركة عبر Facebook
   const shareFacebook = () => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(itemUrl)}`, "_blank");
+    // Track Analytics event
+    trackShareClick(title, id, 'facebook');
   };
 
   // تحميل معلومات الفيلم/المسلسل كملف نصي
@@ -116,6 +129,9 @@ Downloaded from MoviesDB at ${new Date().toLocaleString()}`;
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    // Track Analytics event
+    trackDownloadClick(title, id);
   };
 
   // تحميل الصورة
@@ -133,6 +149,9 @@ Downloaded from MoviesDB at ${new Date().toLocaleString()}`;
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      // Track Analytics event
+      trackDownloadClick(`${title} Poster`, id);
     } catch (err) {
       console.error("Failed to download poster:", err);
     }

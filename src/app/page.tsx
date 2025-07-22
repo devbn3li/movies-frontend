@@ -4,11 +4,18 @@ import TrendingNow from "@/components/TrendingNow";
 import AuthModal from "@/components/AuthModal";
 import GlobalSearch from "@/components/GlobalSearch";
 import { useAuth } from "@/hooks/useAuth";
+import { useScrollTracking } from "@/hooks/useScrollTracking";
 import poster from "@/assets/larg_bg_en.jpg";
 import Image from "next/image";
 
 export default function HomePage() {
   const { isAuthenticated, loading } = useAuth();
+
+  // Scroll tracking
+  useScrollTracking({ 
+    pageName: 'Home Page', 
+    enabled: true 
+  });
 
   return (
     <main className="flex flex-col">

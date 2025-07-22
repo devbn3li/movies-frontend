@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 import { useWatchlistStore } from '@/store/watchlist';
+import { trackWatchlistAdd, trackWatchlistRemove } from '@/lib/analytics';
 import { Movie, TVShow } from '@/types';
 
 interface WatchlistButtonProps {
@@ -23,10 +24,17 @@ const WatchlistButton: React.FC<WatchlistButtonProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
+    const title = 'title' in item ? item.title : item.name;
+    const contentType = type === 'tv' ? 'series' : 'movie';
+
     if (inWatchlist) {
       removeFromWatchlist(item.id, type);
+      // Track Analytics event
+      trackWatchlistRemove(title || 'Unknown', item.id, contentType);
     } else {
       addToWatchlist(item, type);
+      // Track Analytics event
+      trackWatchlistAdd(title || 'Unknown', item.id, contentType);
     }
   };
 

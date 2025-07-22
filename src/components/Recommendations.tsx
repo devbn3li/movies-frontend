@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { trackRecommendationClick } from "@/lib/analytics";
 
 interface Movie {
   id: number;
@@ -28,7 +29,7 @@ interface Movie {
   original_name?: string;
 }
 
-const Recommendations = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) => {
+const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; type: "movie" | "tv"; originalTitle?: string }) => {
   const [recommendations, setRecommendations] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
@@ -142,7 +143,14 @@ const Recommendations = ({ movieId, type }: { movieId: string; type: "movie" | "
                 flex justify-center
               "
             >
-              <Link href={`/${type === 'tv' ? 'series' : 'movie'}/${movie.id}`} className="p-2 block group">
+              <Link 
+                href={`/${type === 'tv' ? 'series' : 'movie'}/${movie.id}`} 
+                className="p-2 block group"
+                onClick={() => {
+                  const recommendedTitle = movie.title || movie.name || 'Unknown';
+                  trackRecommendationClick(recommendedTitle, originalTitle || 'Unknown');
+                }}
+              >
                 <div className="relative overflow-hidden rounded-2xl">
                   {/* Badge */}
                   {getBadge(movie) && (

@@ -14,6 +14,8 @@ import Loading from "@/components/Loading";
 import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
+import { trackMoviePageView } from "@/lib/analytics";
+import { useScrollTracking } from "@/hooks/useScrollTracking";
 
 type Media = Movie | TVShow;
 
@@ -58,6 +60,12 @@ export default function MoviePage({ movieId }: { movieId: string }) {
   const [item, setItem] = useState<Media | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Scroll tracking
+  useScrollTracking({ 
+    pageName: `Movie Page - ${movieId}`, 
+    enabled: !isLoading && !!item 
+  });
+
   useEffect(() => {
     if (!id) {
       setIsLoading(false);
@@ -79,6 +87,10 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         console.log(`✅ Found movie ${id} locally:`, "title" in localItem ? localItem.title : localItem.name);
         setItem(localItem);
         setIsLoading(false);
+        
+        // Track Analytics page view
+        const title = "title" in localItem ? localItem.title : localItem.name;
+        trackMoviePageView(title || 'Unknown', localItem.id);
         return;
       }
 
@@ -100,6 +112,9 @@ export default function MoviePage({ movieId }: { movieId: string }) {
           console.log(`✅ Successfully fetched movie ${id} from TMDB:`, tmdbData.title);
           const convertedItem = convertTMDBToLocal(tmdbData);
           setItem(convertedItem);
+          
+          // Track Analytics page view
+          trackMoviePageView(tmdbData.title || 'Unknown', tmdbData.id);
         } else {
           console.log(`❌ Movie ${id} not found on TMDB (Status: ${response.status})`);
           setItem(null);
@@ -322,10 +337,10 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         </div>
 
         <div className="mt-10 max-w-[1080px] w-full">
-          {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} />}
+          {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
         </div>
 
-        {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} />}
+        {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
         {movieId && <MayLike movieId={movieId} type={mediaType} />}
         {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
       </div>
