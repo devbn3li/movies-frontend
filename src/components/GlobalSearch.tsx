@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdultContentFilter } from "@/hooks/useAdultContentFilter";
 import { containsSensitiveContent } from "@/lib/utils";
 import { SearchResultItem } from "./SearchResultItem";
 import { LoadingSpinner, LoadMoreButton } from "./SearchComponents";
@@ -36,6 +37,7 @@ interface GlobalSearchProps {
 
 export default function GlobalSearch({ className }: GlobalSearchProps) {
   const { isAdmin } = useAuth();
+  const { hideAdultContent, refreshFromStorage } = useAdultContentFilter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,29 +50,29 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Cache for search results to avoid duplicate API calls
   const searchCacheRef = useRef<Map<string, { results: SearchResult[], timestamp: number }>>(new Map());
-
-  // Memoize adult content setting to prevent unnecessary re-reads
-  const hideAdultContent = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    const stored = localStorage.getItem('hideAdultContent');
-    return stored === 'true';
-  }, []);
 
   // Memoize filtered results for better performance
   const { filteredResults, hiddenCount } = useMemo(() => {
     if (results.length === 0) {
       return { filteredResults: [], hiddenCount: 0 };
     }
-    
+
     const filtered = results.filter((result) => {
       const isSensitive = result.adult || containsSensitiveContent(result.title || result.name || "");
-      
-      if (hideAdultContent && !isAdmin && isSensitive) {
+
+      // If admin, ignore hiding regardless of settings
+      if (isAdmin) {
+        return true;
+      }
+
+      // If hideAdultContent is enabled and content is sensitive, hide it
+      if (hideAdultContent && isSensitive) {
         return false;
       }
+
       return true;
     });
 
@@ -158,10 +160,10 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     const cacheKey = `${searchQuery}_${page}`;
     const cached = searchCacheRef.current.get(cacheKey);
     const now = Date.now();
-    
+
     if (cached && (now - cached.timestamp) < 300000) { // 5 minutes
       const sortedResults = cached.results.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-      
+
       if (appendResults) {
         setResults(prev => [...prev, ...sortedResults]);
       } else {
@@ -279,6 +281,16 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     }
   }, [hasMoreResults, isLoadingMore, query, currentPage, searchMulti]);
 
+  // Function to check localStorage and re-filter results when needed
+  const handleFocus = useCallback(() => {
+    // Refresh adult content setting from localStorage
+    refreshFromStorage();
+
+    if (query.trim()) {
+      setIsOpen(true);
+    }
+  }, [query, refreshFromStorage]);
+
   return (
     <div ref={searchRef} className={`relative w-full ${className}`}>
       <div className="relative">
@@ -290,7 +302,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
             placeholder="Search for movies, TV shows, people..."
             value={query}
             onChange={handleInputChange}
-            onFocus={() => query.trim() && setIsOpen(true)}
+            onFocus={handleFocus}
             className="pl-16 pr-16 py-6 text-xl bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:border-white/40 rounded-full w-full"
           />
           {query && (
@@ -313,13 +325,14 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
             ) : results.length > 0 ? (
               <div className="py-2 overflow-x-hidden">
                 {hiddenCount > 0 && (
-                  <div className="px-4 py-2 mb-2 bg-yellow-600/20 border border-yellow-600/30 rounded-lg mx-2">
-                    <p className="text-yellow-200 text-sm text-center">
-                      {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings
+                  <div className="px-4 py-2 mb-2 bg-amber-600/20 border border-amber-600/30 rounded-lg mx-2">
+                    <p className="text-amber-200 text-sm text-center">
+                      {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings.{' '}
+                      <span className="font-medium">Go to Settings to change this.</span>
                     </p>
                   </div>
                 )}
-                
+
                 {filteredResults.map((result, index) => (
                   <SearchResultItem
                     key={`${result.media_type}-${result.id}-${index}`}

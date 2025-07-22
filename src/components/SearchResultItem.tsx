@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { Film, Tv, User, Search } from "lucide-react";
 import Image from "next/image";
+import { containsSensitiveContent } from "@/lib/utils";
 
 interface SearchResult {
   id: number;
@@ -51,18 +52,22 @@ const getYear = (result: SearchResult) => {
   return date ? new Date(date).getFullYear() : "";
 };
 
-export const SearchResultItem = memo<SearchResultItemProps>(function SearchResultItem({ 
-  result, 
-  index, 
-  selectedIndex, 
-  onResultClick 
+const isAdultContent = (result: SearchResult) => {
+  const title = result.title || result.name || "";
+  return result.adult || containsSensitiveContent(title);
+};
+
+export const SearchResultItem = memo<SearchResultItemProps>(function SearchResultItem({
+  result,
+  index,
+  selectedIndex,
+  onResultClick
 }) {
   return (
     <div
       onClick={() => onResultClick(result)}
-      className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${
-        index === selectedIndex ? "bg-white/20" : "hover:bg-white/10"
-      }`}
+      className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex ? "bg-white/20" : "hover:bg-white/10"
+        }`}
     >
       <div className="flex-shrink-0">
         {getMediaIcon(result.media_type)}
@@ -89,6 +94,11 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
         </h3>
         <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
           {result.media_type}
+          {isAdultContent(result) && (
+            <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+              18+
+            </span>
+          )}
           {result.known_for_department && ` • ${result.known_for_department}`}
           {getYear(result) && ` • ${getYear(result)}`}
           {result.vote_average && result.vote_average > 0 && (

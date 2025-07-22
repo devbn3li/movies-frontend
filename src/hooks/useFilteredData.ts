@@ -9,10 +9,17 @@ export function useFilteredData<T extends MediaItem>(
   data: T[],
   searchQuery: string,
   filters: FilterOptions,
-  allowAdultContent: boolean = false // إضافة معامل للتحكم في عرض المحتوى Adult
+  isAdmin: boolean = false // إضافة معامل للتحكم في صلاحيات الأدمن
 ) {
-  const filteredAndSorted = useMemo(() => {
-    if (!data.length) return [];
+  const { filteredAndSorted, hiddenCount } = useMemo(() => {
+    if (!data.length) return { filteredAndSorted: [], hiddenCount: 0 };
+
+    // Check localStorage for hideAdultContent setting - this will run fresh each time
+    const hideAdultContent = (() => {
+      if (typeof window === "undefined") return true;
+      const stored = localStorage.getItem("hideAdultContent");
+      return stored ? JSON.parse(stored) : true;
+    })();
 
     let filtered = data.filter((item) => {
       // Search filter
@@ -49,11 +56,26 @@ export function useFilteredData<T extends MediaItem>(
       return true;
     });
 
+    // Calculate hidden count before further filtering
+    const beforeAdultFilter = filtered.length;
+
+    // Adult content filtering
+    if (hideAdultContent && !isAdmin) {
+      filtered = filtered.filter((item) => {
+        const title = "title" in item ? item.title : item.name;
+        const isSensitive = item.adult || containsSensitiveContent(title);
+        return !isSensitive;
+      });
+    }
+
+    const afterAdultFilter = filtered.length;
+    const hiddenCount = beforeAdultFilter - afterAdultFilter;
+
     // Sorting
     if (filters.sortBy && filters.sortBy !== "default") {
       if (filters.sortBy === "adult") {
         // التحقق من الصلاحيات قبل تطبيق فلتر Adult
-        if (allowAdultContent) {
+        if (!hideAdultContent || isAdmin) {
           // Filter for adult content and sensitive content
           filtered = filtered.filter((item) => {
             const title = "title" in item ? item.title : item.name;
@@ -96,10 +118,10 @@ export function useFilteredData<T extends MediaItem>(
       }
     }
 
-    return filtered;
-  }, [data, searchQuery, filters, allowAdultContent]);
+    return { filteredAndSorted: filtered, hiddenCount };
+  }, [data, searchQuery, filters, isAdmin]);
 
-  return filteredAndSorted;
+  return { filteredAndSorted, hiddenCount };
 }
 
 export function extractGenres<T extends MediaItem>(data: T[]): string[] {

@@ -55,7 +55,7 @@ function MoviesContent() {
     }
   }, [searchParams]);
 
-  const filtered = useFilteredData(movies, search, filters, isAdmin);
+  const { filteredAndSorted: filtered, hiddenCount } = useFilteredData(movies, search, filters, isAdmin);
   const genres = extractGenres(movies);
   const years = extractYears(movies);
 
@@ -102,6 +102,15 @@ function MoviesContent() {
           isLoading={isLoading}
           itemType="movies"
         />
+
+        {hiddenCount > 0 && !isLoading && (
+          <div className="mt-2 text-center">
+            <p className="text-amber-200 text-sm bg-amber-600/20 border border-amber-600/30 rounded-lg px-4 py-2 inline-block">
+              {hiddenCount} movie{hiddenCount > 1 ? 's' : ''} hidden due to your content settings.{' '}
+              <span className="font-medium">Go to Settings to change this.</span>
+            </p>
+          </div>
+        )}
       </div>
 
       <CardsGrid items={paginated} isLoading={isLoading} />
@@ -283,11 +292,10 @@ function CardsGrid({
                   alt={item.title}
                   width={230}
                   height={340}
-                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${
-                    !isAdmin && (item.adult || containsSensitiveContent(item.title)) 
-                      ? 'blur-sm group-hover:blur-none' 
+                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (item.adult || containsSensitiveContent(item.title))
+                      ? 'blur-sm group-hover:blur-none'
                       : ''
-                  }`}
+                    }`}
                 />
 
                 {/* Enhanced Gradient Overlay */}
