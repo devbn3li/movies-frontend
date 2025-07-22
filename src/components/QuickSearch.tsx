@@ -75,19 +75,19 @@ export default function QuickSearch({ className }: QuickSearchProps) {
         <form onSubmit={handleSubmit} className="relative">
           <div className="flex items-center">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/60" />
+              <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/60" />
               <Input
                 ref={inputRef}
                 type="text"
                 placeholder="Search..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-10 pr-10 py-2 w-64 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 rounded-full text-sm"
+                className="pl-8 sm:pl-10 pr-8 sm:pr-10 py-2 w-48 sm:w-64 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 rounded-full text-sm"
               />
               <button
                 type="button"
                 onClick={closeSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
+                className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>

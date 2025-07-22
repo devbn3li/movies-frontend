@@ -87,13 +87,13 @@ export default function HomePage() {
             )}
             {!loading && isAuthenticated && (
               <motion.div
-                className="text-center w-[600px] max-w-7xl mx-auto relative"
+                className="text-center w-full max-w-xs sm:max-w-md md:max-w-lg lg:w-[600px] lg:max-w-[800px] mx-auto relative px-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 style={{ zIndex: 1000 }}
               >
-                <GlobalSearch className="w-[600px] relative" />
+                <GlobalSearch className="w-full relative" />
               </motion.div>
             )}
           </motion.div>

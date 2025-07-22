@@ -298,7 +298,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     <div ref={searchRef} className={`relative w-full ${className}`}>
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-white/60" />
+          <Search className="absolute left-3 sm:left-6 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-white/60" />
           <Input
             ref={inputRef}
             type="text"
@@ -306,21 +306,21 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
             value={query}
             onChange={handleInputChange}
             onFocus={handleFocus}
-            className="pl-16 pr-16 py-6 text-xl bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:border-white/40 rounded-full w-full"
+            className="pl-10 sm:pl-16 pr-10 sm:pr-16 py-3 sm:py-6 text-base sm:text-xl bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:border-white/40 rounded-full w-full"
           />
           {query && (
             <button
               onClick={clearSearch}
-              className="absolute right-6 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+              className="absolute right-3 sm:right-6 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           )}
         </div>
 
         {isOpen && (
           <div
-            className="absolute top-full mt-2 w-full bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto overflow-x-hidden"
+            className="absolute top-full mt-2 w-full bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl max-h-80 sm:max-h-96 overflow-y-auto overflow-x-hidden"
             style={{ zIndex: 9999 }}
           >
             {isLoading ? (

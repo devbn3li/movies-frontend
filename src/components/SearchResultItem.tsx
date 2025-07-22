@@ -76,7 +76,7 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
   return (
     <div
       onClick={handleClick}
-      className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors group ${index === selectedIndex ? "bg-white/20" : "hover:bg-white/10"
+      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer transition-colors group ${index === selectedIndex ? "bg-white/20" : "hover:bg-white/10"
         }`}
     >
       <div className="flex-shrink-0">
@@ -84,7 +84,7 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
       </div>
 
       {(result.poster_path || result.profile_path) && (
-        <div className="flex-shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-800">
+        <div className="flex-shrink-0 w-10 h-12 sm:w-12 sm:h-16 relative rounded overflow-hidden bg-gray-800">
           <Image
             src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
             alt={result.title || result.name || ""}
@@ -93,16 +93,16 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
             loading="lazy"
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rw="
-            sizes="48px"
+            sizes="40px"
           />
         </div>
       )}
 
       <div className="flex-1 min-w-0 text-left">
-        <h3 className="text-white font-medium truncate text-left">
+        <h3 className="text-white font-medium truncate text-left text-sm sm:text-base">
           {result.title || result.name}
         </h3>
-        <p className="text-white/60 text-sm capitalize flex items-center gap-1 text-left">
+        <p className="text-white/60 text-xs sm:text-sm capitalize flex items-center gap-1 text-left flex-wrap">
           {result.media_type}
           {isAdultContent(result) && (
             <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded font-bold">
@@ -116,7 +116,7 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
           )}
         </p>
         {result.overview && (
-          <p className="text-white/50 text-xs mt-1 truncate text-left">
+          <p className="text-white/50 text-xs mt-1 truncate text-left hidden sm:block">
             {result.overview}
           </p>
         )}
