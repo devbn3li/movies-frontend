@@ -64,6 +64,28 @@ export const getCredits = async (id: number, mediaType: "movie" | "tv") => {
   }
 };
 
+// TV Series API functions
+export const getTVSeriesDetails = async (seriesId: number) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/tv/${seriesId}?language=en-US`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV series details: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching TV series details:", error);
+    return null;
+  }
+};
+
 // Person/Actor API functions
 export const getPersonDetails = async (personId: number) => {
   try {
