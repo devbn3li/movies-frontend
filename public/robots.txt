@@ -9,7 +9,7 @@ Disallow: /register
 Disallow: /profile
 
 # Host
-Host: https://moviezonee.mooo.com
+Host: https://moviezone.me
 
 # Sitemaps
-Sitemap: https://moviezonee.mooo.com/sitemap.xml
+Sitemap: https://moviezone.me/sitemap.xml

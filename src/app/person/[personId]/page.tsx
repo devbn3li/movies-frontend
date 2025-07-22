@@ -14,12 +14,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: `View detailed information about this talented actor including biography, filmography, and career highlights.`,
     keywords: ["actor", "biography", "filmography", "movies", "TV shows", "career"],
     alternates: {
-      canonical: `https://moviezonee.mooo.com/person/${personId}`,
+      canonical: `https://moviezone.me/person/${personId}`,
     },
     openGraph: {
       title: `Actor Details - Movie Zone`,
       description: `View detailed information about this talented actor including biography, filmography, and career highlights.`,
-      url: `https://moviezonee.mooo.com/person/${personId}`,
+      url: `https://moviezone.me/person/${personId}`,
       type: "profile",
     },
   };

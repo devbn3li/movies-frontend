@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   keywords: ["movies", "TV shows", "streaming", "entertainment", "free movies", "watch online", "cinema", "films", "series"],
   authors: [{ name: "Mohamed Ali", url: "https://github.com/devbn3li/" }],
   alternates: {
-    canonical: "https://moviezonee.mooo.com/",
+    canonical: "https://moviezone.me/",
   },
   robots: {
     index: true,
@@ -45,12 +45,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
     description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-    url: "https://moviezonee.mooo.com/",
+    url: "https://moviezone.me/",
     type: "website",
     siteName: "Movie Zone",
     images: [
       {
-        url: "https://moviezonee.mooo.com/og-image.png",
+        url: "https://moviezone.me/og-image.png",
         width: 1200,
         height: 630,
         alt: "Movie Zone - Free Movies and TV Shows Streaming Platform",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
     description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-    images: ["https://moviezonee.mooo.com/og-image.png"],
+    images: ["https://moviezone.me/og-image.png"],
     creator: "@devbn3li",
   },
   icons: {
@@ -73,17 +73,17 @@ export const metadata: Metadata = {
       "@type": "WebSite",
       name: "Movie Zone",
       description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-      url: "https://moviezonee.mooo.com/",
+      url: "https://moviezone.me/",
       potentialAction: {
         "@type": "SearchAction",
-        target: "https://moviezonee.mooo.com/search?q={search_term_string}",
+        target: "https://moviezone.me/search?q={search_term_string}",
         "query-input": "required name=search_term_string"
       },
       publisher: {
         "@type": "Organization",
         name: "Movie Zone",
-        url: "https://moviezonee.mooo.com/",
-        logo: "https://moviezonee.mooo.com/logo.png"
+        url: "https://moviezone.me/",
+        logo: "https://moviezone.me/logo.png"
       }
     }),
   },

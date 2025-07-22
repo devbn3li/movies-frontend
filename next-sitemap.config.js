@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: "https://moviezonee.mooo.com",
+  siteUrl: "https://moviezone.me",
   generateRobotsTxt: true,
   sitemapSize: 5000,
   changefreq: "daily",
@@ -55,6 +55,6 @@ module.exports = {
         ],
       },
     ],
-    additionalSitemaps: ["https://moviezonee.mooo.com/sitemap.xml"],
+    additionalSitemaps: ["https://moviezone.me/sitemap.xml"],
   },
 };

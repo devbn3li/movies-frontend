@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "moviezonee.mooo.com",
+        hostname: "moviezone.me",
         pathname: "/**",
       },
       {

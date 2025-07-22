@@ -21,7 +21,7 @@ export async function generateMetadata({
 
   const title = "title" in item ? item.title : item.name;
   const description = item.overview || "Watch your favorite content now.";
-  const url = `https://moviezonee.mooo.com/movie/${item.id}`;
+  const url = `https://moviezone.me/movie/${item.id}`;
 
   return {
     title: `${title} - Movie Zone`,
