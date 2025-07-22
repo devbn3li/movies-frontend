@@ -6,6 +6,8 @@ import Navbar from "@/components/common/Navbar/Navbar";
 import Footer from "@/components/common/Footer/Footer";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Sidebar/AppSidebar";
+import Script from "next/script";
+import Analytics from "@/components/Analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,13 +22,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   weight: ["400", "700"],
   display: "swap",
-  preload: false, // Don't preload mono font as it's used less
+  preload: false,
 });
 
 export const metadata: Metadata = {
   title: "Movie Zone - Watch Free Movies & TV Shows Online",
-  description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-  keywords: ["movies", "TV shows", "streaming", "entertainment", "free movies", "watch online", "cinema", "films", "series"],
+  description:
+    "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
+  keywords: [
+    "movies",
+    "TV shows",
+    "streaming",
+    "entertainment",
+    "free movies",
+    "watch online",
+    "cinema",
+    "films",
+    "series",
+  ],
   authors: [{ name: "Mohamed Ali", url: "https://github.com/devbn3li/" }],
   alternates: {
     canonical: "https://moviezone.me/",
@@ -44,7 +57,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
-    description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
+    description:
+      "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
     url: "https://moviezone.me/",
     type: "website",
     siteName: "Movie Zone",
@@ -60,7 +74,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
-    description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
+    description:
+      "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
     images: ["https://moviezone.me/og-image.png"],
     creator: "@devbn3li",
   },
@@ -72,19 +87,20 @@ export const metadata: Metadata = {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "Movie Zone",
-      description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
+      description:
+        "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
       url: "https://moviezone.me/",
       potentialAction: {
         "@type": "SearchAction",
         target: "https://moviezone.me/search?q={search_term_string}",
-        "query-input": "required name=search_term_string"
+        "query-input": "required name=search_term_string",
       },
       publisher: {
         "@type": "Organization",
         name: "Movie Zone",
         url: "https://moviezone.me/",
-        logo: "https://moviezone.me/logo.png"
-      }
+        logo: "https://moviezone.me/logo.png",
+      },
     }),
   },
 };
@@ -101,6 +117,24 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+        {/* Google Analytics */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-PXH771LG5B"
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-PXH771LG5B');
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
@@ -121,13 +155,19 @@ export default function RootLayout({
                 </div>
               </div>
               <AppSidebar />
-              <div className="pt-16 min-h-[calc(100vh-5.07rem)]">{children}</div>
+              <div className="pt-16 min-h-[calc(100vh-5.07rem)]">
+                {children}
+              </div>
               <div className="relative bottom-0 w-full">
                 <Footer />
               </div>
             </div>
           </SidebarProvider>
         </ThemeProvider>
+
+        {/* Google Analytics Route Tracker */}
+        <Analytics />
+
         <script
           dangerouslySetInnerHTML={{
             __html: `
