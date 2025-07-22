@@ -13,6 +13,7 @@ import Head from "next/head";
 import Loading from "@/components/Loading";
 import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
+import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 
 type Media = Movie | TVShow;
 
@@ -135,6 +136,29 @@ export default function MoviePage({ movieId }: { movieId: string }) {
   return (
     <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
       <Head>
+        <title>{title} ({rDate?.slice(0, 4)}) - Watch Online | MoviesDB</title>
+        <meta name="description" content={`Watch ${title} (${rDate?.slice(0, 4)}) online. ${item.overview ? item.overview.slice(0, 160) : `Discover ${title} and more movies on MoviesDB.`}`} />
+        <meta name="keywords" content={`${title}, movie, ${item.genre_names?.join(", ")}, ${rDate?.slice(0, 4)}, watch online, stream`} />
+
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content={`${title} (${rDate?.slice(0, 4)}) - MoviesDB`} />
+        <meta property="og:description" content={item.overview || `Watch ${title} on MoviesDB`} />
+        <meta property="og:image" content={poster} />
+        <meta property="og:url" content={`${typeof window !== 'undefined' ? window.location.href : ''}`} />
+        <meta property="og:type" content="video.movie" />
+        <meta property="og:site_name" content="MoviesDB" />
+
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${title} (${rDate?.slice(0, 4)})`} />
+        <meta name="twitter:description" content={item.overview || `Watch ${title} on MoviesDB`} />
+        <meta name="twitter:image" content={poster} />
+
+        {/* Additional Meta Tags */}
+        <meta name="author" content="MoviesDB" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`${typeof window !== 'undefined' ? window.location.href : ''}`} />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -145,10 +169,18 @@ export default function MoviePage({ movieId }: { movieId: string }) {
               description: item.overview,
               image: poster,
               datePublished: rDate,
+              genre: item.genre_names,
               aggregateRating: {
                 "@type": "AggregateRating",
                 ratingValue: item.vote_average || 0,
                 reviewCount: item.vote_count || 0,
+                bestRating: 10,
+                worstRating: 0,
+              },
+              url: `${typeof window !== 'undefined' ? window.location.href : ''}`,
+              potentialAction: {
+                "@type": "WatchAction",
+                target: `${typeof window !== 'undefined' ? window.location.href : ''}`,
               },
             }),
           }}
@@ -186,8 +218,8 @@ export default function MoviePage({ movieId }: { movieId: string }) {
               src={backdrop}
               alt={title}
               className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
-                  ? "aspect-[2/3] max-w-md mx-auto"
-                  : "aspect-video"
+                ? "aspect-[2/3] max-w-md mx-auto"
+                : "aspect-video"
                 }`}
               width={isUsingPosterAsBackdrop ? 400 : 1080}
               height={isUsingPosterAsBackdrop ? 600 : 480}
@@ -212,9 +244,22 @@ export default function MoviePage({ movieId }: { movieId: string }) {
             {rDate?.slice(0, 4)} | {item.adult ? "18+" : "+16"} |{" "}
             {item.genre_names[0] || "Unknown Genre"}
           </p>
-          <p className="mb-2 text-white text-lg font-medium">
+          <p className="mb-4 text-white text-lg font-medium">
             {item.overview || "No description available."}
           </p>
+
+          {/* أزرار المشاركة والتحميل */}
+          <div className="flex justify-center">
+            <ShareDownloadButtons
+              id={id}
+              title={title}
+              type={mediaType as 'movie' | 'tv'}
+              overview={item.overview}
+              releaseDate={rDate}
+              rating={item.vote_average}
+              posterUrl={poster}
+            />
+          </div>
         </div>
 
         <div className="max-w-[1080px] w-full flex flex-col gap-6">
