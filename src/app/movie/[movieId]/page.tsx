@@ -22,9 +22,10 @@ export async function generateMetadata({
   const title = "title" in item ? item.title : item.name;
   const description = item.overview || "Watch your favorite content now.";
   const url = `https://moviezone.me/movie/${item.id}`;
+  const year = "release_date" in item ? new Date(item.release_date).getFullYear() : new Date(item.first_air_date).getFullYear();
 
   return {
-    title: `${title} - Movie Zone`,
+    title: `${title}${year ? ` (${year})` : ''} - Movie Zone`,
     description,
     openGraph: {
       title,
