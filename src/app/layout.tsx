@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Sidebar/AppSidebar";
 import Script from "next/script";
 import Analytics from "@/components/Analytics";
+import { CodeSplittingStats } from "@/hooks/useCodeSplittingAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -167,6 +168,9 @@ export default function RootLayout({
 
         {/* Google Analytics Route Tracker */}
         <Analytics />
+
+        {/* Code Splitting Performance Stats (Development Only) */}
+        <CodeSplittingStats />
 
         <script
           dangerouslySetInnerHTML={{

@@ -1,9 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import Loading from "@/components/Loading";
-import WatchlistGrid from "@/components/WatchlistGrid";
 import { useWatchlistStore } from "@/store/watchlist";
+import { lazyComponents, preloadPageComponents } from "@/hooks/useLazyComponent";
+import { SuspenseLoading } from "@/components/ui/suspense-loading";
+import LazyLoadErrorBoundary from "@/components/ui/lazy-load-error-boundary";
+
+// Lazy load WatchlistGrid component
+const WatchlistGrid = lazyComponents.WatchlistGrid;
 
 const Profile = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,6 +20,9 @@ const Profile = () => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+
+    // Preload page-specific components when component mounts
+    preloadPageComponents('profile');
   }, []);
 
   if (!user) return <Loading />;
@@ -63,7 +71,11 @@ const Profile = () => {
       {/* Watchlist Section */}
       <div className="relative max-w-6xl mx-auto px-6 py-8">
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-          <WatchlistGrid />
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<SuspenseLoading variant="grid" count={12} />}>
+              <WatchlistGrid />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         </div>
       </div>
     </div>

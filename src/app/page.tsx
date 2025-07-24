@@ -1,21 +1,31 @@
 "use client";
 import { motion } from "framer-motion";
-import TrendingNow from "@/components/TrendingNow";
-import AuthModal from "@/components/AuthModal";
-import GlobalSearch from "@/components/GlobalSearch";
 import { useAuth } from "@/hooks/useAuth";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
 import poster from "@/assets/larg_bg_en.jpg";
 import Image from "next/image";
+import { Suspense, useEffect } from "react";
+import { lazyComponents, preloadPageComponents } from "@/hooks/useLazyComponent";
+import { SuspenseLoading } from "@/components/ui/suspense-loading";
+
+// Lazy load components
+const TrendingNow = lazyComponents.TrendingNow;
+const AuthModal = lazyComponents.AuthModal;
+const GlobalSearch = lazyComponents.GlobalSearch;
 
 export default function HomePage() {
   const { isAuthenticated, loading } = useAuth();
 
   // Scroll tracking
-  useScrollTracking({ 
-    pageName: 'Home Page', 
-    enabled: true 
+  useScrollTracking({
+    pageName: 'Home Page',
+    enabled: true
   });
+
+  // Preload components when component mounts
+  useEffect(() => {
+    preloadPageComponents('home');
+  }, []);
 
   return (
     <main className="flex flex-col">
@@ -72,18 +82,20 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 1.6 }}
           >
             {!loading && !isAuthenticated && (
-              <AuthModal>
-                <motion.button
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect"
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 10px 25px rgba(255, 255, 255, 0.2)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Start Watching
-                </motion.button>
-              </AuthModal>
+              <Suspense fallback={<div className="w-32 h-12 bg-white/10 rounded-full animate-pulse" />}>
+                <AuthModal>
+                  <motion.button
+                    className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect"
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: "0 10px 25px rgba(255, 255, 255, 0.2)"
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Start Watching
+                  </motion.button>
+                </AuthModal>
+              </Suspense>
             )}
             {!loading && isAuthenticated && (
               <motion.div
@@ -93,7 +105,9 @@ export default function HomePage() {
                 transition={{ duration: 0.5 }}
                 style={{ zIndex: 1000 }}
               >
-                <GlobalSearch className="w-full relative" />
+                <Suspense fallback={<SuspenseLoading variant="search" count={1} />}>
+                  <GlobalSearch className="w-full relative" />
+                </Suspense>
               </motion.div>
             )}
           </motion.div>
@@ -102,11 +116,15 @@ export default function HomePage() {
 
       <section className="p-5 sm:px-20 pb-20 flex flex-col">
         <div>
-          <TrendingNow type="movie" title="Movies" isLarge={true} />
+          <Suspense fallback={<SuspenseLoading variant="grid" count={8} />}>
+            <TrendingNow type="movie" title="Movies" isLarge={true} />
+          </Suspense>
         </div>
 
         <div>
-          <TrendingNow type="tv" title="TV Shows" isLarge={true} />
+          <Suspense fallback={<SuspenseLoading variant="grid" count={8} />}>
+            <TrendingNow type="tv" title="TV Shows" isLarge={true} />
+          </Suspense>
         </div>
       </section>
     </main>

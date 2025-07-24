@@ -6,9 +6,7 @@ export default function PrivacyPolicy() {
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
-        <p className="text-muted-foreground">
-          Last updated: {new Date().toLocaleDateString()}
-        </p>
+
       </div>
 
       {/* Content */}
@@ -144,7 +142,7 @@ export default function PrivacyPolicy() {
       {/* Footer */}
       <div className="mt-12 pt-8 border-t border-border text-center">
         <p className="text-sm text-muted-foreground">
-          This policy is effective as of {new Date().toLocaleDateString()} and was last updated on {new Date().toLocaleDateString()}.
+          This policy is effective as of January 24, 2025 and was last updated on January 24, 2025.
         </p>
       </div>
     </div>

@@ -1,21 +1,26 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import mediaData from "@/assets/moviesdb.json";
 import { notFound } from "next/navigation";
 import { Movie, TVShow } from "@/types/index";
-import MayLike from "@/components/MayLike";
-import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
-import Cast from "@/components/Cast";
 import Head from "next/head";
 import Loading from "@/components/Loading";
-import WatchProviders from "@/components/WatchProviders";
-import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import { trackMoviePageView } from "@/lib/analytics";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
+import { lazyComponents } from "@/hooks/useLazyComponent";
+import { SuspenseLoading } from "@/components/ui/suspense-loading";
+import LazyLoadErrorBoundary from "@/components/ui/lazy-load-error-boundary";
+
+// Lazy load heavy components
+const MayLike = lazyComponents.MayLike;
+const TrendingNow = lazyComponents.TrendingNow;
+const Cast = lazyComponents.Cast;
+const WatchProviders = lazyComponents.WatchProviders;
+const Recommendations = lazyComponents.Recommendations;
 
 type Media = Movie | TVShow;
 
@@ -61,9 +66,9 @@ export default function MoviePage({ movieId }: { movieId: string }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Scroll tracking
-  useScrollTracking({ 
-    pageName: `Movie Page - ${movieId}`, 
-    enabled: !isLoading && !!item 
+  useScrollTracking({
+    pageName: `Movie Page - ${movieId}`,
+    enabled: !isLoading && !!item
   });
 
   useEffect(() => {
@@ -87,7 +92,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
         console.log(`✅ Found movie ${id} locally:`, "title" in localItem ? localItem.title : localItem.name);
         setItem(localItem);
         setIsLoading(false);
-        
+
         // Track Analytics page view
         const title = "title" in localItem ? localItem.title : localItem.name;
         trackMoviePageView(title || 'Unknown', localItem.id);
@@ -112,7 +117,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
           console.log(`✅ Successfully fetched movie ${id} from TMDB:`, tmdbData.title);
           const convertedItem = convertTMDBToLocal(tmdbData);
           setItem(convertedItem);
-          
+
           // Track Analytics page view
           trackMoviePageView(tmdbData.title || 'Unknown', tmdbData.id);
         } else {
@@ -333,16 +338,38 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
         {/* Watch Providers Section */}
         <div className="max-w-[1080px] w-full mt-6">
-          <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<SuspenseLoading variant="card" count={1} />}>
+              <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         </div>
 
         <div className="mt-10 max-w-[1080px] w-full">
-          {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<SuspenseLoading variant="grid" count={6} />}>
+              {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
+            </Suspense>
+          </LazyLoadErrorBoundary>
         </div>
 
-        {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
-        {movieId && <MayLike movieId={movieId} type={mediaType} />}
-        {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={<SuspenseLoading variant="grid" count={8} />}>
+            {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
+          </Suspense>
+        </LazyLoadErrorBoundary>
+
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={<SuspenseLoading variant="grid" count={6} />}>
+            {movieId && <MayLike movieId={movieId} type={mediaType} />}
+          </Suspense>
+        </LazyLoadErrorBoundary>
+
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={<SuspenseLoading variant="grid" count={8} />}>
+            {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
+          </Suspense>
+        </LazyLoadErrorBoundary>
       </div>
     </div>
   );

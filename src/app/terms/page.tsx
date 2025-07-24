@@ -6,9 +6,7 @@ export default function TermsOfService() {
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
-        <p className="text-muted-foreground">
-          Last updated: {new Date().toLocaleDateString()}
-        </p>
+
       </div>
 
       {/* Content */}
