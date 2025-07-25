@@ -11,16 +11,11 @@ import Loading from "@/components/Loading";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import { trackMoviePageView } from "@/lib/analytics";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
-import { lazyComponents } from "@/hooks/useLazyComponent";
-import { SuspenseLoading } from "@/components/ui/suspense-loading";
-import LazyLoadErrorBoundary from "@/components/ui/lazy-load-error-boundary";
-
-// Lazy load heavy components
-const MayLike = lazyComponents.MayLike;
-const TrendingNow = lazyComponents.TrendingNow;
-const Cast = lazyComponents.Cast;
-const WatchProviders = lazyComponents.WatchProviders;
-const Recommendations = lazyComponents.Recommendations;
+import MayLike from "@/components/MayLike";
+import TrendingNow from "@/components/TrendingNow";
+import Cast from "@/components/Cast";
+import WatchProviders from "@/components/WatchProviders";
+import Recommendations from "@/components/Recommendations";
 
 type Media = Movie | TVShow;
 
@@ -338,38 +333,28 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
         {/* Watch Providers Section */}
         <div className="max-w-[1080px] w-full mt-6">
-          <LazyLoadErrorBoundary>
-            <Suspense fallback={<SuspenseLoading variant="card" count={1} />}>
-              <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
-            </Suspense>
-          </LazyLoadErrorBoundary>
+          <Suspense fallback={<Loading />}>
+            <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
+          </Suspense>
         </div>
 
         <div className="mt-10 max-w-[1080px] w-full">
-          <LazyLoadErrorBoundary>
-            <Suspense fallback={<SuspenseLoading variant="grid" count={6} />}>
-              {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
-            </Suspense>
-          </LazyLoadErrorBoundary>
+          <Suspense fallback={<Loading />}>
+            {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
+          </Suspense>
         </div>
 
-        <LazyLoadErrorBoundary>
-          <Suspense fallback={<SuspenseLoading variant="grid" count={8} />}>
-            {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
-          </Suspense>
-        </LazyLoadErrorBoundary>
+        <Suspense fallback={<Loading />}>
+          {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
+        </Suspense>
 
-        <LazyLoadErrorBoundary>
-          <Suspense fallback={<SuspenseLoading variant="grid" count={6} />}>
-            {movieId && <MayLike movieId={movieId} type={mediaType} />}
-          </Suspense>
-        </LazyLoadErrorBoundary>
+        <Suspense fallback={<Loading />}>
+          {movieId && <MayLike movieId={movieId} type={mediaType} />}
+        </Suspense>
 
-        <LazyLoadErrorBoundary>
-          <Suspense fallback={<SuspenseLoading variant="grid" count={8} />}>
-            {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
-          </Suspense>
-        </LazyLoadErrorBoundary>
+        <Suspense fallback={<Loading />}>
+          {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
+        </Suspense>
       </div>
     </div>
   );

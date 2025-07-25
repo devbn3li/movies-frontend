@@ -42,48 +42,23 @@ const nextConfig: NextConfig = {
   // Optimize compilation
   compress: true,
 
-  // Enhanced webpack configuration for better code splitting
+  // Simplified webpack configuration for better performance
   webpack: (config, { isServer }) => {
-    // Better chunk splitting for client-side bundles
+    // Minimal chunk splitting for faster loading
     if (!isServer) {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
           chunks: "all",
-          minSize: 20000,
-          maxSize: 244000,
+          minSize: 50000, // Increased for fewer chunks
+          maxSize: 500000, // Increased for larger chunks
           cacheGroups: {
-            // Vendor libraries
+            // Only split vendor libraries
             vendor: {
               test: /[\\/]node_modules[\\/]/,
               name: "vendors",
               priority: 10,
               reuseExistingChunk: true,
-            },
-            // Common components
-            common: {
-              name: "common",
-              minChunks: 2,
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-            // UI components
-            ui: {
-              test: /[\\/]src[\\/]components[\\/]ui[\\/]/,
-              name: "ui",
-              priority: 8,
-              reuseExistingChunk: true,
-            },
-            // Specific large libraries
-            framerMotion: {
-              test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
-              name: "framer-motion",
-              priority: 15,
-            },
-            radixUI: {
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              name: "radix-ui",
-              priority: 12,
             },
           },
         },
