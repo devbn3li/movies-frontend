@@ -3,8 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
 import poster from "@/assets/larg_bg_en.jpg";
 import Image from "next/image";
-import { Suspense } from "react";
-import Loading from "@/components/Loading";
 import TrendingNow from "@/components/TrendingNow";
 import AuthModal from "@/components/AuthModal";
 import GlobalSearch from "@/components/GlobalSearch";
@@ -43,22 +41,18 @@ export default function HomePage() {
 
           <div className="mt-8">
             {!loading && !isAuthenticated && (
-              <Suspense fallback={<div className="w-32 h-12 bg-white/10 rounded-full animate-pulse" />}>
-                <AuthModal>
-                  <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect">
-                    Start Watching
-                  </button>
-                </AuthModal>
-              </Suspense>
+              <AuthModal>
+                <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect">
+                  Start Watching
+                </button>
+              </AuthModal>
             )}
             {!loading && isAuthenticated && (
               <div
                 className="text-center w-full max-w-xs sm:max-w-md md:max-w-lg lg:w-[600px] lg:max-w-[800px] mx-auto relative px-4"
                 style={{ zIndex: 1000 }}
               >
-                <Suspense fallback={<Loading />}>
-                  <GlobalSearch className="w-full relative" />
-                </Suspense>
+                <GlobalSearch className="w-full relative" />
               </div>
             )}
           </div>
@@ -67,15 +61,11 @@ export default function HomePage() {
 
       <section className="p-5 sm:px-20 pb-20 flex flex-col">
         <div>
-          <Suspense fallback={<Loading />}>
-            <TrendingNow type="movie" title="Movies" isLarge={true} />
-          </Suspense>
+          <TrendingNow type="movie" title="Movies" isLarge={true} />
         </div>
 
         <div>
-          <Suspense fallback={<Loading />}>
-            <TrendingNow type="tv" title="TV Shows" isLarge={true} />
-          </Suspense>
+          <TrendingNow type="tv" title="TV Shows" isLarge={true} />
         </div>
       </section>
     </main>

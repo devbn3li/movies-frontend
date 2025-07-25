@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -343,8 +343,6 @@ function CardsGrid({
 
 export default function TVShowsPage() {
   return (
-    <Suspense fallback={<div>Loading TV shows...</div>}>
       <TVShowsContent />
-    </Suspense>
   );
 }

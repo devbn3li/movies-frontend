@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Loading from "@/components/Loading";
 import { useWatchlistStore } from "@/store/watchlist";
@@ -63,9 +63,7 @@ const Profile = () => {
       {/* Watchlist Section */}
       <div className="relative max-w-6xl mx-auto px-6 py-8">
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-          <Suspense fallback={<Loading />}>
             <WatchlistGrid />
-          </Suspense>
         </div>
       </div>
     </div>

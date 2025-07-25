@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState, Suspense } from "react";
+import { useMemo, useEffect, useState } from "react";
 import Image from "next/image";
 import mediaData from "@/assets/moviesdb.json";
 import { notFound } from "next/navigation";
@@ -333,28 +333,18 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
         {/* Watch Providers Section */}
         <div className="max-w-[1080px] w-full mt-6">
-          <Suspense fallback={<Loading />}>
             <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
-          </Suspense>
         </div>
 
         <div className="mt-10 max-w-[1080px] w-full">
-          <Suspense fallback={<Loading />}>
             {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
-          </Suspense>
         </div>
 
-        <Suspense fallback={<Loading />}>
           {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
-        </Suspense>
 
-        <Suspense fallback={<Loading />}>
           {movieId && <MayLike movieId={movieId} type={mediaType} />}
-        </Suspense>
 
-        <Suspense fallback={<Loading />}>
           {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
-        </Suspense>
       </div>
     </div>
   );
