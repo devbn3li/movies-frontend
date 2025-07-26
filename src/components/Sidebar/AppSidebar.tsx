@@ -4,7 +4,7 @@ import { MdLiveTv } from "react-icons/md";
 import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import moviesData from "@/assets/movies.json";
 import tvData from "@/assets/tv.json";
 import {
@@ -199,7 +199,9 @@ export function AppSidebar() {
   return (
     <div ref={sidebarRef}>
       <Sidebar className="fixed top-[64px] left-0 z-40 h-[calc(100vh-64px)] w-64 ">
+        <Suspense fallback={<div className="p-4 text-white">Loading...</div>}>
           <SidebarContent_ />
+        </Suspense>
       </Sidebar>
     </div>
   )
