@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useRef } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { trackNavigationClick } from "@/lib/analytics";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,27 +23,13 @@ import { RxDashboard } from "react-icons/rx";
 import { useAdultContent } from "@/hooks/useAdultContent";
 
 export default function Navbar() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
-  const router = useRouter();
+  const { user, logout } = useAuth();
   const dropdownRef = useRef(null);
   const { hideAdultContent, toggleAdultContent } = useAdultContent();
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) setUser(JSON.parse(userData));
-  }, []);
-
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    // مسح cookie الخاص بالـ token
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-    setUser(null);
-    router.push("/");
+    logout();
     window.location.reload();
   };
 

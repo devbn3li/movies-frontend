@@ -11,34 +11,51 @@ interface User {
 }
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Try to get user from localStorage immediately (synchronously)
+  const getInitialUserState = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("user");
+      if (token && userData) {
+        return JSON.parse(userData);
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+    }
+    return null;
+  };
+
+  const [user, setUser] = useState<User | null>(getInitialUserState);
   const router = useRouter();
 
   useEffect(() => {
+    // Since we already checked in useState, we don't need to do much here
+    // Just verify the state is correct
     const checkAuth = () => {
       try {
         const token = localStorage.getItem("token");
         const userData = localStorage.getItem("user");
 
         if (!token || !userData) {
-          setUser(null);
-          setLoading(false);
+          if (user !== null) {
+            setUser(null);
+          }
           return;
         }
 
         const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setLoading(false);
+        if (!user || user.id !== parsedUser.id) {
+          setUser(parsedUser);
+        }
       } catch (error) {
         console.error("Error parsing user data:", error);
         setUser(null);
-        setLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [user]);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -52,7 +69,7 @@ export const useAuth = () => {
   };
 
   const requireAuth = (redirectTo: string = "/login") => {
-    if (!loading && !user) {
+    if (!user) {
       router.push(redirectTo);
       return false;
     }
@@ -60,7 +77,7 @@ export const useAuth = () => {
   };
 
   const requireAdmin = () => {
-    if (!loading && (!user || !user.isAdmin)) {
+    if (!user || !user.isAdmin) {
       router.push("/");
       return false;
     }
@@ -69,7 +86,6 @@ export const useAuth = () => {
 
   return {
     user,
-    loading,
     logout,
     requireAuth,
     requireAdmin,

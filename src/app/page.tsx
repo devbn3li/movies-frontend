@@ -8,7 +8,7 @@ import AuthModal from "@/components/AuthModal";
 import GlobalSearch from "@/components/GlobalSearch";
 
 export default function HomePage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Scroll tracking
   useScrollTracking({
@@ -40,14 +40,14 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8">
-            {!loading && !isAuthenticated && (
+            {!isAuthenticated && (
               <AuthModal>
                 <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect">
                   Start Watching
                 </button>
               </AuthModal>
             )}
-            {!loading && isAuthenticated && (
+            {isAuthenticated && (
               <div
                 className="text-center w-full max-w-xs sm:max-w-md md:max-w-lg lg:w-[600px] lg:max-w-[800px] mx-auto relative px-4"
                 style={{ zIndex: 1000 }}

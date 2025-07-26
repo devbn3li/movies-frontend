@@ -14,25 +14,23 @@ const DashboardPage = () => {
   const [movies, setMovies] = useState<Movie[]>([])
   const [tvShows, setTvShows] = useState<TVShow[]>([])
   const [tab, setTab] = useState<"movies" | "tv">("movies")
-  const { loading, isAdmin, isAuthenticated } = useAuth()
+  const { isAdmin, isAuthenticated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     // التحقق من المصادقة والصلاحيات
-    if (!loading) {
-      if (!isAuthenticated) {
-        // إذا لم يعمل تسجيل دخول، إعادة توجيه لصفحة تسجيل الدخول
-        router.push('/login')
-        return
-      }
-
-      if (!isAdmin) {
-        // إذا لم يكن أدمن، إعادة توجيه للصفحة الرئيسية
-        router.push('/')
-        return
-      }
+    if (!isAuthenticated) {
+      // إذا لم يعمل تسجيل دخول، إعادة توجيه لصفحة تسجيل الدخول
+      router.push('/login')
+      return
     }
-  }, [loading, isAuthenticated, isAdmin, router])
+
+    if (!isAdmin) {
+      // إذا لم يكن أدمن، إعادة توجيه للصفحة الرئيسية
+      router.push('/')
+      return
+    }
+  }, [isAuthenticated, isAdmin, router])
 
   useEffect(() => {
     setMovies((mediaData as { movies: Movie[] }).movies)
@@ -96,15 +94,6 @@ const DashboardPage = () => {
       topGenres
     }
   }, [data])
-
-  // عرض Loading state أثناء التحقق من المصادقة
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
-      </div>
-    )
-  }
 
   // إذا لم يكن مصادق أو ليس أدمن، لا تعرض شيء (سيتم إعادة التوجيه)
   if (!isAuthenticated || !isAdmin) {

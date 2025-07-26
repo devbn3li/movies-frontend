@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -337,9 +337,5 @@ function CardsGrid({
 }
 
 export default function MoviesPage() {
-  return (
-    <Suspense fallback={<div className="p-5 text-center text-white">Loading movies...</div>}>
-      <MoviesContent />
-    </Suspense>
-  );
+  return <MoviesContent />;
 }
