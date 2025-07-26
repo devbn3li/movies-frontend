@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, MapPin, Star, Film, Tv, Camera } from "lucide-react";
 import SocialMediaLinks from "@/components/common/SocialMediaLinks/SocialMediaLinks";
+import ImageGallery from "@/components/ImageGallery";
 import { useAuth } from "@/hooks/useAuth";
 import { containsSensitiveContent } from "@/lib/utils";
 
@@ -347,7 +348,10 @@ export default function PersonPage({ personId }: PersonPageProps) {
                     </TabsContent>
 
                     <TabsContent value="photos" className="p-4 sm:p-6 mt-0">
-                      <PhotosGrid images={images?.profiles || []} />
+                      <ImageGallery
+                        images={images?.profiles || []}
+                        personName={person.name}
+                      />
                     </TabsContent>
                   </Tabs>
                 </div>
@@ -386,7 +390,7 @@ function FilmographyGrid({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {displayedCredits.map((credit) => {
           const isAdult = credit.adult || false;
-          const title = mediaType === 'movie' 
+          const title = mediaType === 'movie'
             ? (credit as PersonMovieCredit).title || ''
             : (credit as PersonTVCredit).name || '';
           const isSensitive = containsSensitiveContent(title);
@@ -449,53 +453,6 @@ function FilmographyGrid({
             className="border-white/20 text-white hover:bg-white/10"
           >
             {showAll ? 'Show Less' : `Show All (${credits.length})`}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-import { PersonImage } from "@/types/index";
-
-// Photos Grid Component
-function PhotosGrid({ images }: { images: PersonImage[] }) {
-  const [showAll, setShowAll] = useState(false);
-  const displayedImages = showAll ? images : images.slice(0, 12);
-
-  if (!images || images.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-400">No photos available</p>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {displayedImages.map((image, index) => (
-          <div key={index} className="group">
-            <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-              <Image
-                src={`https://image.tmdb.org/t/p/w300${image.file_path}`}
-                alt={`Photo ${index + 1}`}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-200"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {images.length > 12 && (
-        <div className="text-center mt-6">
-          <Button
-            onClick={() => setShowAll(!showAll)}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            {showAll ? 'Show Less' : `Show All (${images.length})`}
           </Button>
         </div>
       )}
