@@ -25,7 +25,7 @@ export default function HomePage() {
             alt="Movie Zone - Stream unlimited movies and TV shows"
             fill
             className="object-cover"
-            priority
+            fetchPriority="high"
           />
         </div>
 
