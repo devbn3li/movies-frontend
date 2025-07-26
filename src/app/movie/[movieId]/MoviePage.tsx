@@ -16,6 +16,7 @@ import TrendingNow from "@/components/TrendingNow";
 import Cast from "@/components/Cast";
 import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
+import Trailer from "@/components/Trailer";
 
 type Media = Movie | TVShow;
 
@@ -263,8 +264,14 @@ export default function MoviePage({ movieId }: { movieId: string }) {
             {item.overview || "No description available."}
           </p>
 
-          {/* أزرار المشاركة والتحميل */}
-          <div className="flex justify-center">
+          {/* Trailer and Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <Trailer
+              id={id}
+              mediaType={mediaType as "movie" | "tv"}
+              title={title}
+              size="lg"
+            />
             <ShareDownloadButtons
               id={id}
               title={title}
@@ -333,18 +340,18 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
         {/* Watch Providers Section */}
         <div className="max-w-[1080px] w-full mt-6">
-            <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
+          <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
         </div>
 
         <div className="mt-10 max-w-[1080px] w-full">
-            {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
+          {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
         </div>
 
-          {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
+        {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
 
-          {movieId && <MayLike movieId={movieId} type={mediaType} />}
+        {movieId && <MayLike movieId={movieId} type={mediaType} />}
 
-          {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
+        {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
       </div>
     </div>
   );

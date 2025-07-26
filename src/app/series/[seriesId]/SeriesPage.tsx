@@ -13,6 +13,7 @@ import Loading from "@/components/Loading";
 import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
+import Trailer from "@/components/Trailer";
 
 // TMDB TV Show type
 interface TMDBTVShow {
@@ -169,7 +170,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
           }),
         }}
       />
-      
+
       {/* 💠 Dynamic Background Blur */}
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat bg-fixed blur-2xl opacity-30"
@@ -238,8 +239,14 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
             {item.overview || "No description available."}
           </p>
 
-          {/* أزرار المشاركة والتحميل */}
-          <div className="flex justify-center">
+          {/* Trailer and Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <Trailer
+              id={item.id}
+              mediaType="tv"
+              title={title}
+              size="lg"
+            />
             <ShareDownloadButtons
               id={item.id}
               title={title}

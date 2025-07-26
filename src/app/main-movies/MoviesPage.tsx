@@ -20,6 +20,7 @@ import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFiltere
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { CompactTrailer } from "@/components/Trailer";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -280,8 +281,8 @@ function CardsGrid({
                   width={230}
                   height={340}
                   className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (item.adult || containsSensitiveContent(item.title))
-                      ? 'blur-sm group-hover:blur-none'
-                      : ''
+                    ? 'blur-sm group-hover:blur-none'
+                    : ''
                     }`}
                 />
 
@@ -310,10 +311,19 @@ function CardsGrid({
 
                   {/* Overview */}
                   {item.overview && (
-                    <p className="text-white/70 text-sm line-clamp-2 leading-relaxed">
+                    <p className="text-white/70 text-sm line-clamp-2 leading-relaxed mb-3">
                       {truncateText(item.overview, 100)}
                     </p>
                   )}
+
+                  {/* Trailer Button */}
+                  <div className="flex justify-center" onClick={(e) => e.preventDefault()}>
+                    <CompactTrailer
+                      id={item.id}
+                      mediaType="movie"
+                      title={item.title}
+                    />
+                  </div>
                 </div>
               </div>
             </Link>

@@ -1,4 +1,5 @@
 import axios from "./axios";
+import { Video, VideosResponse } from "@/types/index";
 
 export const getAllMovies = async () => {
   const res = await axios.get("/movies");
@@ -247,4 +248,92 @@ export const getWatchProviders = async (
   } else {
     return await getTVWatchProviders(id);
   }
+};
+
+// Trailer/Videos API functions
+export const getMovieVideos = async (movieId: number) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/movie/${movieId}/videos?language=en-US`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch movie videos: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching movie videos:", error);
+    return null;
+  }
+};
+
+export const getTVVideos = async (tvId: number) => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/tv/${tvId}/videos?language=en-US`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV videos: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching TV videos:", error);
+    return null;
+  }
+};
+
+export const getVideos = async (id: number, mediaType: "movie" | "tv") => {
+  if (mediaType === "movie") {
+    return await getMovieVideos(id);
+  } else {
+    return await getTVVideos(id);
+  }
+};
+
+// Helper function to get the main trailer from videos
+export const getMainTrailer = (videos: VideosResponse) => {
+  if (!videos || !videos.results || videos.results.length === 0) {
+    return null;
+  }
+
+  // البحث عن التريلر الرسمي أولاً
+  const officialTrailer = videos.results.find(
+    (video: Video) =>
+      video.type === "Trailer" &&
+      video.site === "YouTube" &&
+      (video.name.toLowerCase().includes("official") ||
+        video.name.toLowerCase().includes("main") ||
+        video.name.toLowerCase().includes("final"))
+  );
+
+  if (officialTrailer) {
+    return officialTrailer;
+  }
+
+  // إذا لم يوجد تريلر رسمي، ابحث عن أي تريلر
+  const anyTrailer = videos.results.find(
+    (video: Video) => video.type === "Trailer" && video.site === "YouTube"
+  );
+
+  if (anyTrailer) {
+    return anyTrailer;
+  }
+
+  // إذا لم يوجد تريلر، ابحث عن أي فيديو من YouTube
+  const anyYouTubeVideo = videos.results.find(
+    (video: Video) => video.site === "YouTube"
+  );
+
+  return anyYouTubeVideo || null;
 };
