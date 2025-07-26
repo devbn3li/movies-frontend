@@ -3,7 +3,7 @@ import { Home } from "lucide-react"
 import { MdLiveTv } from "react-icons/md";
 import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import moviesData from "@/assets/movies.json";
 import tvData from "@/assets/tv.json";
@@ -62,18 +62,19 @@ const items = [
   },
 ]
 
-// مكون منفصل لـ sidebar content عشان نتجنب مشاكل useSearchParams
+// مكون منفصل لـ sidebar content
 function SidebarContent_() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [movieGenres, setMovieGenres] = useState<string[]>([]);
   const [tvGenres, setTvGenres] = useState<string[]>([]);
   
-  // التحقق من الفلتر النشط
-  const activeGenre = searchParams.get('genre');
-  
   const isGenreActive = (genre: string) => {
-    return activeGenre === genre;
+    // بدلاً من searchParams، هنشوف الـ current path
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      return url.searchParams.get('genre') === genre;
+    }
+    return false;
   };
 
   useEffect(() => {
