@@ -5,6 +5,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -28,6 +29,7 @@ interface Movie {
 
 const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: string; isLarge: boolean }) => {
   const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
   const mediaType = type === "movie" ? "movie" : "series";
 
@@ -88,14 +90,67 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
       }
     };
 
+    setIsLoading(true);
     fetch(url, options)
       .then(res => res.json())
       .then(data => {
         const filtered = data.results.filter((movie: Movie) => movie.poster_path);
         setTrendingMovies(filtered);
+        setIsLoading(false);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setIsLoading(false);
+      });
   }, [type]);
+
+  if (isLoading) {
+    return (
+      <div className={`${isLarge ? "w-full" : "max-w-[1080px]"} w-full mt-10 relative px-2`}>
+        <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-white mb-4">
+          Trending {title ? title : "Now"}
+        </h2>
+
+        <Carousel opts={{ align: "center" }} className="w-full relative">
+          <CarouselContent>
+            {Array.from({ length: 10 }).map((_, index) => (
+              <CarouselItem
+                key={index}
+                className="
+                  basis-[90%] 
+                  sm:basis-[50%] 
+                  md:basis-[33.33%]
+                  lg:basis-[25%]
+                  xl:basis-[20%]
+                  flex justify-center
+                "
+              >
+                <div className="p-2 w-full">
+                  <div className="relative overflow-hidden rounded-2xl">
+                    {/* Skeleton for poster */}
+                    <Skeleton className="w-full h-[420px] rounded-2xl" />
+                    
+                    {/* Skeleton for badges */}
+                    <div className="absolute top-2 left-2">
+                      <Skeleton className="w-12 h-6 rounded-full" />
+                    </div>
+                    
+                    <div className="absolute top-2 right-2">
+                      <Skeleton className="w-12 h-6 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+
+          {/* Navigation Buttons */}
+          <CarouselPrevious className="left-[-10px] sm:left-[-20px]" />
+          <CarouselNext className="right-[-10px] sm:right-[-20px]" />
+        </Carousel>
+      </div>
+    );
+  }
 
   if (!trendingMovies.length) return null;
 
