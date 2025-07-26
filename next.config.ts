@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Basic image optimization only
+  // Basic configuration only
   images: {
     remotePatterns: [
       {
@@ -25,24 +25,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-  },
-
-  // Disable all optimization features
-  experimental: {
-    optimizeCss: false,
-    optimizePackageImports: [],
-  },
-
-  // Completely disable code splitting
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: false,
-        runtimeChunk: false,
-      };
-    }
-    return config;
   },
 };
 
