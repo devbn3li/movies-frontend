@@ -35,8 +35,8 @@ export default function Navbar() {
 
   return (
     <div className="p-4 flex justify-between bg-white items-center border-b dark:border-[#333333] sm:px-20 sticky top-0 dark:bg-black/70 dark:backdrop-blur-md dark:shadow-xl z-50">
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="text-xl font-bold max-sm:ml-8"
         onClick={() => trackNavigationClick('Logo/Home', '/')}
       >
@@ -68,8 +68,8 @@ export default function Navbar() {
               <DropdownMenuSeparator />
 
               <DropdownMenuGroup>
-                <Link 
-                  href="/profile" 
+                <Link
+                  href="/profile"
                   passHref
                   onClick={() => trackNavigationClick('Profile', '/profile')}
                 >
@@ -80,8 +80,8 @@ export default function Navbar() {
                 </Link>
 
                 {user.isAdmin && (
-                  <Link 
-                    href="/dashboard" 
+                  <Link
+                    href="/dashboard"
                     passHref
                     onClick={() => trackNavigationClick('Dashboard', '/dashboard')}
                   >
@@ -120,11 +120,8 @@ export default function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button>
-            <Link
-              href="/login"
-              className=" px-4 py-2 rounded"
-            >
+          <Button asChild className="px-4 py-2 text-sm rounded-md">
+            <Link href="/login">
               Register / Login
             </Link>
           </Button>

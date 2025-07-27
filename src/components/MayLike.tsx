@@ -72,7 +72,6 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
     return text.substring(0, maxLength).trim() + "...";
   };
   useEffect(() => {
-    console.log("Similar movie IDs:", similarMovies.map(m => m.id));
   }, [similarMovies]);
 
   useEffect(() => {

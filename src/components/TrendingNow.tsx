@@ -77,7 +77,6 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
   };
 
   useEffect(() => {
-    console.log("Trending movie IDs:", trendingMovies.map(m => m.id));
   }, [trendingMovies]);
 
   useEffect(() => {

@@ -8,8 +8,5 @@ Disallow: /login
 Disallow: /register
 Disallow: /profile
 
-# Host
-Host: https://moviezone.me
-
 # Sitemaps
 Sitemap: https://moviezone.me/sitemap.xml

@@ -55,7 +55,7 @@ interface SeriesPageProps {
   seriesId: number;
 }
 
-export default function SeriesPage({ seriesId }: SeriesPageProps) {
+export default function SeriesPage({ seriesId }: SeriesPageProps) {  
   const [item, setItem] = useState<TVShow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mediaData, setMediaData] = useState<{ tv_shows: TVShow[] } | null>(null);
@@ -68,7 +68,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
         const data = await response.json();
         setMediaData(data);
       } catch (error) {
-        console.error('Error loading media data:', error);
+        console.error('Error loading series data:', error);
       }
     };
 
@@ -77,7 +77,6 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
 
   useEffect(() => {
     if (!seriesId || !mediaData) {
-      setIsLoading(false);
       return;
     }
 
@@ -89,14 +88,12 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
       const localItem = tv_shows.find((m) => m.id === seriesId);
 
       if (localItem) {
-        console.log(`✅ Found series ${seriesId} locally:`, localItem.name);
         setItem(localItem);
         setIsLoading(false);
         return;
       }
 
       // If not found locally, fetch from TMDB
-      console.log(`🌐 Series ${seriesId} not found locally, fetching from TMDB...`);
       try {
         const options = {
           method: 'GET',
@@ -110,11 +107,9 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
 
         if (response.ok) {
           const tmdbData: TMDBTVShow = await response.json();
-          console.log(`✅ Successfully fetched series ${seriesId} from TMDB:`, tmdbData.name);
           const convertedItem = convertTMDBToLocal(tmdbData);
           setItem(convertedItem);
         } else {
-          console.log(`❌ Series ${seriesId} not found on TMDB (Status: ${response.status})`);
           setItem(null);
         }
       } catch (error) {

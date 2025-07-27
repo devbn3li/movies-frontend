@@ -60,5 +60,5 @@ export default async function Page({
   params: Promise<{ movieId: string }>;
 }) {
   const { movieId } = await params;
-  return <MoviePage movieId={movieId} />;
+  return <MoviePage movieId={parseInt(movieId)} />;
 }

@@ -2,7 +2,6 @@
 
 import { useMemo, useEffect, useState } from "react";
 import Image from "next/image";
-// import mediaData from "../../../../public/moviesdb.json";
 import { notFound } from "next/navigation";
 import { Movie, TVShow } from "@/types/index";
 import WatchlistButton from "@/components/WatchlistButton";
@@ -56,8 +55,10 @@ const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
   video: tmdbMovie.video,
 });
 
-export default function MoviePage({ movieId }: { movieId: string }) {
-  const id = useMemo(() => Number(movieId), [movieId]);
+export default function MoviePage({ movieId }: { movieId: number }) {
+  const id = useMemo(() => {
+    return movieId;
+  }, [movieId]);
   const [item, setItem] = useState<Media | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mediaData, setMediaData] = useState<{ movies: Movie[], tv_shows: TVShow[] } | null>(null);
@@ -85,7 +86,6 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
   useEffect(() => {
     if (!id || !mediaData) {
-      setIsLoading(false);
       return;
     }
 
@@ -98,7 +98,6 @@ export default function MoviePage({ movieId }: { movieId: string }) {
       const localItem = all.find((m) => m.id === id);
 
       if (localItem) {
-        console.log(`✅ Found movie ${id} locally:`, "title" in localItem ? localItem.title : localItem.name);
         setItem(localItem);
         setIsLoading(false);
 
@@ -109,7 +108,6 @@ export default function MoviePage({ movieId }: { movieId: string }) {
       }
 
       // If not found locally, fetch from TMDB (try movie first)
-      console.log(`🌐 Movie ${id} not found locally, fetching from TMDB...`);
       try {
         const options = {
           method: 'GET',
@@ -123,14 +121,12 @@ export default function MoviePage({ movieId }: { movieId: string }) {
 
         if (response.ok) {
           const tmdbData: TMDBMovie = await response.json();
-          console.log(`✅ Successfully fetched movie ${id} from TMDB:`, tmdbData.title);
           const convertedItem = convertTMDBToLocal(tmdbData);
           setItem(convertedItem);
 
           // Track Analytics page view
           trackMoviePageView(tmdbData.title || 'Unknown', tmdbData.id);
         } else {
-          console.log(`❌ Movie ${id} not found on TMDB (Status: ${response.status})`);
           setItem(null);
         }
       } catch (error) {
@@ -360,9 +356,9 @@ export default function MoviePage({ movieId }: { movieId: string }) {
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
         </div>
 
-        {movieId && <Recommendations movieId={movieId} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
+        {movieId && <Recommendations movieId={String(movieId)} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
 
-        {movieId && <MayLike movieId={movieId} type={mediaType} />}
+        {movieId && <MayLike movieId={String(movieId)} type={mediaType} />}
 
         {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
       </div>

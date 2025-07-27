@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
 import Image from "next/image";
 import TrendingNow from "@/components/TrendingNow";
+import FeaturedContent from "@/components/FeaturedContent";
 import AuthModal from "@/components/AuthModal";
 import GlobalSearch from "@/components/GlobalSearch";
 
@@ -59,12 +60,20 @@ export default function HomePage() {
       </section>
 
       <section className="p-5 sm:px-20 pb-20 flex flex-col">
-        <div>
-          <TrendingNow type="movie" title="Movies" isLarge={true} />
+        <div className="mb-8">
+          <FeaturedContent type="movie" title="Popular Movies" isLarge={true} showViewAllLink={true} />
+        </div>
+
+        <div className="mb-8">
+          <FeaturedContent type="tv" title="Popular TV Shows" isLarge={true} showViewAllLink={true} />
+        </div>
+
+        <div className="mb-8">
+          <TrendingNow type="movie" title="Trending Movies" isLarge={true} />
         </div>
 
         <div>
-          <TrendingNow type="tv" title="TV Shows" isLarge={true} />
+          <TrendingNow type="tv" title="Trending TV Shows" isLarge={true} />
         </div>
       </section>
     </main>

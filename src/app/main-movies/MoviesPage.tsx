@@ -11,7 +11,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Image from "next/image";
-// import moviesData from "../../../public/movies.json";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Movie } from "@/types/index";
@@ -24,14 +23,13 @@ import { CompactTrailer } from "@/components/Trailer";
 
 const ITEMS_PER_PAGE = 24;
 
-// مكون منفصل للمحتوى
 function MoviesContent() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
-  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {
@@ -87,7 +85,7 @@ function MoviesContent() {
           genres={genres}
           years={years}
           disabled={isLoading}
-          showAdultFilter={isAdmin} // إظهار فلتر Adult فقط للأدمن
+          showAdultFilter={isAdmin}
         />
 
         <ResultsCount
@@ -174,7 +172,7 @@ function CardsGrid({
   items: Movie[];
   isLoading: boolean;
 }) {
-  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const { isAdmin } = useAuth();
 
   // Helper functions
   const getYear = (movie: Movie) => {
@@ -191,7 +189,6 @@ function CardsGrid({
       return { text: "18+", color: "bg-red-600" };
     }
 
-    // التحقق من المحتوى الحساس في العنوان
     if (containsSensitiveContent(movie.title)) {
       return { text: "Sensitive", color: "bg-orange-600" };
     }
