@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useMemo, useState } from "react"
-import mediaData from "@/assets/moviesdb.json"
 import { Movie, TVShow } from "@/types/index"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -18,24 +17,34 @@ const DashboardPage = () => {
   const router = useRouter()
 
   useEffect(() => {
-    // التحقق من المصادقة والصلاحيات
     if (!isAuthenticated) {
-      // إذا لم يعمل تسجيل دخول، إعادة توجيه لصفحة تسجيل الدخول
       router.push('/login')
       return
     }
 
     if (!isAdmin) {
-      // إذا لم يكن أدمن، إعادة توجيه للصفحة الرئيسية
       router.push('/')
       return
     }
   }, [isAuthenticated, isAdmin, router])
 
   useEffect(() => {
-    setMovies((mediaData as { movies: Movie[] }).movies)
-    setTvShows((mediaData as { tv_shows: TVShow[] }).tv_shows)
-  }, [])
+    const loadData = async () => {
+      try {
+        const response = await fetch('/moviesdb.json');
+        const mediaData = await response.json();
+
+        setMovies((mediaData as { movies: Movie[] }).movies)
+        setTvShows((mediaData as { tv_shows: TVShow[] }).tv_shows)
+      } catch (error) {
+        console.error('Error loading media data:', error);
+      }
+    };
+
+    if (isAuthenticated && isAdmin) {
+      loadData();
+    }
+  }, [isAuthenticated, isAdmin])
 
   const data = tab === "movies" ? movies : tvShows
 
@@ -95,7 +104,6 @@ const DashboardPage = () => {
     }
   }, [data])
 
-  // إذا لم يكن مصادق أو ليس أدمن، لا تعرض شيء (سيتم إعادة التوجيه)
   if (!isAuthenticated || !isAdmin) {
     return null
   }

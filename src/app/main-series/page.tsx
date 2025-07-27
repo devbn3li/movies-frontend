@@ -10,7 +10,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Image from "next/image";
-import seriesData from "@/assets/tv.json";
+// import seriesData from "../../../public/tv.json";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TVShow } from "@/types/index";
@@ -37,10 +37,16 @@ function TVShowsContent() {
   // Simulate loading data (since moviesdb.json is static)
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setTvShows(seriesData as TVShow[]);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const response = await fetch('/tv.json');
+        const seriesData = await response.json();
+        setTvShows(seriesData as TVShow[]);
+      } catch (error) {
+        console.error('Error loading TV shows data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadData();
   }, []);

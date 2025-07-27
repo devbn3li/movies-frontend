@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import SeriesPage from "./SeriesPage";
 import { getTVSeriesDetails } from "@/lib/api";
-import mediaData from "@/assets/moviesdb.json";
+// import mediaData from "../../../../public/moviesdb.json";
 import { TVShow } from "@/types/index";
+import { promises as fs } from 'fs';
+import path from 'path';
 
 type Props = {
   params: Promise<{ seriesId: string }>;
@@ -13,6 +15,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = parseInt(seriesId);
 
   // Try to get series data from local data first
+  const filePath = path.join(process.cwd(), 'public', 'moviesdb.json');
+  const fileContents = await fs.readFile(filePath, 'utf8');
+  const mediaData = JSON.parse(fileContents);
   const { tv_shows } = mediaData as { tv_shows: TVShow[] };
   let series = tv_shows.find((s) => s.id === id);
 

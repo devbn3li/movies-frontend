@@ -5,8 +5,7 @@ import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import moviesData from "@/assets/movies.json";
-import tvData from "@/assets/tv.json";
+
 import {
   Sidebar,
   SidebarContent,
@@ -67,7 +66,7 @@ function SidebarContent_() {
   const router = useRouter();
   const [movieGenres, setMovieGenres] = useState<string[]>([]);
   const [tvGenres, setTvGenres] = useState<string[]>([]);
-  
+
   const isGenreActive = (genre: string) => {
     // بدلاً من searchParams، هنشوف الـ current path
     if (typeof window !== 'undefined') {
@@ -79,11 +78,28 @@ function SidebarContent_() {
 
   useEffect(() => {
     // استخراج الأنواع من البيانات
-    const movieGenresList = extractGenres(moviesData);
-    const tvGenresList = extractGenres(tvData);
-    
-    setMovieGenres(movieGenresList);
-    setTvGenres(tvGenresList);
+    const loadGenres = async () => {
+      try {
+
+        // جلب بيانات الأفلام
+        const moviesResponse = await fetch('/movies.json');
+        const moviesData = await moviesResponse.json();
+
+        // جلب بيانات المسلسلات
+        const tvResponse = await fetch('/tv.json');
+        const tvData = await tvResponse.json();
+
+        const movieGenresList = extractGenres(moviesData);
+        const tvGenresList = extractGenres(tvData);
+
+        setMovieGenres(movieGenresList);
+        setTvGenres(tvGenresList);
+      } catch (error) {
+        console.error('Error loading genres:', error);
+      }
+    };
+
+    loadGenres();
   }, []);
 
   return (
@@ -107,7 +123,7 @@ function SidebarContent_() {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-      
+
       {/* Movie Categories */}
       <SidebarGroup>
         <SidebarGroupLabel>
@@ -118,12 +134,11 @@ function SidebarContent_() {
           <SidebarMenu>
             {movieGenres.map((genre) => (
               <SidebarMenuItem key={`movie-${genre}`}>
-                <SidebarMenuButton 
-                  className={`cursor-pointer ${
-                    isGenreActive(genre) 
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                <SidebarMenuButton
+                  className={`cursor-pointer ${isGenreActive(genre)
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                       : ''
-                  }`}
+                    }`}
                   onClick={() => router.push(`/main-movies?genre=${encodeURIComponent(genre)}`)}
                 >
                   <RiMovieLine />
@@ -148,12 +163,11 @@ function SidebarContent_() {
           <SidebarMenu>
             {tvGenres.map((genre) => (
               <SidebarMenuItem key={`tv-${genre}`}>
-                <SidebarMenuButton 
-                  className={`cursor-pointer ${
-                    isGenreActive(genre) 
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                <SidebarMenuButton
+                  className={`cursor-pointer ${isGenreActive(genre)
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                       : ''
-                  }`}
+                    }`}
                   onClick={() => router.push(`/main-series?genre=${encodeURIComponent(genre)}`)}
                 >
                   <RiMovieLine />
@@ -180,9 +194,9 @@ export function AppSidebar() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       const sidebarTrigger = document.querySelector('.sidebar-trigger');
-      
+
       if (
-        sidebarRef.current && 
+        sidebarRef.current &&
         !sidebarRef.current.contains(event.target as Node) &&
         !isMobile && // على الموبايل الـ Sheet component هيتولى الموضوع ده
         !(sidebarTrigger && sidebarTrigger.contains(target)) // مانقفلش لو ضغطت على الزرار نفسه

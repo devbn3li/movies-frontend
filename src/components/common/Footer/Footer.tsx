@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import logoSrc from "../../../assets/logo.svg";
 
 export default function Footer() {
   return (
@@ -13,7 +12,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex flex-col mb-4 group">
               <Image
-                src={logoSrc}
+                src="/logo.svg"
                 alt="Movie Zone Logo"
                 width={40}
                 height={40}

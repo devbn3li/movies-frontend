@@ -1,7 +1,6 @@
 "use client";
 import { useAuth } from "@/hooks/useAuth";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
-import poster from "@/assets/larg_bg_en.jpg";
 import Image from "next/image";
 import TrendingNow from "@/components/TrendingNow";
 import AuthModal from "@/components/AuthModal";
@@ -21,7 +20,7 @@ export default function HomePage() {
       <section className="relative h-[calc(100vh-4rem)] w-full">
         <div className="absolute inset-0 overflow-hidden">
           <Image
-            src={poster}
+            src="/larg_bg_en.jpg"
             alt="Movie Zone - Stream unlimited movies and TV shows"
             fill
             className="object-cover"

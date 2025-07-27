@@ -11,7 +11,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Image from "next/image";
-import moviesData from "@/assets/movies.json";
+// import moviesData from "../../../public/movies.json";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Movie } from "@/types/index";
@@ -35,10 +35,16 @@ function MoviesContent() {
 
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setMovies(moviesData as Movie[]);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const response = await fetch('/movies.json');
+        const moviesData = await response.json();
+        setMovies(moviesData as Movie[]);
+      } catch (error) {
+        console.error('Error loading movies data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadData();
   }, []);

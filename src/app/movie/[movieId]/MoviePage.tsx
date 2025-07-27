@@ -2,7 +2,7 @@
 
 import { useMemo, useEffect, useState } from "react";
 import Image from "next/image";
-import mediaData from "@/assets/moviesdb.json";
+// import mediaData from "../../../../public/moviesdb.json";
 import { notFound } from "next/navigation";
 import { Movie, TVShow } from "@/types/index";
 import WatchlistButton from "@/components/WatchlistButton";
@@ -60,6 +60,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
   const id = useMemo(() => Number(movieId), [movieId]);
   const [item, setItem] = useState<Media | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mediaData, setMediaData] = useState<{ movies: Movie[], tv_shows: TVShow[] } | null>(null);
 
   // Scroll tracking
   useScrollTracking({
@@ -68,7 +69,22 @@ export default function MoviePage({ movieId }: { movieId: string }) {
   });
 
   useEffect(() => {
-    if (!id) {
+    // تحميل البيانات من الملف الاستاتيكي
+    const loadMediaData = async () => {
+      try {
+        const response = await fetch('/moviesdb.json');
+        const data = await response.json();
+        setMediaData(data);
+      } catch (error) {
+        console.error('Error loading media data:', error);
+      }
+    };
+
+    loadMediaData();
+  }, []);
+
+  useEffect(() => {
+    if (!id || !mediaData) {
       setIsLoading(false);
       return;
     }
@@ -77,10 +93,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
       setIsLoading(true);
 
       // First, try to find in local data
-      const { movies, tv_shows } = mediaData as {
-        movies: Movie[];
-        tv_shows: TVShow[];
-      };
+      const { movies, tv_shows } = mediaData;
       const all: Media[] = [...movies, ...tv_shows];
       const localItem = all.find((m) => m.id === id);
 
@@ -129,7 +142,7 @@ export default function MoviePage({ movieId }: { movieId: string }) {
     };
 
     fetchMovieData();
-  }, [id]);
+  }, [id, mediaData]);
 
   if (isLoading) {
     return <Loading />;

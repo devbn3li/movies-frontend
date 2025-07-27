@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import mediaData from "@/assets/moviesdb.json";
+// import mediaData from "../../../../public/moviesdb.json";
 import { notFound } from "next/navigation";
 import { TVShow } from "@/types/index";
 import { useEffect, useState } from "react";
@@ -58,9 +58,25 @@ interface SeriesPageProps {
 export default function SeriesPage({ seriesId }: SeriesPageProps) {
   const [item, setItem] = useState<TVShow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mediaData, setMediaData] = useState<{ tv_shows: TVShow[] } | null>(null);
 
   useEffect(() => {
-    if (!seriesId) {
+    // تحميل البيانات من الملف الاستاتيكي
+    const loadMediaData = async () => {
+      try {
+        const response = await fetch('/moviesdb.json');
+        const data = await response.json();
+        setMediaData(data);
+      } catch (error) {
+        console.error('Error loading media data:', error);
+      }
+    };
+
+    loadMediaData();
+  }, []);
+
+  useEffect(() => {
+    if (!seriesId || !mediaData) {
       setIsLoading(false);
       return;
     }
@@ -69,7 +85,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
       setIsLoading(true);
 
       // First, try to find in local data
-      const { tv_shows } = mediaData as { tv_shows: TVShow[] };
+      const { tv_shows } = mediaData;
       const localItem = tv_shows.find((m) => m.id === seriesId);
 
       if (localItem) {
@@ -110,7 +126,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
     };
 
     fetchSeriesData();
-  }, [seriesId]);
+  }, [seriesId, mediaData]);
 
   if (isLoading) {
     return <Loading />;

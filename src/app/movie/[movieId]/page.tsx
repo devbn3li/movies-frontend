@@ -1,7 +1,9 @@
 import { Metadata } from "next";
-import mediaData from "@/assets/moviesdb.json";
+// import mediaData from "/moviesdb.json";
 import { Movie, TVShow } from "@/types/index";
 import MoviePage from "./MoviePage";
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export async function generateMetadata({
   params,
@@ -9,6 +11,12 @@ export async function generateMetadata({
   params: Promise<{ movieId: string }>;
 }): Promise<Metadata> {
   const { movieId } = await params;
+
+  // قراءة البيانات من الملف
+  const filePath = path.join(process.cwd(), 'public', 'moviesdb.json');
+  const fileContents = await fs.readFile(filePath, 'utf8');
+  const mediaData = JSON.parse(fileContents);
+
   const { movies, tv_shows } = mediaData as {
     movies: Movie[];
     tv_shows: TVShow[];
