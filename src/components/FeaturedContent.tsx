@@ -161,15 +161,43 @@ const FeaturedContent = ({
           <Skeleton className="h-8 w-48" />
           {showViewAllLink && <Skeleton className="h-6 w-24" />}
         </div>
-        <div className="flex gap-4 overflow-hidden">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div key={index} className="flex-shrink-0">
-              <Skeleton className={`${isLarge ? "h-80 w-52" : "h-60 w-40"} rounded-lg`} />
-              <Skeleton className="h-4 w-32 mt-2" />
-              <Skeleton className="h-3 w-24 mt-1" />
-            </div>
-          ))}
-        </div>
+        <Carousel opts={{ align: "center" }} className="w-full relative">
+          <CarouselContent>
+            {Array.from({ length: 10 }).map((_, index) => (
+              <CarouselItem
+                key={index}
+                className="
+                  basis-[90%] 
+                  sm:basis-[50%] 
+                  md:basis-[33.33%]
+                  lg:basis-[25%]
+                  xl:basis-[20%]
+                  flex justify-center
+                "
+              >
+                <div className="p-2 w-full">
+                  <div className="relative overflow-hidden rounded-2xl">
+                    {/* Skeleton for poster */}
+                    <Skeleton className="w-full h-[420px] rounded-2xl" />
+                    
+                    {/* Skeleton for badges */}
+                    <div className="absolute top-2 left-2">
+                      <Skeleton className="w-12 h-6 rounded-full" />
+                    </div>
+                    
+                    <div className="absolute top-2 right-2">
+                      <Skeleton className="w-12 h-6 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+
+          {/* Navigation Buttons */}
+          <CarouselPrevious className="left-[-10px] sm:left-[-20px]" />
+          <CarouselNext className="right-[-10px] sm:right-[-20px]" />
+        </Carousel>
       </div>
     );
   }
