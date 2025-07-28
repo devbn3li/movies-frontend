@@ -45,7 +45,7 @@ const WatchlistButton: React.FC<WatchlistButtonProps> = ({
         ? 'bg-red-500/80 hover:bg-red-600/90 text-white shadow-lg shadow-red-500/20'
         : 'bg-white/10 hover:bg-white/20 text-white hover:shadow-lg shadow-black/10'
         } ${className}`}
-      title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+      title={inWatchlist ? 'Remove from favourites' : 'Add to favourites'}
     >
       <Heart
         size={20}
@@ -56,7 +56,7 @@ const WatchlistButton: React.FC<WatchlistButtonProps> = ({
       />
       {showText && (
         <span className="text-sm font-medium transition-all duration-300">
-          {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+          {inWatchlist ? 'In favourites' : 'Add to favourites'}
         </span>
       )}
     </button>
