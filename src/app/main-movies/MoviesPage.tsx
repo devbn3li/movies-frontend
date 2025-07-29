@@ -20,7 +20,7 @@ import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
-import { getMovies, getMovieGenres } from "@/lib/api";
+import { getMovies, getMovieGenres, getMovieYears } from "@/lib/api";
 import { Genre } from "@/types/index";
 
 const ITEMS_PER_PAGE = 24;
@@ -37,6 +37,7 @@ function MoviesContent() {
   const [totalMovies, setTotalMovies] = useState(0);
   const [adultMovies, setAdultMovies] = useState(0);
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
   const { isAdmin } = useAuth();
 
   // Initialize filters from URL parameters
@@ -50,17 +51,21 @@ function MoviesContent() {
     }
   }, [searchParams]);
 
-  // Load available genres
+  // Load available genres and years
   useEffect(() => {
-    const loadGenres = async () => {
+    const loadFilters = async () => {
       try {
-        const genres = await getMovieGenres();
+        const [genres, years] = await Promise.all([
+          getMovieGenres(),
+          getMovieYears(),
+        ]);
         setAvailableGenres(genres);
+        setAvailableYears(years);
       } catch (error) {
-        console.error('Error loading genres:', error);
+        console.error('Error loading filters:', error);
       }
     };
-    loadGenres();
+    loadFilters();
   }, []);
 
   // Debounce search input
@@ -235,9 +240,9 @@ function MoviesContent() {
     }
   };
 
-  // Extract genres and years from available filters or use empty arrays for now
+  // Extract genres and years from available filters
   const genres: string[] = availableGenres.map(genre => genre.name);
-  const years: string[] = [];
+  const years: string[] = availableYears;
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">

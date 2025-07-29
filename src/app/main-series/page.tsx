@@ -20,7 +20,7 @@ import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
-import { getTVShows, getTVGenres } from "@/lib/api";
+import { getTVShows, getTVGenres, getTVYears } from "@/lib/api";
 import { Genre } from "@/types/index";
 
 const ITEMS_PER_PAGE = 24;
@@ -37,6 +37,7 @@ function TVShowsContent() {
   const [totalShows, setTotalShows] = useState(0);
   const [adultShows, setAdultShows] = useState(0);
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
   const { isAdmin } = useAuth();
 
   // Initialize filters from URL parameters
@@ -50,17 +51,21 @@ function TVShowsContent() {
     }
   }, [searchParams]);
 
-  // Load available genres
+  // Load available genres and years
   useEffect(() => {
-    const loadGenres = async () => {
+    const loadFilters = async () => {
       try {
-        const genres = await getTVGenres();
+        const [genres, years] = await Promise.all([
+          getTVGenres(),
+          getTVYears(),
+        ]);
         setAvailableGenres(genres);
+        setAvailableYears(years);
       } catch (error) {
-        console.error('Error loading genres:', error);
+        console.error('Error loading filters:', error);
       }
     };
-    loadGenres();
+    loadFilters();
   }, []);
 
   // Debounce search input
@@ -152,7 +157,7 @@ function TVShowsContent() {
 
     const timer = setTimeout(() => {
       loadData();
-    }, 300); // تأخير قصير لتجنب الطلبات المتعددة
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [filters, debouncedSearch, isAdmin]);
@@ -237,9 +242,9 @@ function TVShowsContent() {
     }
   };
 
-  // Extract genres and years from available filters or use empty arrays for now
+  // Extract genres and years from available filters
   const genres: string[] = availableGenres.map(genre => genre.name);
-  const years: string[] = [];
+  const years: string[] = availableYears;
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">

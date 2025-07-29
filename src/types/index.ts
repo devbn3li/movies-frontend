@@ -205,3 +205,24 @@ export type Genre = {
   id: number;
   name: string;
 };
+
+// Backend Filter Types
+export type BackendGenre = {
+  name: string;
+  count: number;
+};
+
+export type FilterResponse = {
+  success: boolean;
+  filters: {
+    years: number[];
+    genres: BackendGenre[];
+    contentType: "movie" | "tv";
+  };
+  meta: {
+    totalMovies?: number;
+    totalTVShows?: number;
+    contentType: "movie" | "tv";
+    lastUpdated: string;
+  };
+};

@@ -1,5 +1,5 @@
 import axios from "./axios";
-import { Video, VideosResponse } from "@/types/index";
+import { Video, VideosResponse, BackendGenre } from "@/types/index";
 
 export const getAllMovies = async () => {
   const res = await axios.get("/movies");
@@ -503,45 +503,110 @@ export const getAllContent = async (params?: {
   }
 };
 
-// Get movie genres from TMDB
-export const getMovieGenres = async () => {
+// Get movie filters from backend
+export const getMovieFilters = async () => {
   try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/genre/movie/list?language=en`,
-      {
-        method: "GET",
-        headers: tmdbHeaders,
-      }
-    );
+    const response = await fetch(`${MOVIE_ZONE_BASE_URL}/filters/movies`, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch movie genres: ${response.status}`);
+      throw new Error(`Failed to fetch movie filters: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.genres || [];
+    return data;
+  } catch (error) {
+    console.error("Error fetching movie filters:", error);
+    return null;
+  }
+};
+
+// Get TV show filters from backend
+export const getTVFilters = async () => {
+  try {
+    const response = await fetch(`${MOVIE_ZONE_BASE_URL}/filters/tvshows`, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV filters: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching TV filters:", error);
+    return null;
+  }
+};
+
+// Get movie genres from backend (for compatibility)
+export const getMovieGenres = async () => {
+  try {
+    const filtersData = await getMovieFilters();
+    if (filtersData && filtersData.success) {
+      // Convert backend genre format to the expected format
+      return filtersData.filters.genres.map((genre: BackendGenre, index: number) => ({
+        id: index + 1, // Generate ID since backend doesn't provide it
+        name: genre.name,
+      }));
+    }
+    return [];
   } catch (error) {
     console.error("Error fetching movie genres:", error);
     return [];
   }
 };
 
-// Get TV show genres from TMDB
+// Get TV show genres from backend (for compatibility)
 export const getTVGenres = async () => {
   try {
-    const response = await fetch(`${TMDB_BASE_URL}/genre/tv/list?language=en`, {
-      method: "GET",
-      headers: tmdbHeaders,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch TV genres: ${response.status}`);
+    const filtersData = await getTVFilters();
+    if (filtersData && filtersData.success) {
+      // Convert backend genre format to the expected format
+      return filtersData.filters.genres.map((genre: BackendGenre, index: number) => ({
+        id: index + 1, // Generate ID since backend doesn't provide it
+        name: genre.name,
+      }));
     }
-
-    const data = await response.json();
-    return data.genres || [];
+    return [];
   } catch (error) {
     console.error("Error fetching TV genres:", error);
+    return [];
+  }
+};
+
+// Get movie years from backend
+export const getMovieYears = async () => {
+  try {
+    const filtersData = await getMovieFilters();
+    if (filtersData && filtersData.success) {
+      return filtersData.filters.years.map((year: number) => year.toString());
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching movie years:", error);
+    return [];
+  }
+};
+
+// Get TV show years from backend
+export const getTVYears = async () => {
+  try {
+    const filtersData = await getTVFilters();
+    if (filtersData && filtersData.success) {
+      return filtersData.filters.years.map((year: number) => year.toString());
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching TV years:", error);
     return [];
   }
 };
