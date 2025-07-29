@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,10 +25,18 @@ export type FilterBarProps = {
   years: string[];
   disabled?: boolean;
   showAdultFilter?: boolean;
+  initialFilters?: FilterOptions;
 };
 
-export default function FilterBar({ onFilterChange, genres, years, disabled = false, showAdultFilter = false }: FilterBarProps) {
-  const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
+export default function FilterBar({ onFilterChange, genres, years, disabled = false, showAdultFilter = false, initialFilters }: FilterBarProps) {
+  const [filters, setFilters] = useState<FilterOptions>(initialFilters || { sortBy: "default" });
+
+  // Update filters when initialFilters changes
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters);
+    }
+  }, [initialFilters]);
 
   const updateFilter = (key: keyof FilterOptions, value: FilterOptions[keyof FilterOptions]) => {
     const newFilters = { ...filters, [key]: value };

@@ -5,7 +5,8 @@ import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { getMovies, getTVShows } from "@/lib/api";
+import { getMovieGenres, getTVGenres } from "@/lib/api";
+import { Genre } from "@/types/index";
 
 import {
   Sidebar,
@@ -18,30 +19,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
-interface MediaItem {
-  genre_names?: string[];
-}
-
-const EXCLUDED_GENRES = ['Adventure'];
-
-// دالة لاستخراج الأنواع من البيانات
-const extractGenres = (data: MediaItem[] | MediaItem | unknown) => {
-  if (!Array.isArray(data)) {
-    return [];
-  }
-  const genresSet = new Set<string>();
-  data.forEach((item: MediaItem) => {
-    if (item.genre_names && Array.isArray(item.genre_names)) {
-      item.genre_names.forEach((genre: string) => {
-        if (!EXCLUDED_GENRES.includes(genre)) {
-          genresSet.add(genre);
-        }
-      });
-    }
-  });
-  return Array.from(genresSet).sort();
-};
 
 // Menu items.
 const items = [
@@ -65,8 +42,8 @@ const items = [
 // مكون منفصل لـ sidebar content
 function SidebarContent_() {
   const router = useRouter();
-  const [movieGenres, setMovieGenres] = useState<string[]>([]);
-  const [tvGenres, setTvGenres] = useState<string[]>([]);
+  const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
+  const [tvGenres, setTvGenres] = useState<Genre[]>([]);
 
   const isGenreActive = (genre: string) => {
     // بدلاً من searchParams، هنشوف الـ current path
@@ -78,26 +55,13 @@ function SidebarContent_() {
   };
 
   useEffect(() => {
-    // استخراج الأنواع من البيانات
+    // جلب الأنواع مباشرة من TMDB API
     const loadGenres = async () => {
       try {
-        // جلب بيانات الأفلام من الـ backend API
-        const moviesResponse = await getMovies({
-          page: 1,
-          limit: 100, // Get enough movies to extract all genres
-        });
-
-        // جلب بيانات المسلسلات من الـ backend API  
-        const tvResponse = await getTVShows({
-          page: 1,
-          limit: 100, // Get enough TV shows to extract all genres
-        });
-
-        const moviesData = moviesResponse?.content || [];
-        const tvData = tvResponse?.content || [];
-
-        const movieGenresList = extractGenres(moviesData);
-        const tvGenresList = extractGenres(tvData);
+        const [movieGenresList, tvGenresList] = await Promise.all([
+          getMovieGenres(),
+          getTVGenres(),
+        ]);
 
         setMovieGenres(movieGenresList);
         setTvGenres(tvGenresList);
@@ -140,17 +104,17 @@ function SidebarContent_() {
         <SidebarGroupContent>
           <SidebarMenu>
             {movieGenres.map((genre) => (
-              <SidebarMenuItem key={`movie-${genre}`}>
+              <SidebarMenuItem key={`movie-${genre.id}`}>
                 <SidebarMenuButton
-                  className={`cursor-pointer ${isGenreActive(genre)
+                  className={`cursor-pointer ${isGenreActive(genre.name)
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                     : ''
                     }`}
-                  onClick={() => router.push(`/main-movies?genre=${encodeURIComponent(genre)}`)}
+                  onClick={() => router.push(`/main-movies?genre=${encodeURIComponent(genre.name)}`)}
                 >
                   <RiMovieLine />
-                  <span>{genre}</span>
-                  {isGenreActive(genre) && (
+                  <span>{genre.name}</span>
+                  {isGenreActive(genre.name) && (
                     <span className="ml-auto h-2 w-2 bg-blue-500 rounded-full" />
                   )}
                 </SidebarMenuButton>
@@ -169,17 +133,17 @@ function SidebarContent_() {
         <SidebarGroupContent>
           <SidebarMenu>
             {tvGenres.map((genre) => (
-              <SidebarMenuItem key={`tv-${genre}`}>
+              <SidebarMenuItem key={`tv-${genre.id}`}>
                 <SidebarMenuButton
-                  className={`cursor-pointer ${isGenreActive(genre)
+                  className={`cursor-pointer ${isGenreActive(genre.name)
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                     : ''
                     }`}
-                  onClick={() => router.push(`/main-series?genre=${encodeURIComponent(genre)}`)}
+                  onClick={() => router.push(`/main-series?genre=${encodeURIComponent(genre.name)}`)}
                 >
                   <RiMovieLine />
-                  <span>{genre}</span>
-                  {isGenreActive(genre) && (
+                  <span>{genre.name}</span>
+                  {isGenreActive(genre.name) && (
                     <span className="ml-auto h-2 w-2 bg-green-500 rounded-full" />
                   )}
                 </SidebarMenuButton>

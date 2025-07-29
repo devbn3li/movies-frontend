@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -19,11 +20,13 @@ import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
-import { getTVShows } from "@/lib/api";
+import { getTVShows, getTVGenres } from "@/lib/api";
+import { Genre } from "@/types/index";
 
 const ITEMS_PER_PAGE = 24;
 
 function TVShowsContent() {
+  const searchParams = useSearchParams();
   const [tvShows, setTvShows] = useState<TVShow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -33,7 +36,32 @@ function TVShowsContent() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalShows, setTotalShows] = useState(0);
   const [adultShows, setAdultShows] = useState(0);
+  const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const { isAdmin } = useAuth();
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const genreFromUrl = searchParams.get('genre');
+    if (genreFromUrl) {
+      setFilters(prev => ({
+        ...prev,
+        genre: genreFromUrl
+      }));
+    }
+  }, [searchParams]);
+
+  // Load available genres
+  useEffect(() => {
+    const loadGenres = async () => {
+      try {
+        const genres = await getTVGenres();
+        setAvailableGenres(genres);
+      } catch (error) {
+        console.error('Error loading genres:', error);
+      }
+    };
+    loadGenres();
+  }, []);
 
   // Debounce search input
   useEffect(() => {
@@ -44,9 +72,99 @@ function TVShowsContent() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const loadTVShows = useCallback(async (currentPage: number = 1, currentFilters: FilterOptions = filters, searchTerm: string = debouncedSearch) => {
+  useEffect(() => {
+    // تحميل المسلسلات عندما تتغير الفلاتر أو البحث
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+
+        const params: {
+          page?: number;
+          limit?: number;
+          search?: string;
+          genre?: string;
+          year?: number;
+          sort_by?: string;
+          order?: string;
+          adult?: boolean;
+          country?: string;
+        } = {
+          page: 1,
+          limit: ITEMS_PER_PAGE,
+        };
+
+        // Add search parameter
+        if (debouncedSearch.trim()) {
+          params.search = debouncedSearch.trim();
+        }
+
+        // Add filter parameters
+        if (filters.genre && filters.genre !== "all") {
+          params.genre = filters.genre;
+        }
+
+        if (filters.year && filters.year !== "all") {
+          params.year = parseInt(filters.year);
+        }
+
+        if (filters.sortBy && filters.sortBy !== "default") {
+          switch (filters.sortBy) {
+            case "title":
+              params.sort_by = "name";
+              params.order = "asc";
+              break;
+            case "release_date":
+              params.sort_by = "first_air_date";
+              params.order = "desc";
+              break;
+            case "rating":
+              params.sort_by = "vote_average";
+              params.order = "desc";
+              break;
+            case "popularity":
+              params.sort_by = "popularity";
+              params.order = "desc";
+              break;
+          }
+        }
+
+        // Add adult filter only if user is admin and has made a choice
+        if (isAdmin && filters.includeAdult !== undefined) {
+          params.adult = filters.includeAdult;
+        }
+
+        const response = await getTVShows(params);
+
+        if (response) {
+          setTvShows(response.tvShows || []);
+          setTotalPages(response.totalPages || 0);
+          setTotalShows(response.totalShows || 0);
+          setAdultShows(response.adultShows || 0);
+        }
+        setPage(1);
+      } catch (error) {
+        console.error('Error loading TV shows:', error);
+        setTvShows([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      loadData();
+    }, 300); // تأخير قصير لتجنب الطلبات المتعددة
+
+    return () => clearTimeout(timer);
+  }, [filters, debouncedSearch, isAdmin]);
+
+  const handleFilterChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+  };
+
+  const handlePageChange = async (newPage: number) => {
     try {
       setIsLoading(true);
+      setPage(newPage);
 
       const params: {
         page?: number;
@@ -59,26 +177,26 @@ function TVShowsContent() {
         adult?: boolean;
         country?: string;
       } = {
-        page: currentPage,
+        page: newPage,
         limit: ITEMS_PER_PAGE,
       };
 
       // Add search parameter
-      if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
+      if (debouncedSearch.trim()) {
+        params.search = debouncedSearch.trim();
       }
 
       // Add filter parameters
-      if (currentFilters.genre && currentFilters.genre !== "all") {
-        params.genre = currentFilters.genre;
+      if (filters.genre && filters.genre !== "all") {
+        params.genre = filters.genre;
       }
 
-      if (currentFilters.year && currentFilters.year !== "all") {
-        params.year = parseInt(currentFilters.year);
+      if (filters.year && filters.year !== "all") {
+        params.year = parseInt(filters.year);
       }
 
-      if (currentFilters.sortBy && currentFilters.sortBy !== "default") {
-        switch (currentFilters.sortBy) {
+      if (filters.sortBy && filters.sortBy !== "default") {
+        switch (filters.sortBy) {
           case "title":
             params.sort_by = "name";
             params.order = "asc";
@@ -99,8 +217,8 @@ function TVShowsContent() {
       }
 
       // Add adult filter only if user is admin and has made a choice
-      if (isAdmin && currentFilters.includeAdult !== undefined) {
-        params.adult = currentFilters.includeAdult;
+      if (isAdmin && filters.includeAdult !== undefined) {
+        params.adult = filters.includeAdult;
       }
 
       const response = await getTVShows(params);
@@ -117,31 +235,10 @@ function TVShowsContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, debouncedSearch, isAdmin]);
-
-  useEffect(() => {
-    const initialLoad = async () => {
-      await loadTVShows(1, filters, debouncedSearch);
-    };
-    initialLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Load TV shows when debounced search or filters change
-  useEffect(() => {
-    if (debouncedSearch !== search && search !== "") return; // Skip if still typing
-    setPage(1);
-    loadTVShows(1, filters, debouncedSearch);
-  }, [debouncedSearch, filters, loadTVShows, search]);
-
-  const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
-    setPage(1);
-    loadTVShows(1, newFilters, debouncedSearch);
   };
 
   // Extract genres and years from available filters or use empty arrays for now
-  const genres: string[] = [];
+  const genres: string[] = availableGenres.map(genre => genre.name);
   const years: string[] = [];
 
   return (
@@ -167,6 +264,7 @@ function TVShowsContent() {
           years={years}
           disabled={isLoading}
           showAdultFilter={isAdmin}
+          initialFilters={filters}
         />
 
         <ResultsCount
@@ -198,8 +296,7 @@ function TVShowsContent() {
                     onClick={(e) => {
                       e.preventDefault();
                       const newPage = page - 1;
-                      setPage(newPage);
-                      loadTVShows(newPage, filters, debouncedSearch);
+                      handlePageChange(newPage);
                     }}
                   />
                 </PaginationItem>
@@ -230,8 +327,7 @@ function TVShowsContent() {
                       isActive={page === pageNum}
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(pageNum);
-                        loadTVShows(pageNum, filters, debouncedSearch);
+                        handlePageChange(pageNum);
                       }}
                     >
                       {pageNum}
@@ -246,8 +342,7 @@ function TVShowsContent() {
                     onClick={(e) => {
                       e.preventDefault();
                       const newPage = page + 1;
-                      setPage(newPage);
-                      loadTVShows(newPage, filters, debouncedSearch);
+                      handlePageChange(newPage);
                     }}
                   />
                 </PaginationItem>

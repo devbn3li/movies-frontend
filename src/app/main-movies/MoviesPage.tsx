@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -19,11 +20,13 @@ import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
-import { getMovies } from "@/lib/api";
+import { getMovies, getMovieGenres } from "@/lib/api";
+import { Genre } from "@/types/index";
 
 const ITEMS_PER_PAGE = 24;
 
 function MoviesContent() {
+  const searchParams = useSearchParams();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -33,7 +36,32 @@ function MoviesContent() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalMovies, setTotalMovies] = useState(0);
   const [adultMovies, setAdultMovies] = useState(0);
+  const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const { isAdmin } = useAuth();
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const genreFromUrl = searchParams.get('genre');
+    if (genreFromUrl) {
+      setFilters(prev => ({
+        ...prev,
+        genre: genreFromUrl
+      }));
+    }
+  }, [searchParams]);
+
+  // Load available genres
+  useEffect(() => {
+    const loadGenres = async () => {
+      try {
+        const genres = await getMovieGenres();
+        setAvailableGenres(genres);
+      } catch (error) {
+        console.error('Error loading genres:', error);
+      }
+    };
+    loadGenres();
+  }, []);
 
   // Debounce search input
   useEffect(() => {
@@ -44,9 +72,98 @@ function MoviesContent() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const loadMovies = useCallback(async (currentPage: number = 1, currentFilters: FilterOptions = filters, searchTerm: string = debouncedSearch) => {
+  useEffect(() => {
+    // تحميل الأفلام عندما تتغير الفلاتر أو البحث
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+
+        const params: {
+          page?: number;
+          limit?: number;
+          search?: string;
+          genre?: string;
+          year?: number;
+          sort_by?: string;
+          order?: string;
+          adult?: boolean;
+        } = {
+          page: 1,
+          limit: ITEMS_PER_PAGE,
+        };
+
+        // Add search parameter
+        if (debouncedSearch.trim()) {
+          params.search = debouncedSearch.trim();
+        }
+
+        // Add filter parameters
+        if (filters.genre && filters.genre !== "all") {
+          params.genre = filters.genre;
+        }
+
+        if (filters.year && filters.year !== "all") {
+          params.year = parseInt(filters.year);
+        }
+
+        if (filters.sortBy && filters.sortBy !== "default") {
+          switch (filters.sortBy) {
+            case "title":
+              params.sort_by = "title";
+              params.order = "asc";
+              break;
+            case "release_date":
+              params.sort_by = "release_date";
+              params.order = "desc";
+              break;
+            case "rating":
+              params.sort_by = "vote_average";
+              params.order = "desc";
+              break;
+            case "popularity":
+              params.sort_by = "popularity";
+              params.order = "desc";
+              break;
+          }
+        }
+
+        // Add adult filter only if user is admin and has made a choice
+        if (isAdmin && filters.includeAdult !== undefined) {
+          params.adult = filters.includeAdult;
+        }
+
+        const response = await getMovies(params);
+
+        if (response) {
+          setMovies(response.movies || []);
+          setTotalPages(response.totalPages || 0);
+          setTotalMovies(response.totalMovies || 0);
+          setAdultMovies(response.adultMovies || 0);
+        }
+        setPage(1);
+      } catch (error) {
+        console.error('Error loading movies:', error);
+        setMovies([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      loadData();
+    }, 300); // تأخير قصير لتجنب الطلبات المتعددة
+
+    return () => clearTimeout(timer);
+  }, [filters, debouncedSearch, isAdmin]);
+
+  const handleFilterChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+  };
+
+  const handlePageChange = async (newPage: number) => {
     try {
       setIsLoading(true);
+      setPage(newPage);
 
       const params: {
         page?: number;
@@ -58,26 +175,26 @@ function MoviesContent() {
         order?: string;
         adult?: boolean;
       } = {
-        page: currentPage,
+        page: newPage,
         limit: ITEMS_PER_PAGE,
       };
 
       // Add search parameter
-      if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
+      if (debouncedSearch.trim()) {
+        params.search = debouncedSearch.trim();
       }
 
       // Add filter parameters
-      if (currentFilters.genre && currentFilters.genre !== "all") {
-        params.genre = currentFilters.genre;
+      if (filters.genre && filters.genre !== "all") {
+        params.genre = filters.genre;
       }
 
-      if (currentFilters.year && currentFilters.year !== "all") {
-        params.year = parseInt(currentFilters.year);
+      if (filters.year && filters.year !== "all") {
+        params.year = parseInt(filters.year);
       }
 
-      if (currentFilters.sortBy && currentFilters.sortBy !== "default") {
-        switch (currentFilters.sortBy) {
+      if (filters.sortBy && filters.sortBy !== "default") {
+        switch (filters.sortBy) {
           case "title":
             params.sort_by = "title";
             params.order = "asc";
@@ -98,8 +215,8 @@ function MoviesContent() {
       }
 
       // Add adult filter only if user is admin and has made a choice
-      if (isAdmin && currentFilters.includeAdult !== undefined) {
-        params.adult = currentFilters.includeAdult;
+      if (isAdmin && filters.includeAdult !== undefined) {
+        params.adult = filters.includeAdult;
       }
 
       const response = await getMovies(params);
@@ -116,31 +233,10 @@ function MoviesContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, debouncedSearch, isAdmin]);
-
-  useEffect(() => {
-    const initialLoad = async () => {
-      await loadMovies(1, filters, debouncedSearch);
-    };
-    initialLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Load movies when debounced search or filters change
-  useEffect(() => {
-    if (debouncedSearch !== search && search !== "") return; // Skip if still typing
-    setPage(1);
-    loadMovies(1, filters, debouncedSearch);
-  }, [debouncedSearch, filters, loadMovies, search]);
-
-  const handleFilterChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
-    setPage(1);
-    loadMovies(1, newFilters, debouncedSearch);
   };
 
   // Extract genres and years from available filters or use empty arrays for now
-  const genres: string[] = [];
+  const genres: string[] = availableGenres.map(genre => genre.name);
   const years: string[] = [];
 
   return (
@@ -166,6 +262,7 @@ function MoviesContent() {
           years={years}
           disabled={isLoading}
           showAdultFilter={isAdmin}
+          initialFilters={filters}
         />
 
         <ResultsCount
@@ -197,8 +294,7 @@ function MoviesContent() {
                     onClick={(e) => {
                       e.preventDefault();
                       const newPage = page - 1;
-                      setPage(newPage);
-                      loadMovies(newPage, filters, debouncedSearch);
+                      handlePageChange(newPage);
                     }}
                   />
                 </PaginationItem>
@@ -229,8 +325,7 @@ function MoviesContent() {
                       isActive={page === pageNum}
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(pageNum);
-                        loadMovies(pageNum, filters, debouncedSearch);
+                        handlePageChange(pageNum);
                       }}
                     >
                       {pageNum}
@@ -245,8 +340,7 @@ function MoviesContent() {
                     onClick={(e) => {
                       e.preventDefault();
                       const newPage = page + 1;
-                      setPage(newPage);
-                      loadMovies(newPage, filters, debouncedSearch);
+                      handlePageChange(newPage);
                     }}
                   />
                 </PaginationItem>

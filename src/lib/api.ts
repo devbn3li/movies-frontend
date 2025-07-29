@@ -466,22 +466,23 @@ export const getAllContent = async (params?: {
 }) => {
   try {
     const url = new URL(`${MOVIE_ZONE_BASE_URL}/movies`);
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           url.searchParams.append(key, value.toString());
         }
       });
     }
 
     // Get token from localStorage for client-side requests
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-    
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
     const headers: Record<string, string> = {
       accept: "application/json",
     };
-    
+
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
@@ -499,5 +500,48 @@ export const getAllContent = async (params?: {
   } catch (error) {
     console.error("Error fetching content:", error);
     return null;
+  }
+};
+
+// Get movie genres from TMDB
+export const getMovieGenres = async () => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/genre/movie/list?language=en`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch movie genres: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.genres || [];
+  } catch (error) {
+    console.error("Error fetching movie genres:", error);
+    return [];
+  }
+};
+
+// Get TV show genres from TMDB
+export const getTVGenres = async () => {
+  try {
+    const response = await fetch(`${TMDB_BASE_URL}/genre/tv/list?language=en`, {
+      method: "GET",
+      headers: tmdbHeaders,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV genres: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.genres || [];
+  } catch (error) {
+    console.error("Error fetching TV genres:", error);
+    return [];
   }
 };

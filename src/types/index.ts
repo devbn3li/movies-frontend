@@ -199,3 +199,9 @@ export type VideosResponse = {
   id: number;
   results: Video[];
 };
+
+// Genre Types
+export type Genre = {
+  id: number;
+  name: string;
+};
