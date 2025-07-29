@@ -128,7 +128,7 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
             <DropdownMenuItem onClick={() => updateFilter("year", undefined)}>
               All Years
             </DropdownMenuItem>
-            {years.slice(0, 20).map((year) => (
+            {years.slice(0, 2000).map((year) => (
               <DropdownMenuItem
                 key={year}
                 onClick={() => updateFilter("year", year)}
