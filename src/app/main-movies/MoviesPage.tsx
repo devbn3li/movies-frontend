@@ -79,7 +79,6 @@ function MoviesContent() {
   }, [search]);
 
   useEffect(() => {
-    // تحميل الأفلام عندما تتغير الفلاتر أو البحث
     const loadData = async () => {
       try {
         setIsLoading(true);
@@ -157,7 +156,7 @@ function MoviesContent() {
 
     const timer = setTimeout(() => {
       loadData();
-    }, 300); // تأخير قصير لتجنب الطلبات المتعددة
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [filters, debouncedSearch, isAdmin]);
@@ -281,8 +280,8 @@ function MoviesContent() {
         {adultMovies > 0 && !isLoading && !isAdmin && (
           <div className="mt-2 text-center">
             <p className="text-amber-200 text-sm bg-amber-600/20 border border-amber-600/30 rounded-lg px-4 py-2 inline-block">
-              {adultMovies} movie{adultMovies > 1 ? 's' : ''} hidden due to your content settings.{' '}
-              <span className="font-medium">Go to Settings to change this.</span>
+              {adultMovies} adult movie{adultMovies > 1 ? 's' : ''} hidden by default.{' '}
+              <span className="font-medium">Login to change this.</span>
             </p>
           </div>
         )}
