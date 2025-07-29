@@ -18,20 +18,21 @@ export default function HomePage() {
 
   return (
     <main className="flex flex-col">
-      <section className="relative h-[calc(100vh-4rem)] w-full">
-        <div className="absolute inset-0 overflow-hidden">
-          <Image
-            src="/larg_bg_en.jpg"
-            alt="Movie Zone - Stream unlimited movies and TV shows"
-            fill
-            className="object-cover"
-            fetchPriority="high"
-          />
-        </div>
+      {/* Fixed Background Layer */}
+      <div className="fixed top-0 left-0 w-full h-screen -z-10">
+        <Image
+          src="/larg_bg_en.jpg"
+          alt="Movie Zone - Stream unlimited movies and TV shows"
+          fill
+          className="object-cover"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-black/60" />
+      </div>
 
-        <div className="absolute inset-0 bg-black/60 z-10" />
-
-        <header className="relative z-20 flex flex-col items-center justify-center h-full text-center px-4">
+      {/* Hero Section */}
+      <section className="relative h-[calc(100vh-4rem)] w-full flex items-center justify-center text-center px-4">
+        <header className="z-10">
           <h1 className="text-[4rem] font-bold text-white drop-shadow-md max-w-3xl">
             Unlimited movies, TV shows, and more
           </h1>
@@ -48,10 +49,7 @@ export default function HomePage() {
               </AuthModal>
             )}
             {isAuthenticated && (
-              <div
-                className="text-center w-full max-w-xs sm:max-w-md md:max-w-lg lg:w-[600px] lg:max-w-[800px] mx-auto relative px-4"
-                style={{ zIndex: 1000 }}
-              >
+              <div className="text-center w-full max-w-[800px] mx-auto relative px-4 z-10">
                 <GlobalSearch className="w-full relative" />
               </div>
             )}
@@ -59,7 +57,8 @@ export default function HomePage() {
         </header>
       </section>
 
-      <section className="p-5 sm:px-20 pb-20 flex flex-col">
+      {/* Content Section with Background */}
+      <section className="p-5 sm:px-20 pb-20 flex flex-col bg-white dark:bg-black relative z-10">
         <div className="mb-8">
           <FeaturedContent type="movie" title="Popular Movies" isLarge={true} showViewAllLink={true} />
         </div>

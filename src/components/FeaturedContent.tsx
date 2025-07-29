@@ -227,11 +227,11 @@ const FeaturedContent = ({
     return (
       <div className="w-full">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{title}</h2>
+          <h2 className="text-2xl font-bold text-black dark:text-white">{title}</h2>
           {showViewAllLink && (
             <Link
               href={type === "movie" ? "/main-movies" : "/main-series"}
-              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              className="dark:text-white dark:hover:text-gray-300 text-black hover:text-black/80 transition-colors"
             >
               View All →
             </Link>
@@ -252,13 +252,13 @@ const FeaturedContent = ({
   return (
     <div className={`${isLarge ? "w-full" : "max-w-[1080px]"} w-full mt-10 relative px-2`}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-white">
+        <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-black dark:text-white">
           {title}
         </h2>
         {showViewAllLink && (
           <Link
             href={type === "movie" ? "/main-movies" : "/main-series"}
-            className="text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium"
+            className="dark:text-white dark:hover:text-gray-300 text-black hover:text-black/80 transition-colors text-sm font-medium"
           >
             View All →
           </Link>

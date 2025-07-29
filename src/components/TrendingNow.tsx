@@ -106,7 +106,7 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
   if (isLoading) {
     return (
       <div className={`${isLarge ? "w-full" : "max-w-[1080px]"} w-full mt-10 relative px-2`}>
-        <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-white mb-4">
+        <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-black dark:text-white mb-4">
           Trending {title ? title : "Now"}
         </h2>
 
@@ -155,7 +155,7 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
 
   return (
     <div className={`${isLarge ? "w-full" : "max-w-[1080px]"} w-full mt-10 relative px-2`}>
-      <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-white mb-4">
+      <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-black dark:text-white mb-4">
         Trending {title ? title : "Now"}
       </h2>
 
