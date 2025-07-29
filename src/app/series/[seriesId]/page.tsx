@@ -1,10 +1,27 @@
 import type { Metadata } from "next";
 import SeriesPage from "./SeriesPage";
-import { getTVSeriesDetails } from "@/lib/api";
-// import mediaData from "../../../../public/moviesdb.json";
+import { getTVSeriesDetails, getAllContent } from "@/lib/api";
 import { TVShow } from "@/types/index";
-import { promises as fs } from 'fs';
-import path from 'path';
+
+type APIContentItem = {
+  id: number;
+  type: string;
+  title?: string;
+  name?: string;
+  original_name?: string;
+  overview?: string;
+  releaseDate?: string;
+  first_air_date?: string;
+  genre_names?: string[];
+  poster_url?: string;
+  backdrop_url?: string;
+  popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
+  original_language?: string;
+  origin_country?: string[];
+  adult?: boolean;
+};
 
 type Props = {
   params: Promise<{ seriesId: string }>;
@@ -14,14 +31,45 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { seriesId } = await params;
   const id = parseInt(seriesId);
 
-  // Try to get series data from local data first
-  const filePath = path.join(process.cwd(), 'public', 'moviesdb.json');
-  const fileContents = await fs.readFile(filePath, 'utf8');
-  const mediaData = JSON.parse(fileContents);
-  const { tv_shows } = mediaData as { tv_shows: TVShow[] };
-  let series = tv_shows.find((s) => s.id === id);
+  let series: TVShow | null = null;
 
-  // If not found locally, try TMDB
+  // Try to get series data from API first
+  try {
+    const apiResponse = await getAllContent({
+      page: 1,
+      limit: 1000, // Get more items to increase chance of finding the series
+      type: "tv"
+    });
+
+    // Check if we can find the series in the API response
+    if (apiResponse && apiResponse.content) {
+      const foundSeries = apiResponse.content.find((s: APIContentItem) => s.id === id && s.type === "series") || null;
+
+      // Transform the API response to match TVShow interface
+      if (foundSeries) {
+        series = {
+          id: foundSeries.id,
+          name: foundSeries.title || foundSeries.name || "Unknown Series",
+          original_name: foundSeries.original_name || "",
+          overview: foundSeries.overview || "",
+          first_air_date: foundSeries.releaseDate || foundSeries.first_air_date || "",
+          genre_names: foundSeries.genre_names || [],
+          poster_url: foundSeries.poster_url || "",
+          backdrop_url: foundSeries.backdrop_url || "",
+          popularity: foundSeries.popularity || 0,
+          vote_average: foundSeries.vote_average || 0,
+          vote_count: foundSeries.vote_count || 0,
+          original_language: foundSeries.original_language || "",
+          origin_country: foundSeries.origin_country || [],
+          adult: foundSeries.adult || false,
+        } as TVShow;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching series from API:', error);
+  }
+
+  // If not found in API, try TMDB as fallback
   if (!series) {
     try {
       const tmdbSeries = await getTVSeriesDetails(id);
@@ -43,7 +91,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           adult: tmdbSeries.adult,
         };
       }
-    } catch {
+    } catch (error) {
+      console.error('Error fetching series from TMDB:', error);
       // Fallback metadata if series fetch fails
       return {
         title: `TV Series - Movie Zone`,

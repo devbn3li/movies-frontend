@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { getMovies, getTVShows } from "@/lib/api";
 
 interface Movie {
   id: number;
@@ -51,20 +52,24 @@ const FeaturedContent = ({
 
   // Helper functions
   const getPosterUrl = (movie: Movie) => {
+    // Priority order for poster URLs from API
     const posterFields = [
-      'poster_path',
-      'poster_url',
-      'image',
-      'thumbnail',
-      'backdrop_path'
+      'poster_url',      // Primary field from API
+      'poster_path',     // TMDB path
+      'image',           // Alternative field
+      'thumbnail',       // Fallback
+      'backdrop_url',    // Last resort for backdrop
+      'backdrop_path'    // TMDB backdrop
     ];
 
     for (const field of posterFields) {
       const value = movie[field];
       if (value && typeof value === 'string') {
+        // If it's already a full URL, use it
         if (value.startsWith('http')) {
           return value;
         }
+        // If it's a TMDB path, construct the URL
         if (value.startsWith('/')) {
           return `https://image.tmdb.org/t/p/w500${value}`;
         }
@@ -119,24 +124,36 @@ const FeaturedContent = ({
     const loadFeaturedContent = async () => {
       try {
         setIsLoading(true);
-        const fileName = type === "movie" ? "/movies.json" : "/tv.json";
-        const response = await fetch(fileName);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+        
+        let response;
+        if (type === "movie") {
+          response = await getMovies({
+            page: 1,
+            limit: 20,
+            sort_by: "popularity",
+            order: "desc"
+          });
+        } else {
+          response = await getTVShows({
+            page: 1,
+            limit: 20,
+            sort_by: "popularity", 
+            order: "desc"
+          });
         }
 
-        const text = await response.text();
-        const data = JSON.parse(text);
-        const sortedByPopularity = data
-          .filter((item: Movie) => item.popularity && item.popularity > 0)
-          .sort((a: Movie, b: Movie) => (b.popularity || 0) - (a.popularity || 0))
-          .slice(0, 20);
-        const filtered = sortedByPopularity.length > 0 ? sortedByPopularity : data.slice(0, 20);
-        setFeaturedContent(filtered);
+        if (response) {
+          const data = type === "movie" ? response.movies : response.tvShows;
+          const filtered = data && data.length > 0 ? data : [];
+          setFeaturedContent(filtered);
+        } else {
+          console.error(`❌ No data received from ${type} API`);
+          setFeaturedContent([]);
+        }
       } catch (error) {
         console.error(`❌ Error loading ${type} data:`, error);
         console.error(`❌ Error stack:`, error instanceof Error ? error.stack : 'No stack');
+        setFeaturedContent([]);
       } finally {
         setIsLoading(false);
       }
@@ -146,11 +163,15 @@ const FeaturedContent = ({
   }, [type]);
 
   const filteredContent = featuredContent.filter((movie) => {
+    // If user is admin, show all content returned by API
     if (isAdmin) return true;
 
+    // For non-admin users, filter out adult content and sensitive content
     const title = movie.title || movie.name || "";
     const hasSensitiveContent = containsSensitiveContent(title);
 
+    // The API should already filter adult content for non-admin users,
+    // but we add this as an extra safety measure
     return !movie.adult && !hasSensitiveContent;
   });
 
@@ -163,7 +184,7 @@ const FeaturedContent = ({
         </div>
         <Carousel opts={{ align: "center" }} className="w-full relative">
           <CarouselContent>
-            {Array.from({ length: 10 }).map((_, index) => (
+            {Array.from({ length: 20 }).map((_, index) => (
               <CarouselItem
                 key={index}
                 className="
@@ -219,7 +240,7 @@ const FeaturedContent = ({
         <div className="text-center py-8 text-gray-500">
           <p>No {type === "movie" ? "movies" : "TV shows"} available at the moment.</p>
           <p className="text-sm mt-2">
-            Data loaded: {featuredContent.length} items |
+            API Response: {featuredContent.length} items |
             After filtering: {filteredContent.length} items |
             Admin: {isAdmin ? "Yes" : "No"}
           </p>

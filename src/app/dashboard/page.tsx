@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
+import { getMovies, getTVShows } from "@/lib/api"
 
 const DashboardPage = () => {
   const [movies, setMovies] = useState<Movie[]>([])
@@ -31,11 +32,25 @@ const DashboardPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetch('/moviesdb.json');
-        const mediaData = await response.json();
+        // Load movies from backend API
+        const moviesResponse = await getMovies({
+          page: 1,
+          limit: 1000, // Get all movies for dashboard statistics
+        });
 
-        setMovies((mediaData as { movies: Movie[] }).movies)
-        setTvShows((mediaData as { tv_shows: TVShow[] }).tv_shows)
+        // Load TV shows from backend API
+        const tvShowsResponse = await getTVShows({
+          page: 1,
+          limit: 1000, // Get all TV shows for dashboard statistics
+        });
+
+        if (moviesResponse && moviesResponse.content) {
+          setMovies(moviesResponse.content);
+        }
+
+        if (tvShowsResponse && tvShowsResponse.content) {
+          setTvShows(tvShowsResponse.content);
+        }
       } catch (error) {
         console.error('Error loading media data:', error);
       }
@@ -70,7 +85,7 @@ const DashboardPage = () => {
     // Recent releases (last 2 years)
     const currentYear = new Date().getFullYear()
     const recentReleases = data.filter(item => {
-      const releaseDate = "release_date" in item ? item.release_date : item.first_air_date
+      const releaseDate = "title" in item ? item.release_date : item.first_air_date
       if (!releaseDate) return false
       const releaseYear = new Date(releaseDate).getFullYear()
       return currentYear - releaseYear <= 2
@@ -358,7 +373,7 @@ const DashboardPage = () => {
 
                   return yearRanges.map(({ range, years }) => {
                     const count = data.filter(item => {
-                      const releaseDate = "release_date" in item ? item.release_date : item.first_air_date
+                      const releaseDate = "title" in item ? item.release_date : item.first_air_date
                       if (!releaseDate) return false
                       const releaseYear = new Date(releaseDate).getFullYear()
 

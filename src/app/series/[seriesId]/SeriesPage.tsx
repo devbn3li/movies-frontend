@@ -1,7 +1,31 @@
 "use client";
+import { getAllContent } from '@/lib/api';
 
+// TMDB TV Series Details API function
+async function getTVSeriesDetails(seriesId: string) {
+  try {
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+      }
+    };
+
+    const response = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}`, options);
+
+    if (response.ok) {
+      const tmdbData: TMDBTVShow = await response.json();
+      return tmdbData;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching from TMDB:', error);
+    return null;
+  }
+}
 import Image from "next/image";
-// import mediaData from "../../../../public/moviesdb.json";
 import { notFound } from "next/navigation";
 import { TVShow } from "@/types/index";
 import { useEffect, useState } from "react";
@@ -33,6 +57,46 @@ interface TMDBTVShow {
   adult: boolean;
 }
 
+// API Content Item type
+interface APIContentItem {
+  id: number;
+  type: string;
+  title?: string;
+  name?: string;
+  original_name?: string;
+  overview?: string;
+  releaseDate?: string;
+  first_air_date?: string;
+  genre_names?: string[];
+  poster_url?: string;
+  backdrop_url?: string;
+  popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
+  original_language?: string;
+  origin_country?: string[];
+  adult?: boolean;
+}
+
+function convertAPIToLocal(apiItem: APIContentItem): TVShow {
+  return {
+    id: apiItem.id,
+    name: apiItem.title || apiItem.name || "Unknown Series",
+    original_name: apiItem.original_name || "",
+    overview: apiItem.overview || "",
+    first_air_date: apiItem.first_air_date || apiItem.releaseDate || "",
+    genre_names: apiItem.genre_names || [],
+    poster_url: apiItem.poster_url || null,
+    backdrop_url: apiItem.backdrop_url || null,
+    popularity: apiItem.popularity || 0,
+    vote_average: apiItem.vote_average || 0,
+    vote_count: apiItem.vote_count || 0,
+    original_language: apiItem.original_language || "",
+    origin_country: apiItem.origin_country || [],
+    adult: apiItem.adult || false,
+  };
+}
+
 // Convert TMDB data to local format
 const convertTMDBToLocal = (tmdbShow: TMDBTVShow): TVShow => ({
   id: tmdbShow.id,
@@ -55,65 +119,48 @@ interface SeriesPageProps {
   seriesId: number;
 }
 
-export default function SeriesPage({ seriesId }: SeriesPageProps) {  
+export default function SeriesPage({ seriesId }: SeriesPageProps) {
   const [item, setItem] = useState<TVShow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mediaData, setMediaData] = useState<{ tv_shows: TVShow[] } | null>(null);
 
   useEffect(() => {
-    // تحميل البيانات من الملف الاستاتيكي
-    const loadMediaData = async () => {
-      try {
-        const response = await fetch('/moviesdb.json');
-        const data = await response.json();
-        setMediaData(data);
-      } catch (error) {
-        console.error('Error loading series data:', error);
-      }
-    };
-
-    loadMediaData();
-  }, []);
-
-  useEffect(() => {
-    if (!seriesId || !mediaData) {
+    if (!seriesId) {
       return;
     }
 
     const fetchSeriesData = async () => {
       setIsLoading(true);
 
-      // First, try to find in local data
-      const { tv_shows } = mediaData;
-      const localItem = tv_shows.find((m) => m.id === seriesId);
-
-      if (localItem) {
-        setItem(localItem);
-        setIsLoading(false);
-        return;
-      }
-
-      // If not found locally, fetch from TMDB
       try {
-        const options = {
-          method: 'GET',
-          headers: {
-            accept: 'application/json',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        // First, try to get series data from our backend API
+        const apiResponse = await getAllContent({
+          page: 1,
+          limit: 50, // Get enough items to find the specific series
+          type: "tv"
+        });
+
+        // Check if we can find the series in the API response
+        if (apiResponse && apiResponse.content) {
+          const foundSeries = apiResponse.content.find((s: APIContentItem) => s.id === seriesId && (s.type === "series" || s.type === "tv"));
+
+          if (foundSeries) {
+            const convertedSeries = convertAPIToLocal(foundSeries);
+            setItem(convertedSeries);
+            setIsLoading(false);
+            return;
           }
-        };
+        }
 
-        const response = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}`, options);
-
-        if (response.ok) {
-          const tmdbData: TMDBTVShow = await response.json();
+        // If not found in our API, try TMDB as fallback
+        const tmdbData = await getTVSeriesDetails(seriesId.toString());
+        if (tmdbData) {
           const convertedItem = convertTMDBToLocal(tmdbData);
           setItem(convertedItem);
         } else {
           setItem(null);
         }
       } catch (error) {
-        console.error('Error fetching from TMDB:', error);
+        console.error('Error fetching series data:', error);
         setItem(null);
       }
 
@@ -121,7 +168,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
     };
 
     fetchSeriesData();
-  }, [seriesId, mediaData]);
+  }, [seriesId]);
 
   if (isLoading) {
     return <Loading />;

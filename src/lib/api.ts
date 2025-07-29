@@ -307,7 +307,6 @@ export const getMainTrailer = (videos: VideosResponse) => {
     return null;
   }
 
-  // البحث عن التريلر الرسمي أولاً
   const officialTrailer = videos.results.find(
     (video: Video) =>
       video.type === "Trailer" &&
@@ -321,7 +320,6 @@ export const getMainTrailer = (videos: VideosResponse) => {
     return officialTrailer;
   }
 
-  // إذا لم يوجد تريلر رسمي، ابحث عن أي تريلر
   const anyTrailer = videos.results.find(
     (video: Video) => video.type === "Trailer" && video.site === "YouTube"
   );
@@ -330,7 +328,6 @@ export const getMainTrailer = (videos: VideosResponse) => {
     return anyTrailer;
   }
 
-  // إذا لم يوجد تريلر، ابحث عن أي فيديو من YouTube
   const anyYouTubeVideo = videos.results.find(
     (video: Video) => video.site === "YouTube"
   );
@@ -445,6 +442,62 @@ export const getTVShows = async (params?: {
     return await response.json();
   } catch (error) {
     console.error("Error fetching TV shows:", error);
+    return null;
+  }
+};
+
+export const getAllContent = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  genre?: string;
+  year?: number;
+  sort_by?: string;
+  order?: string;
+  min_rating?: number;
+  max_rating?: number;
+  adult?: boolean;
+  language?: string;
+  original_language?: string;
+  min_popularity?: number;
+  min_votes?: number;
+  country?: string;
+  type?: "movie" | "tv";
+}) => {
+  try {
+    const url = new URL(`${MOVIE_ZONE_BASE_URL}/movies`);
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    // Get token from localStorage for client-side requests
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    
+    const headers: Record<string, string> = {
+      accept: "application/json",
+    };
+    
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch content: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching content:", error);
     return null;
   }
 };

@@ -1,9 +1,7 @@
 import { Metadata } from "next";
-// import mediaData from "/moviesdb.json";
-import { Movie, TVShow } from "@/types/index";
+import { Movie } from "@/types/index";
 import MoviePage from "./MoviePage";
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getMovies } from "@/lib/api";
 
 export async function generateMetadata({
   params,
@@ -11,26 +9,38 @@ export async function generateMetadata({
   params: Promise<{ movieId: string }>;
 }): Promise<Metadata> {
   const { movieId } = await params;
-
-  // قراءة البيانات من الملف
-  const filePath = path.join(process.cwd(), 'public', 'moviesdb.json');
-  const fileContents = await fs.readFile(filePath, 'utf8');
-  const mediaData = JSON.parse(fileContents);
-
-  const { movies, tv_shows } = mediaData as {
-    movies: Movie[];
-    tv_shows: TVShow[];
-  };
-
   const id = Number(movieId);
-  const all = [...movies, ...tv_shows];
-  const item = all.find((m) => m.id === id);
-  if (!item) return {};
 
-  const title = "title" in item ? item.title : item.name;
-  const description = item.overview || "Watch your favorite content now.";
-  const url = `https://moviezone.me/movie/${item.id}`;
-  const year = "release_date" in item ? new Date(item.release_date).getFullYear() : new Date(item.first_air_date).getFullYear();
+  let movie: Movie | null = null;
+
+  // Try to get movie data from API
+  try {
+    const apiResponse = await getMovies({
+      page: 1,
+      limit: 1,
+      // For now, we'll rely on a simple approach
+      // In the future, we might need a specific endpoint for single movie by ID
+    });
+
+    if (apiResponse && apiResponse.movies) {
+      movie = apiResponse.movies.find((m: Movie) => m.id === id) || null;
+    }
+  } catch (error) {
+    console.error('Error fetching movie from API:', error);
+  }
+
+  if (!movie) {
+    // Fallback metadata if movie not found
+    return {
+      title: `Movie - Movie Zone`,
+      description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
+    };
+  }
+
+  const title = movie.title;
+  const description = movie.overview || "Watch your favorite content now.";
+  const url = `https://moviezone.me/movie/${movie.id}`;
+  const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
 
   return {
     title: `${title}${year ? ` (${year})` : ''} - Movie Zone`,
@@ -38,7 +48,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      images: [{ url: item.poster_url || '/placeholder.jpg', width: 1200, height: 630, alt: title }],
+      images: [{ url: movie.poster_url || '/placeholder.jpg', width: 1200, height: 630, alt: title }],
       type: "article",
       url,
     },
@@ -46,7 +56,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [item.poster_url || '/placeholder.jpg'],
+      images: [movie.poster_url || '/placeholder.jpg'],
     },
     alternates: {
       canonical: url,

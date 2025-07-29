@@ -5,6 +5,7 @@ import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { getMovies, getTVShows } from "@/lib/api";
 
 import {
   Sidebar,
@@ -80,14 +81,20 @@ function SidebarContent_() {
     // استخراج الأنواع من البيانات
     const loadGenres = async () => {
       try {
+        // جلب بيانات الأفلام من الـ backend API
+        const moviesResponse = await getMovies({
+          page: 1,
+          limit: 100, // Get enough movies to extract all genres
+        });
 
-        // جلب بيانات الأفلام
-        const moviesResponse = await fetch('/movies.json');
-        const moviesData = await moviesResponse.json();
+        // جلب بيانات المسلسلات من الـ backend API  
+        const tvResponse = await getTVShows({
+          page: 1,
+          limit: 100, // Get enough TV shows to extract all genres
+        });
 
-        // جلب بيانات المسلسلات
-        const tvResponse = await fetch('/tv.json');
-        const tvData = await tvResponse.json();
+        const moviesData = moviesResponse?.content || [];
+        const tvData = tvResponse?.content || [];
 
         const movieGenresList = extractGenres(moviesData);
         const tvGenresList = extractGenres(tvData);
@@ -136,8 +143,8 @@ function SidebarContent_() {
               <SidebarMenuItem key={`movie-${genre}`}>
                 <SidebarMenuButton
                   className={`cursor-pointer ${isGenreActive(genre)
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : ''
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                    : ''
                     }`}
                   onClick={() => router.push(`/main-movies?genre=${encodeURIComponent(genre)}`)}
                 >
@@ -165,8 +172,8 @@ function SidebarContent_() {
               <SidebarMenuItem key={`tv-${genre}`}>
                 <SidebarMenuButton
                   className={`cursor-pointer ${isGenreActive(genre)
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                      : ''
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                    : ''
                     }`}
                   onClick={() => router.push(`/main-series?genre=${encodeURIComponent(genre)}`)}
                 >

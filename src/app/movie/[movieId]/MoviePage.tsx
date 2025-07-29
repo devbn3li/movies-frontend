@@ -16,6 +16,29 @@ import Cast from "@/components/Cast";
 import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
+import { getAllContent } from "@/lib/api";
+
+// API Content Item type
+interface APIContentItem {
+  id: number;
+  type?: string;
+  title?: string;
+  name?: string;
+  original_title?: string;
+  original_name?: string;
+  overview?: string;
+  release_date?: string;
+  first_air_date?: string;
+  genre_names?: string[];
+  poster_url?: string | null;
+  backdrop_url?: string | null;
+  popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
+  original_language?: string;
+  adult?: boolean;
+  video?: boolean;
+}
 
 type Media = Movie | TVShow;
 
@@ -61,7 +84,6 @@ export default function MoviePage({ movieId }: { movieId: number }) {
   }, [movieId]);
   const [item, setItem] = useState<Media | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mediaData, setMediaData] = useState<{ movies: Movie[], tv_shows: TVShow[] } | null>(null);
 
   // Scroll tracking
   useScrollTracking({
@@ -70,45 +92,36 @@ export default function MoviePage({ movieId }: { movieId: number }) {
   });
 
   useEffect(() => {
-    // تحميل البيانات من الملف الاستاتيكي
-    const loadMediaData = async () => {
-      try {
-        const response = await fetch('/moviesdb.json');
-        const data = await response.json();
-        setMediaData(data);
-      } catch (error) {
-        console.error('Error loading media data:', error);
-      }
-    };
-
-    loadMediaData();
-  }, []);
-
-  useEffect(() => {
-    if (!id || !mediaData) {
+    if (!id) {
       return;
     }
 
     const fetchMovieData = async () => {
       setIsLoading(true);
 
-      // First, try to find in local data
-      const { movies, tv_shows } = mediaData;
-      const all: Media[] = [...movies, ...tv_shows];
-      const localItem = all.find((m) => m.id === id);
-
-      if (localItem) {
-        setItem(localItem);
-        setIsLoading(false);
-
-        // Track Analytics page view
-        const title = "title" in localItem ? localItem.title : localItem.name;
-        trackMoviePageView(title || 'Unknown', localItem.id);
-        return;
-      }
-
-      // If not found locally, fetch from TMDB (try movie first)
       try {
+        // First, try to get movie data from our backend API
+        const apiResponse = await getAllContent({
+          page: 1,
+          limit: 50, // Get enough items to find the specific movie
+        });
+
+        // Check if we can find the movie in the API response
+        if (apiResponse && apiResponse.content) {
+          const foundMovie = apiResponse.content.find((m: APIContentItem) => m.id === id && (m.type === "movie" || !m.type));
+
+          if (foundMovie) {
+            setItem(foundMovie);
+            setIsLoading(false);
+
+            // Track Analytics page view
+            const title = foundMovie.title || foundMovie.name || 'Unknown';
+            trackMoviePageView(title, foundMovie.id);
+            return;
+          }
+        }
+
+        // If not found in our API, try TMDB as fallback
         const options = {
           method: 'GET',
           headers: {
@@ -130,7 +143,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
           setItem(null);
         }
       } catch (error) {
-        console.error('Error fetching from TMDB:', error);
+        console.error('Error fetching movie data:', error);
         setItem(null);
       }
 
@@ -138,7 +151,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
     };
 
     fetchMovieData();
-  }, [id, mediaData]);
+  }, [id]);
 
   if (isLoading) {
     return <Loading />;
