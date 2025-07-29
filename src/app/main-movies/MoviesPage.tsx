@@ -22,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
 import { getMovies, getMovieGenres, getMovieYears } from "@/lib/api";
 import { Genre } from "@/types/index";
+import Loading from "@/components/Loading";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -537,19 +538,7 @@ function CardsGrid({
 
 export default function MoviesPage() {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <div key={index} className="space-y-3">
-              <Skeleton className="h-[300px] w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          ))}
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<Loading />}>
       <MoviesContent />
     </Suspense>
   );
