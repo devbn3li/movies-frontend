@@ -49,7 +49,7 @@ export default function HomePage() {
               </AuthModal>
             )}
             {isAuthenticated && (
-              <div className="text-center w-full max-w-[800px] mx-auto relative px-4 z-10">
+              <div className="text-center w-full max-w-[800px] mx-auto relative px-4 z-50">
                 <GlobalSearch className="w-full relative" />
               </div>
             )}
@@ -58,7 +58,7 @@ export default function HomePage() {
       </section>
 
       {/* Content Section with Background */}
-      <section className="p-5 sm:px-20 pb-20 flex flex-col bg-white dark:bg-black relative z-10">
+      <section className="p-5 sm:px-20 pb-20 flex flex-col bg-white dark:bg-black relative z-0">
         <div className="mb-8">
           <FeaturedContent type="movie" title="Popular Movies" isLarge={true} showViewAllLink={true} />
         </div>
