@@ -6,9 +6,9 @@ export const getAllMovies = async () => {
   return res.data;
 };
 
-// TMDB API functions
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const MOVIE_ZONE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const tmdbHeaders = {
   accept: "application/json",
@@ -336,4 +336,115 @@ export const getMainTrailer = (videos: VideosResponse) => {
   );
 
   return anyYouTubeVideo || null;
+};
+
+export const getMovies = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  genre?: string;
+  year?: number;
+  sort_by?: string;
+  order?: string;
+  min_rating?: number;
+  max_rating?: number;
+  adult?: boolean;
+  language?: string;
+  original_language?: string;
+  min_popularity?: number;
+  min_votes?: number;
+}) => {
+  try {
+    const url = new URL(`${MOVIE_ZONE_BASE_URL}/movies-only`);
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          url.searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    // Get token from localStorage for client-side requests
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+    const headers: Record<string, string> = {
+      accept: "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch movies: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    return null;
+  }
+};
+
+export const getTVShows = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  genre?: string;
+  year?: number;
+  sort_by?: string;
+  order?: string;
+  min_rating?: number;
+  max_rating?: number;
+  adult?: boolean;
+  language?: string;
+  original_language?: string;
+  min_popularity?: number;
+  min_votes?: number;
+  country?: string;
+}) => {
+  try {
+    const url = new URL(`${MOVIE_ZONE_BASE_URL}/tvshows-only`);
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          url.searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    // Get token from localStorage for client-side requests
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+
+    const headers: Record<string, string> = {
+      accept: "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV shows: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching TV shows:", error);
+    return null;
+  }
 };

@@ -8,13 +8,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { ChevronDown, Filter, X } from "lucide-react";
 
 export type FilterOptions = {
-  sortBy: "popularity" | "rating" | "release_date" | "title" | "default" | "adult";
+  sortBy: "popularity" | "rating" | "release_date" | "title" | "default";
   year?: string;
   genre?: string;
   minRating?: number;
+  includeAdult?: boolean;
 };
 
 export type FilterBarProps = {
@@ -40,19 +42,15 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
     onFilterChange(defaultFilters);
   };
 
-  const hasActiveFilters = filters.sortBy !== "default" || filters.year || filters.genre || filters.minRating;
+  const hasActiveFilters = filters.sortBy !== "default" || filters.year || filters.genre || filters.minRating || filters.includeAdult;
 
-  const baseSortOptions = [
+  const sortOptions = [
     { value: "default", label: "Default" },
     { value: "popularity", label: "Most Popular" },
     { value: "rating", label: "Highest Rated" },
     { value: "release_date", label: "Latest Release" },
     { value: "title", label: "Title A-Z" },
   ];
-
-  const sortOptions = showAdultFilter
-    ? [...baseSortOptions, { value: "adult", label: "Adult Only" }]
-    : baseSortOptions;
 
   const ratingOptions = [
     { value: undefined, label: "All Ratings" },
@@ -180,6 +178,24 @@ export default function FilterBar({ onFilterChange, genres, years, disabled = fa
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Adult Content Filter - Only for Admins */}
+        {showAdultFilter && (
+          <div className="flex items-center space-x-2 px-3 py-2 border rounded-md">
+            <Switch
+              id="adult-content"
+              checked={filters.includeAdult || false}
+              onCheckedChange={(checked) => updateFilter("includeAdult", checked)}
+              disabled={disabled}
+            />
+            <label
+              htmlFor="adult-content"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+            >
+              Adult Content
+            </label>
+          </div>
+        )}
 
         {/* Clear Filters - Desktop */}
         {hasActiveFilters && (

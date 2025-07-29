@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -15,11 +15,11 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Movie } from "@/types/index";
 import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
-import { useFilteredData, extractGenres, extractYears } from "@/hooks/useFilteredData";
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
+import { getMovies } from "@/lib/api";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -27,40 +27,121 @@ function MoviesContent() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalMovies, setTotalMovies] = useState(0);
+  const [adultMovies, setAdultMovies] = useState(0);
   const { isAdmin } = useAuth();
 
+  // Debounce search input
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/movies.json');
-        const moviesData = await response.json();
-        setMovies(moviesData as Movie[]);
-      } catch (error) {
-        console.error('Error loading movies data:', error);
-      } finally {
-        setIsLoading(false);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const loadMovies = useCallback(async (currentPage: number = 1, currentFilters: FilterOptions = filters, searchTerm: string = debouncedSearch) => {
+    try {
+      setIsLoading(true);
+
+      const params: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        genre?: string;
+        year?: number;
+        sort_by?: string;
+        order?: string;
+        adult?: boolean;
+      } = {
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      };
+
+      // Add search parameter
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
       }
+
+      // Add filter parameters
+      if (currentFilters.genre && currentFilters.genre !== "all") {
+        params.genre = currentFilters.genre;
+      }
+
+      if (currentFilters.year && currentFilters.year !== "all") {
+        params.year = parseInt(currentFilters.year);
+      }
+
+      if (currentFilters.sortBy && currentFilters.sortBy !== "default") {
+        switch (currentFilters.sortBy) {
+          case "title":
+            params.sort_by = "title";
+            params.order = "asc";
+            break;
+          case "release_date":
+            params.sort_by = "release_date";
+            params.order = "desc";
+            break;
+          case "rating":
+            params.sort_by = "vote_average";
+            params.order = "desc";
+            break;
+          case "popularity":
+            params.sort_by = "popularity";
+            params.order = "desc";
+            break;
+        }
+      }
+
+      // Add adult filter only if user is admin and has made a choice
+      if (isAdmin && currentFilters.includeAdult !== undefined) {
+        params.adult = currentFilters.includeAdult;
+      }
+
+      const response = await getMovies(params);
+
+      if (response) {
+        setMovies(response.movies || []);
+        setTotalPages(response.totalPages || 0);
+        setTotalMovies(response.totalMovies || 0);
+        setAdultMovies(response.adultMovies || 0);
+      }
+    } catch (error) {
+      console.error('Error loading movies:', error);
+      setMovies([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters, debouncedSearch, isAdmin]);
+
+  useEffect(() => {
+    const initialLoad = async () => {
+      await loadMovies(1, filters, debouncedSearch);
     };
-    loadData();
+    initialLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { filteredAndSorted: filtered, hiddenCount } = useFilteredData(movies, search, filters, isAdmin);
-  const genres = extractGenres(movies);
-  const years = extractYears(movies);
-
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE
-  );
+  // Load movies when debounced search or filters change
+  useEffect(() => {
+    if (debouncedSearch !== search && search !== "") return; // Skip if still typing
+    setPage(1);
+    loadMovies(1, filters, debouncedSearch);
+  }, [debouncedSearch, filters, loadMovies, search]);
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
-    setPage(1); // Reset to first page when filters change
+    setPage(1);
+    loadMovies(1, newFilters, debouncedSearch);
   };
+
+  // Extract genres and years from available filters or use empty arrays for now
+  const genres: string[] = [];
+  const years: string[] = [];
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
@@ -70,7 +151,6 @@ function MoviesContent() {
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
-            setPage(1);
           }}
           className="sm:mx-25"
           type="search"
@@ -89,30 +169,38 @@ function MoviesContent() {
         />
 
         <ResultsCount
-          total={movies.length}
-          filtered={filtered.length}
+          total={totalMovies}
+          filtered={movies.length}
           isLoading={isLoading}
           itemType="movies"
         />
 
-        {hiddenCount > 0 && !isLoading && (
+        {adultMovies > 0 && !isLoading && !isAdmin && (
           <div className="mt-2 text-center">
             <p className="text-amber-200 text-sm bg-amber-600/20 border border-amber-600/30 rounded-lg px-4 py-2 inline-block">
-              {hiddenCount} movie{hiddenCount > 1 ? 's' : ''} hidden due to your content settings.{' '}
+              {adultMovies} movie{adultMovies > 1 ? 's' : ''} hidden due to your content settings.{' '}
               <span className="font-medium">Go to Settings to change this.</span>
             </p>
           </div>
         )}
       </div>
 
-      <CardsGrid items={paginated} isLoading={isLoading} />
-      {!isLoading && filtered.length > ITEMS_PER_PAGE && (
+      <CardsGrid items={movies} isLoading={isLoading} />
+      {!isLoading && totalPages > 1 && (
         <div className="flex justify-center w-full mt-8">
           <Pagination className="w-full max-w-3xl">
             <PaginationContent>
               {page > 1 && (
                 <PaginationItem>
-                  <PaginationPrevious href="#" onClick={() => setPage(page - 1)} />
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const newPage = page - 1;
+                      setPage(newPage);
+                      loadMovies(newPage, filters, debouncedSearch);
+                    }}
+                  />
                 </PaginationItem>
               )}
               {Array.from({ length: totalPages }).map((_, idx) => {
@@ -139,7 +227,11 @@ function MoviesContent() {
                     <PaginationLink
                       href="#"
                       isActive={page === pageNum}
-                      onClick={() => setPage(pageNum)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPage(pageNum);
+                        loadMovies(pageNum, filters, debouncedSearch);
+                      }}
                     >
                       {pageNum}
                     </PaginationLink>
@@ -148,7 +240,15 @@ function MoviesContent() {
               })}
               {page < totalPages && (
                 <PaginationItem>
-                  <PaginationNext href="#" onClick={() => setPage(page + 1)} />
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const newPage = page + 1;
+                      setPage(newPage);
+                      loadMovies(newPage, filters, debouncedSearch);
+                    }}
+                  />
                 </PaginationItem>
               )}
             </PaginationContent>
@@ -156,7 +256,7 @@ function MoviesContent() {
         </div>
       )}
 
-      {!isLoading && filtered.length === 0 && (
+      {!isLoading && movies.length === 0 && (
         <div className="flex justify-center items-center h-32">
           <p className="text-gray-500 text-lg">No movies found matching your criteria</p>
         </div>
@@ -215,9 +315,9 @@ function CardsGrid({
     return (
       <div className="w-full flex justify-center">
         <div
-          className="grid gap-6 justify-center"
+          className="grid justify-center sm:px-20 pb-20"
           style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
             width: "100%",
           }}
         >
@@ -226,7 +326,7 @@ function CardsGrid({
               key={`skeleton-${index}`}
               className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
             >
-              <Skeleton className="rounded h-[345px] w-[230px] mb-2" />
+              <Skeleton className="rounded-2xl h-[345px] w-[230px] mb-2" />
             </div>
           ))}
         </div>
