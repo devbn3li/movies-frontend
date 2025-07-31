@@ -23,10 +23,9 @@ import { RxDashboard } from "react-icons/rx";
 import { useAdultContent } from "@/hooks/useAdultContent";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, mounted } = useAuth();
   const dropdownRef = useRef(null);
   const { hideAdultContent, toggleAdultContent } = useAdultContent();
-
 
   const handleLogout = () => {
     logout();
@@ -46,7 +45,14 @@ export default function Navbar() {
       <div className="flex items-center gap-4 relative" ref={dropdownRef}>
         <ThemeToggle />
 
-        {user ? (
+        {!mounted ? (
+          // Show a placeholder during hydration to prevent mismatch
+          <Button asChild className="px-4 py-2 text-sm rounded-md">
+            <Link href="/login">
+              Register / Login
+            </Link>
+          </Button>
+        ) : user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               {user.profilePicture ? (

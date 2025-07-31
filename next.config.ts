@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
         hostname: "placehold.co",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "imgur.com",
+        pathname: "/**",
+      },
     ],
   },
 };

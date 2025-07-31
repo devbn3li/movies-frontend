@@ -1,26 +1,75 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Loading from "@/components/Loading";
-import { useWatchlistStore } from "@/store/watchlist";
 import WatchlistGrid from "@/components/WatchlistGrid";
+import { useAuth } from "@/hooks/useAuth";
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
+  followersCount: number;
+  followingCount: number;
+}
 
 const Profile = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
-  const { getWatchlistCount } = useWatchlistStore();
+  const { user, mounted } = useAuth();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const [followingOpen, setFollowingOpen] = useState(false);
+  const [followers, setFollowers] = useState<User[]>([]);
+  const [following, setFollowing] = useState<User[]>([]);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
+
+  // Helper: get token from localStorage
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
     }
-  }, []);
+    return null;
+  };
 
-  if (!user) return <Loading />;
+  // Fetch followers list
+  const fetchFollowers = async () => {
+    const userId = user?._id || user?.id;
+    if (!userId) return;
+    setLoadingFollowers(true);
+    try {
+      const res = await fetch(`https://moviezone.me/api/follow/${userId}/followers?page=1&limit=20`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      setFollowers(data.followers || []);
+    } catch {
+      // Handle error silently
+    }
+    setLoadingFollowers(false);
+  };
+
+  // Fetch following list
+  const fetchFollowing = async () => {
+    const userId = user?._id || user?.id;
+    if (!userId) return;
+    setLoadingFollowing(true);
+    try {
+      const res = await fetch(`https://moviezone.me/api/follow/${userId}/following?page=1&limit=20`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      setFollowing(data.following || []);
+    } catch {
+      // Handle error silently
+    }
+    setLoadingFollowing(false);
+  };
+
+  if (!mounted || !user) return <Loading />;
 
   return (
-    <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
+    <div className="relative h-full pb-20">
       {/* Background with same style as movie pages */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
 
@@ -38,7 +87,7 @@ const Profile = () => {
               />
             ) : (
               <div className="w-48 h-48 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center shadow-xl">
-                <span className="text-white text-9xl font-bold">{user.name.slice(0, 1)}</span>
+                <span className="text-white text-9xl font-bold">{user.name?.slice(0, 1)}</span>
               </div>
             )}
             <h1 className="text-white text-4xl font-bold mt-6">{user.name}</h1>
@@ -47,13 +96,13 @@ const Profile = () => {
 
             {/* Stats */}
             <div className="flex items-center gap-8 mt-6">
-              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4">
-                <div className="text-2xl font-bold text-white">
-                  {getWatchlistCount()}
-                </div>
-                <div className="text-sm text-white/70">
-                  In Watchlist
-                </div>
+              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => { setFollowersOpen(true); fetchFollowers(); }}>
+                <div className="text-2xl font-bold text-white">{user.followersCount ?? user.followers?.length ?? 0}</div>
+                <div className="text-sm text-white/70">Followers</div>
+              </div>
+              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => { setFollowingOpen(true); fetchFollowing(); }}>
+                <div className="text-2xl font-bold text-white">{user.followingCount ?? user.following?.length ?? 0}</div>
+                <div className="text-sm text-white/70">Following</div>
               </div>
             </div>
           </div>
@@ -63,9 +112,73 @@ const Profile = () => {
       {/* Watchlist Section */}
       <div className="relative max-w-6xl mx-auto px-6 py-8">
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-            <WatchlistGrid />
+          <WatchlistGrid />
         </div>
       </div>
+
+      {/* Followers Modal */}
+      {followersOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
+          onClick={() => setFollowersOpen(false)}
+        >
+          <div
+            className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-lg w-full relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="absolute top-4 right-4 text-white text-2xl" onClick={() => setFollowersOpen(false)}>&times;</button>
+            <h2 className="text-2xl font-bold text-white mb-4">Followers</h2>
+            {loadingFollowers ? (
+              <div className="flex justify-center items-center">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : followers.length === 0 ? (
+              <div className="text-white/70">No followers found.</div>
+            ) : (
+              <ul className="space-y-3">
+                {followers.map((f) => (
+                  <li key={f._id} className="flex items-center gap-3">
+                    <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                    <span className="text-white font-bold">{f.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Following Modal */}
+      {followingOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
+          onClick={() => setFollowingOpen(false)}
+        >
+          <div
+            className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-lg w-full relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="absolute top-4 right-4 text-white text-2xl" onClick={() => setFollowingOpen(false)}>&times;</button>
+            <h2 className="text-2xl font-bold text-white mb-4">Following</h2>
+            {loadingFollowing ? (
+              <div className="flex justify-center items-center">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : following.length === 0 ? (
+              <div className="text-white/70">Not following anyone.</div>
+            ) : (
+              <ul className="space-y-3">
+                {following.map((f) => (
+                  <li key={f._id} className="flex items-center gap-3">
+                    <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                    <span className="text-white font-bold">{f.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
