@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 interface User {
   _id: string;
   name: string;
+  username?: string;
   email: string;
   profilePicture?: string;
   followersCount: number;
@@ -25,11 +26,44 @@ const Profile = () => {
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
   const [followingLoading, setFollowingLoading] = useState<Record<string, boolean>>({});
+  const [, forceUpdate] = useState({});
 
-  // Clear follow cache on component mount
+  // Fetch updated profile data on mount to get latest follow counts
   useEffect(() => {
-    clearFollowCache();
-  }, []);
+    const fetchProfileData = async () => {
+      if (!mounted || !user) return;
+
+      try {
+        const token = getToken();
+        if (!token) return;
+
+        const res = await fetch(`https://moviezone.me/api/user/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache'
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const profileUser = data.user;
+
+          // Update user object with latest follow counts
+          if (user && profileUser) {
+            user.followersCount = profileUser.followersCount || 0;
+            user.followingCount = profileUser.followingCount || 0;
+
+            // Force re-render
+            forceUpdate({});
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      }
+    };
+
+    fetchProfileData();
+  }, [mounted, user]);
 
   // Helper: get token from localStorage
   const getToken = () => {
@@ -37,21 +71,6 @@ const Profile = () => {
       return localStorage.getItem('token');
     }
     return null;
-  };
-
-  // Clear follow cache from localStorage
-  const clearFollowCache = () => {
-    if (typeof window !== 'undefined') {
-      // Remove any cached follow data
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('follow') || key.includes('followers') || key.includes('following'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-    }
   };
 
   // Check follow status for a user
@@ -141,9 +160,6 @@ const Profile = () => {
     const userId = user?._id || user?.id;
     if (!userId) return;
 
-    // Clear any cached data first
-    clearFollowCache();
-
     setLoadingFollowers(true);
     try {
       const res = await fetch(`https://moviezone.me/api/follow/${userId}/followers?page=1&limit=20`, {
@@ -178,9 +194,6 @@ const Profile = () => {
   const fetchFollowing = async () => {
     const userId = user?._id || user?.id;
     if (!userId) return;
-
-    // Clear any cached data first
-    clearFollowCache();
 
     setLoadingFollowing(true);
     try {
@@ -291,6 +304,7 @@ const Profile = () => {
                     <div className="flex items-center gap-3">
                       <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
                       <span className="text-white font-bold">{f.name}</span>
+                      <span className="text-sm">{f.username}</span>
                     </div>
                     <button
                       onClick={() => followStates[f._id] ? unfollowUser(f._id) : followUser(f._id)}
@@ -341,6 +355,7 @@ const Profile = () => {
                     <div className="flex items-center gap-3">
                       <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
                       <span className="text-white font-bold">{f.name}</span>
+                      <span className="text-sm">{f.username}</span>
                     </div>
                     <button
                       onClick={() => unfollowUser(f._id)}
