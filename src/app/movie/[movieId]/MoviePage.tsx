@@ -5,7 +5,6 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Movie, TVShow } from "@/types/index";
 import WatchlistButton from "@/components/WatchlistButton";
-import Head from "next/head";
 import Loading from "@/components/Loading";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import { trackMoviePageView } from "@/lib/analytics";
@@ -173,58 +172,6 @@ export default function MoviePage({ movieId }: { movieId: number }) {
 
   return (
     <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
-      <Head>
-        <title>{title} ({rDate?.slice(0, 4)}) - Watch Online | MoviesDB</title>
-        <meta name="description" content={`Watch ${title} (${rDate?.slice(0, 4)}) online. ${item.overview ? item.overview.slice(0, 160) : `Discover ${title} and more movies on MoviesDB.`}`} />
-        <meta name="keywords" content={`${title}, movie, ${item.genre_names?.join(", ")}, ${rDate?.slice(0, 4)}, watch online, stream`} />
-
-        {/* Open Graph Meta Tags */}
-        <meta property="og:title" content={`${title} (${rDate?.slice(0, 4)}) - MoviesDB`} />
-        <meta property="og:description" content={item.overview || `Watch ${title} on MoviesDB`} />
-        <meta property="og:image" content={poster} />
-        <meta property="og:url" content={`${typeof window !== 'undefined' ? window.location.href : ''}`} />
-        <meta property="og:type" content="video.movie" />
-        <meta property="og:site_name" content="MoviesDB" />
-
-        {/* Twitter Card Meta Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${title} (${rDate?.slice(0, 4)})`} />
-        <meta name="twitter:description" content={item.overview || `Watch ${title} on MoviesDB`} />
-        <meta name="twitter:image" content={poster} />
-
-        {/* Additional Meta Tags */}
-        <meta name="author" content="MoviesDB" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${typeof window !== 'undefined' ? window.location.href : ''}`} />
-
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Movie",
-              name: title,
-              description: item.overview,
-              image: poster,
-              datePublished: rDate,
-              genre: item.genre_names,
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: item.vote_average || 0,
-                reviewCount: item.vote_count || 0,
-                bestRating: 10,
-                worstRating: 0,
-              },
-              url: `${typeof window !== 'undefined' ? window.location.href : ''}`,
-              potentialAction: {
-                "@type": "WatchAction",
-                target: `${typeof window !== 'undefined' ? window.location.href : ''}`,
-              },
-            }),
-          }}
-        />
-      </Head>
-
       {/* 💠 Dynamic Background Blur */}
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat bg-fixed blur-2xl opacity-30"

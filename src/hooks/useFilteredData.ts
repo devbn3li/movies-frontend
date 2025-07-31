@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Movie, TVShow } from "@/types";
 import { FilterOptions } from "@/components/common/FilterBar/FilterBar";
 import { containsSensitiveContent } from "@/lib/utils";
+import { useAdultContent } from "./useAdultContent";
 
 type MediaItem = Movie | TVShow;
 
@@ -11,15 +12,10 @@ export function useFilteredData<T extends MediaItem>(
   filters: FilterOptions,
   isAdmin: boolean = false
 ) {
+  const { hideAdultContent } = useAdultContent();
+
   const { filteredAndSorted, hiddenCount } = useMemo(() => {
     if (!data.length) return { filteredAndSorted: [], hiddenCount: 0 };
-
-    // Check localStorage for hideAdultContent setting - this will run fresh each time
-    const hideAdultContent = (() => {
-      if (typeof window === "undefined") return true;
-      const stored = localStorage.getItem("hideAdultContent");
-      return stored ? JSON.parse(stored) : true;
-    })();
 
     let filtered = data.filter((item) => {
       // Search filter
@@ -104,7 +100,7 @@ export function useFilteredData<T extends MediaItem>(
     }
 
     return { filteredAndSorted: filtered, hiddenCount };
-  }, [data, searchQuery, filters, isAdmin]);
+  }, [data, searchQuery, filters, isAdmin, hideAdultContent]);
 
   return { filteredAndSorted, hiddenCount };
 }

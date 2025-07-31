@@ -19,6 +19,7 @@ import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBa
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdultContent } from "@/hooks/useAdultContent";
 import { CompactTrailer } from "@/components/Trailer";
 import { getTVShows, getTVGenres, getTVYears } from "@/lib/api";
 import { Genre } from "@/types/index";
@@ -40,6 +41,7 @@ function TVShowsContent() {
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const { isAdmin } = useAuth();
+  const { hideAdultContent } = useAdultContent();
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -280,7 +282,7 @@ function TVShowsContent() {
           itemType="series"
         />
 
-        {adultShows > 0 && !isLoading && !isAdmin && (
+        {adultShows > 0 && !isLoading && !isAdmin && hideAdultContent && (
           <div className="mt-2 text-center">
             <p className="text-amber-200 text-sm bg-amber-600/20 border border-amber-600/30 rounded-lg px-4 py-2 inline-block">
               {adultShows} adult TV show{adultShows > 1 ? 's' : ''} hidden by default.{' '}

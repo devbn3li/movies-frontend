@@ -25,11 +25,49 @@ import { useAdultContent } from "@/hooks/useAdultContent";
 export default function Navbar() {
   const { user, logout, mounted } = useAuth();
   const dropdownRef = useRef(null);
-  const { hideAdultContent, toggleAdultContent } = useAdultContent();
+  const { hideAdultContent, toggleAdultContent, isLoading } = useAdultContent();
 
   const handleLogout = () => {
     logout();
     window.location.reload();
+  };
+
+  // Helper: get token from localStorage
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  };
+
+  // Handle adult content setting change
+  const handleAdultContentToggle = async () => {
+    if (isLoading) return; // Prevent toggle while loading
+
+    try {
+      const newSetting = !hideAdultContent;
+
+      // Update settings via API
+      const response = await fetch('https://moviezone.me/api/user/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({
+          showAdultContent: !newSetting, // API expects showAdultContent, but our state is hideAdultContent
+        }),
+      });
+
+      if (response.ok) {
+        // Only toggle the local state if API call was successful
+        toggleAdultContent();
+      } else {
+        console.error('Failed to update adult content settings');
+      }
+    } catch (error) {
+      console.error('Error updating adult content settings:', error);
+    }
   };
 
   return (
@@ -103,9 +141,8 @@ export default function Navbar() {
                     <span>Hide Adult Content</span>
                     <Switch
                       checked={hideAdultContent}
-                      onCheckedChange={() => {
-                        toggleAdultContent();
-                      }}
+                      onCheckedChange={handleAdultContentToggle}
+                      disabled={isLoading}
                       className="ml-2"
                     />
                   </div>

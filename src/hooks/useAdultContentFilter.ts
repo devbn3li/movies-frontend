@@ -1,38 +1,26 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useAdultContent } from "./useAdultContent";
 
 export const useAdultContentFilter = () => {
-  const [hideAdultContent, setHideAdultContent] = useState(true);
+  const { hideAdultContent, toggleAdultContent } = useAdultContent();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Load setting from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem("hideAdultContent");
-    if (stored !== null) {
-      setHideAdultContent(JSON.parse(stored));
-    }
-  }, []);
-
-  // Function to refresh the setting from localStorage
+  // Function to refresh the setting (trigger re-render)
   const refreshFromStorage = useCallback(() => {
-    const stored = localStorage.getItem("hideAdultContent");
-    const newValue = stored ? JSON.parse(stored) : true;
-    setHideAdultContent(newValue);
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
-  // Function to update the setting
-  const toggleAdultContent = useCallback(() => {
-    const newValue = !hideAdultContent;
-    setHideAdultContent(newValue);
-    localStorage.setItem("hideAdultContent", JSON.stringify(newValue));
+  // Wrap the toggle function to include refresh trigger
+  const handleToggleAdultContent = useCallback(() => {
+    toggleAdultContent();
     setRefreshTrigger((prev) => prev + 1);
-  }, [hideAdultContent]);
+  }, [toggleAdultContent]);
 
   return {
     hideAdultContent,
-    toggleAdultContent,
+    toggleAdultContent: handleToggleAdultContent,
     refreshFromStorage,
     refreshTrigger, // يمكن استخدامه كـ dependency في useMemo
   };

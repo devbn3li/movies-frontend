@@ -327,7 +327,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
               <LoadingSpinner />
             ) : results.length > 0 ? (
               <div className="py-2 overflow-x-hidden">
-                {hiddenCount > 0 && (
+                {hiddenCount > 0 && hideAdultContent && (
                   <div className="px-4 py-2 mb-2 bg-amber-600/20 border border-amber-600/30 rounded-lg mx-2">
                     <p className="text-amber-200 text-sm text-center">
                       {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings.{' '}
