@@ -23,6 +23,8 @@ const Profile = () => {
   const [following, setFollowing] = useState<User[]>([]);
   const [loadingFollowers, setLoadingFollowers] = useState(false);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
+  const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
+  const [followingLoading, setFollowingLoading] = useState<Record<string, boolean>>({});
 
   // Helper: get token from localStorage
   const getToken = () => {
@@ -30,6 +32,65 @@ const Profile = () => {
       return localStorage.getItem('token');
     }
     return null;
+  };
+
+  // Check follow status for a user
+  const checkFollowStatus = async (userId: string) => {
+    try {
+      const res = await fetch(`https://moviezone.me/api/follow/${userId}/follow-status`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      return data.isFollowing || false;
+    } catch {
+      return false;
+    }
+  };
+
+  // Follow a user
+  const followUser = async (userId: string) => {
+    setFollowingLoading(prev => ({ ...prev, [userId]: true }));
+    try {
+      const res = await fetch(`https://moviezone.me/api/follow/${userId}/follow`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      if (res.ok) {
+        setFollowStates(prev => ({ ...prev, [userId]: true }));
+        // Update user's following count if needed
+        if (user) {
+          user.followingCount = (user.followingCount || 0) + 1;
+        }
+      }
+    } catch {
+      // Handle error silently
+    }
+    setFollowingLoading(prev => ({ ...prev, [userId]: false }));
+  };
+
+  // Unfollow a user
+  const unfollowUser = async (userId: string) => {
+    setFollowingLoading(prev => ({ ...prev, [userId]: true }));
+    try {
+      const res = await fetch(`https://moviezone.me/api/follow/${userId}/unfollow`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      if (res.ok) {
+        setFollowStates(prev => ({ ...prev, [userId]: false }));
+        // Remove from following list if unfollowed from following modal
+        setFollowing(prev => prev.filter(u => u._id !== userId));
+        // Update user's following count if needed
+        if (user) {
+          user.followingCount = Math.max((user.followingCount || 0) - 1, 0);
+        }
+      }
+    } catch {
+      // Handle error silently
+    }
+    setFollowingLoading(prev => ({ ...prev, [userId]: false }));
   };
 
   // Fetch followers list
@@ -42,7 +103,21 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
-      setFollowers(data.followers || []);
+      const followersList = data.followers || [];
+      setFollowers(followersList);
+
+      // Check follow status for each follower
+      const followStatusPromises = followersList.map(async (follower: User) => {
+        const isFollowing = await checkFollowStatus(follower._id);
+        return { userId: follower._id, isFollowing };
+      });
+
+      const followStatuses = await Promise.all(followStatusPromises);
+      const newFollowStates: Record<string, boolean> = {};
+      followStatuses.forEach(({ userId, isFollowing }) => {
+        newFollowStates[userId] = isFollowing;
+      });
+      setFollowStates(newFollowStates);
     } catch {
       // Handle error silently
     }
@@ -59,7 +134,15 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
-      setFollowing(data.following || []);
+      const followingList = data.following || [];
+      setFollowing(followingList);
+
+      // Set all following users as followed (since they are in the following list)
+      const newFollowStates: Record<string, boolean> = {};
+      followingList.forEach((user: User) => {
+        newFollowStates[user._id] = true;
+      });
+      setFollowStates(prev => ({ ...prev, ...newFollowStates }));
     } catch {
       // Handle error silently
     }
@@ -137,9 +220,27 @@ const Profile = () => {
             ) : (
               <ul className="space-y-3">
                 {followers.map((f) => (
-                  <li key={f._id} className="flex items-center gap-3">
-                    <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
-                    <span className="text-white font-bold">{f.name}</span>
+                  <li key={f._id} className="flex items-center gap-3 justify-between">
+                    <div className="flex items-center gap-3">
+                      <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                      <span className="text-white font-bold">{f.name}</span>
+                    </div>
+                    <button
+                      onClick={() => followStates[f._id] ? unfollowUser(f._id) : followUser(f._id)}
+                      disabled={followingLoading[f._id]}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${followStates[f._id]
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        } disabled:opacity-50`}
+                    >
+                      {followingLoading[f._id] ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : followStates[f._id] ? (
+                        'Unfollow'
+                      ) : (
+                        'Follow Back'
+                      )}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -169,9 +270,22 @@ const Profile = () => {
             ) : (
               <ul className="space-y-3">
                 {following.map((f) => (
-                  <li key={f._id} className="flex items-center gap-3">
-                    <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
-                    <span className="text-white font-bold">{f.name}</span>
+                  <li key={f._id} className="flex items-center gap-3 justify-between">
+                    <div className="flex items-center gap-3">
+                      <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                      <span className="text-white font-bold">{f.name}</span>
+                    </div>
+                    <button
+                      onClick={() => unfollowUser(f._id)}
+                      disabled={followingLoading[f._id]}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                      {followingLoading[f._id] ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        'Unfollow'
+                      )}
+                    </button>
                   </li>
                 ))}
               </ul>
