@@ -19,7 +19,7 @@ export const useAdultContent = () => {
         if (user) {
           const token = localStorage.getItem("token");
           if (token) {
-            const response = await fetch("/api/user/profile", {
+            const response = await fetch("https://moviezone.me/api/user/profile", {
               headers: {
                 Authorization: `Bearer ${token}`,
               },

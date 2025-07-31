@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Loading from "@/components/Loading";
 import WatchlistGrid from "@/components/WatchlistGrid";
@@ -26,6 +26,11 @@ const Profile = () => {
   const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
   const [followingLoading, setFollowingLoading] = useState<Record<string, boolean>>({});
 
+  // Clear follow cache on component mount
+  useEffect(() => {
+    clearFollowCache();
+  }, []);
+
   // Helper: get token from localStorage
   const getToken = () => {
     if (typeof window !== 'undefined') {
@@ -34,11 +39,29 @@ const Profile = () => {
     return null;
   };
 
+  // Clear follow cache from localStorage
+  const clearFollowCache = () => {
+    if (typeof window !== 'undefined') {
+      // Remove any cached follow data
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('follow') || key.includes('followers') || key.includes('following'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+    }
+  };
+
   // Check follow status for a user
   const checkFollowStatus = async (userId: string) => {
     try {
       const res = await fetch(`https://moviezone.me/api/follow/${userId}/follow-status`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache'
+        },
       });
       const data = await res.json();
       return data.isFollowing || false;
@@ -53,7 +76,10 @@ const Profile = () => {
     try {
       const res = await fetch(`https://moviezone.me/api/follow/${userId}/follow`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache'
+        },
       });
 
       if (res.ok) {
@@ -61,6 +87,13 @@ const Profile = () => {
         // Update user's following count if needed
         if (user) {
           user.followingCount = (user.followingCount || 0) + 1;
+        }
+        // Refresh the current lists to get updated data
+        if (followersOpen) {
+          setTimeout(() => fetchFollowers(), 500);
+        }
+        if (followingOpen) {
+          setTimeout(() => fetchFollowing(), 500);
         }
       }
     } catch {
@@ -75,7 +108,10 @@ const Profile = () => {
     try {
       const res = await fetch(`https://moviezone.me/api/follow/${userId}/unfollow`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache'
+        },
       });
 
       if (res.ok) {
@@ -85,6 +121,13 @@ const Profile = () => {
         // Update user's following count if needed
         if (user) {
           user.followingCount = Math.max((user.followingCount || 0) - 1, 0);
+        }
+        // Refresh the current lists to get updated data
+        if (followersOpen) {
+          setTimeout(() => fetchFollowers(), 500);
+        }
+        if (followingOpen) {
+          setTimeout(() => fetchFollowing(), 500);
         }
       }
     } catch {
@@ -97,16 +140,23 @@ const Profile = () => {
   const fetchFollowers = async () => {
     const userId = user?._id || user?.id;
     if (!userId) return;
+
+    // Clear any cached data first
+    clearFollowCache();
+
     setLoadingFollowers(true);
     try {
       const res = await fetch(`https://moviezone.me/api/follow/${userId}/followers?page=1&limit=20`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache'
+        },
       });
       const data = await res.json();
       const followersList = data.followers || [];
       setFollowers(followersList);
 
-      // Check follow status for each follower
+      // Check follow status for each follower - fresh API call each time
       const followStatusPromises = followersList.map(async (follower: User) => {
         const isFollowing = await checkFollowStatus(follower._id);
         return { userId: follower._id, isFollowing };
@@ -128,16 +178,23 @@ const Profile = () => {
   const fetchFollowing = async () => {
     const userId = user?._id || user?.id;
     if (!userId) return;
+
+    // Clear any cached data first
+    clearFollowCache();
+
     setLoadingFollowing(true);
     try {
       const res = await fetch(`https://moviezone.me/api/follow/${userId}/following?page=1&limit=20`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache'
+        },
       });
       const data = await res.json();
       const followingList = data.following || [];
       setFollowing(followingList);
 
-      // Set all following users as followed (since they are in the following list)
+      // Set all following users as followed (since they are in the following list) - fresh data each time
       const newFollowStates: Record<string, boolean> = {};
       followingList.forEach((user: User) => {
         newFollowStates[user._id] = true;
@@ -179,11 +236,21 @@ const Profile = () => {
 
             {/* Stats */}
             <div className="flex items-center gap-8 mt-6">
-              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => { setFollowersOpen(true); fetchFollowers(); }}>
+              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => {
+                setFollowers([]); // Clear previous data
+                setFollowStates({}); // Clear previous states
+                setFollowersOpen(true);
+                fetchFollowers();
+              }}>
                 <div className="text-2xl font-bold text-white">{user.followersCount ?? user.followers?.length ?? 0}</div>
                 <div className="text-sm text-white/70">Followers</div>
               </div>
-              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => { setFollowingOpen(true); fetchFollowing(); }}>
+              <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => {
+                setFollowing([]); // Clear previous data
+                setFollowStates({}); // Clear previous states
+                setFollowingOpen(true);
+                fetchFollowing();
+              }}>
                 <div className="text-2xl font-bold text-white">{user.followingCount ?? user.following?.length ?? 0}</div>
                 <div className="text-sm text-white/70">Following</div>
               </div>
@@ -229,8 +296,8 @@ const Profile = () => {
                       onClick={() => followStates[f._id] ? unfollowUser(f._id) : followUser(f._id)}
                       disabled={followingLoading[f._id]}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${followStates[f._id]
-                          ? 'bg-red-600 hover:bg-red-700 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                         } disabled:opacity-50`}
                     >
                       {followingLoading[f._id] ? (
