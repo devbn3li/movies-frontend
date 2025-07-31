@@ -1,9 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "@/lib/axios";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button"
-
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { getCountries } from "@/data/countries-cities";
 export default function RegisterPage() {
   const [form, setForm] = useState({
     name: "",
@@ -11,11 +18,33 @@ export default function RegisterPage() {
     password: "",
     country: "",
   });
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const countries = await getCountries();
+        setAvailableCountries(countries);
+      } catch (error) {
+        console.error('Failed to load countries:', error);
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    };
+
+    loadCountries();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const handleCountryChange = (value: string) => {
+    setForm({ ...form, country: value });
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,14 +93,21 @@ export default function RegisterPage() {
           onChange={handleChange}
           required
         />
-        <Input
-          type="text"
-          name="country"
-          placeholder="Country"
-          className="w-full p-2 border mb-3"
-          value={form.country}
-          onChange={handleChange}
-        />
+
+        <div className="mb-3">
+          <Select onValueChange={handleCountryChange} value={form.country}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={isLoadingCountries ? "Loading countries..." : "Select your country"} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCountries.map((country) => (
+                <SelectItem key={country} value={country}>
+                  {country}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Button
           type="submit"
           className="py-2 px-4  w-full"
