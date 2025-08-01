@@ -40,6 +40,26 @@ export default function Navbar() {
     return null;
   };
 
+  // Ensure the profile picture URL is absolute and add cache busting
+  const getFullImageUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+
+    let fullUrl = url;
+
+    // If it's already a full URL, use as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      fullUrl = url;
+    }
+    // If it's a relative path, make it absolute
+    else if (url.startsWith('/uploads/') || url.startsWith('uploads/')) {
+      fullUrl = `https://moviezone.me${url.startsWith('/') ? url : '/' + url}`;
+    }
+
+    // Add cache busting timestamp to prevent old cached images
+    const separator = fullUrl.includes('?') ? '&' : '?';
+    return `${fullUrl}${separator}t=${Date.now()}`;
+  };
+
   // Handle adult content setting change
   const handleAdultContentToggle = async () => {
     if (isLoading) return; // Prevent toggle while loading
@@ -95,11 +115,13 @@ export default function Navbar() {
             <DropdownMenuTrigger asChild>
               {user.profilePicture ? (
                 <Image
-                  src={user.profilePicture}
+                  src={getFullImageUrl(user.profilePicture) || user.profilePicture}
                   alt="Avatar"
                   width={36}
                   height={36}
-                  className="rounded-full border cursor-pointer w-10 h-10"
+                  className="rounded-full border cursor-pointer w-10 h-10 object-cover"
+                  unoptimized
+                  key={user.profilePicture} // Force re-render when URL changes
                 />) : (
                 <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center cursor-pointer">
                   <span className="text-gray-500 dark:text-gray-400 text-2xl font-bold">{user.name.slice(0, 1)}</span>

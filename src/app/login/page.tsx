@@ -14,12 +14,10 @@ export default function LoginPage() {
     try {
       const res = await axios.post("/auth/login", { email, password });
 
-      // حفظ البيانات في localStorage
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // حفظ token في cookies للـ middleware
-      document.cookie = `token=${res.data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // أسبوع واحد
+      document.cookie = `token=${res.data.token}; path=/; max-age=${60 * 60 * 24 * 7}`;
 
       window.location.href = "/";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

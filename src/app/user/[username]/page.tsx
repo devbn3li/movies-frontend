@@ -48,6 +48,26 @@ const UserProfile = () => {
     return null;
   };
 
+  // Ensure the profile picture URL is absolute and add cache busting
+  const getFullImageUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+
+    let fullUrl = url;
+
+    // If it's already a full URL, use as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      fullUrl = url;
+    }
+    // If it's a relative path, make it absolute
+    else if (url.startsWith('/uploads/') || url.startsWith('uploads/')) {
+      fullUrl = `https://moviezone.me${url.startsWith('/') ? url : '/' + url}`;
+    }
+
+    // Add cache busting timestamp to prevent old cached images
+    const separator = fullUrl.includes('?') ? '&' : '?';
+    return `${fullUrl}${separator}t=${Date.now()}`;
+  };
+
   // Fetch user profile by username
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -56,7 +76,7 @@ const UserProfile = () => {
       try {
         setLoading(true);
         const token = getToken();
-        
+
         // If no token and trying to access profile, redirect to login
         if (!token) {
           router.push('/login');
@@ -74,22 +94,20 @@ const UserProfile = () => {
         if (res.ok) {
           const data = await res.json();
           setProfileUser(data.user);
-          
+
           // Use the isOwnProfile and isFollowing from API response
           setIsOwnProfile(data.user.isOwnProfile || false);
           setIsFollowing(data.user.isFollowing || false);
           setUserNotFound(false);
         } else if (res.status === 404) {
           // User not found
-          const errorData = await res.json();
-          console.log('User not found:', errorData.message);
           setUserNotFound(true);
           setProfileUser(null);
         } else {
           // Other error, redirect to home
           router.push('/');
         }
-        
+
       } catch (error) {
         console.error('Error fetching user profile:', error);
         router.push('/');
@@ -104,15 +122,15 @@ const UserProfile = () => {
   // Follow/Unfollow the profile user
   const toggleFollow = async () => {
     if (!profileUser || isOwnProfile) return;
-    
+
     setFollowLoading(true);
     try {
-      const endpoint = isFollowing 
+      const endpoint = isFollowing
         ? `https://moviezone.me/api/follow/${profileUser._id}/unfollow`
         : `https://moviezone.me/api/follow/${profileUser._id}/follow`;
-      
+
       const method = isFollowing ? 'DELETE' : 'POST';
-      
+
       const res = await fetch(endpoint, {
         method,
         headers: {
@@ -125,7 +143,7 @@ const UserProfile = () => {
         setIsFollowing(!isFollowing);
         // Update the followers count
         if (profileUser) {
-          profileUser.followersCount = isFollowing 
+          profileUser.followersCount = isFollowing
             ? Math.max((profileUser.followersCount || 0) - 1, 0)
             : (profileUser.followersCount || 0) + 1;
         }
@@ -166,7 +184,7 @@ const UserProfile = () => {
 
       if (res.ok) {
         setFollowStates(prev => ({ ...prev, [userId]: true }));
-        
+
         // Refresh the current lists to get updated data
         if (followersOpen) {
           setTimeout(() => fetchFollowers(), 500);
@@ -197,7 +215,7 @@ const UserProfile = () => {
         setFollowStates(prev => ({ ...prev, [userId]: false }));
         // Remove from following list if unfollowed from following modal
         setFollowing(prev => prev.filter(u => u._id !== userId));
-        
+
         // Refresh the current lists to get updated data
         if (followersOpen) {
           setTimeout(() => fetchFollowers(), 500);
@@ -287,7 +305,7 @@ const UserProfile = () => {
             <div className="text-6xl mb-4">😕</div>
             <div className="text-white text-2xl font-bold mb-2">User not found</div>
             <div className="text-white/70 text-lg mb-6">The user you&apos;re looking for doesn&apos;t exist.</div>
-            <Link 
+            <Link
               href="/"
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors"
             >
@@ -318,11 +336,13 @@ const UserProfile = () => {
           <div className="flex flex-col items-center">
             {profileUser.profilePicture ? (
               <Image
-                src={profileUser.profilePicture}
+                src={getFullImageUrl(profileUser.profilePicture) || profileUser.profilePicture}
                 alt="Avatar"
                 width={200}
                 height={200}
-                className="rounded-full border-4 border-white/20 shadow-xl"
+                className="rounded-full border-4 border-white/20 shadow-xl object-cover"
+                unoptimized
+                key={profileUser.profilePicture} // Force re-render when URL changes
               />
             ) : (
               <div className="w-48 h-48 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center shadow-xl">
@@ -339,11 +359,10 @@ const UserProfile = () => {
                 <button
                   onClick={toggleFollow}
                   disabled={followLoading}
-                  className={`px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-50 ${
-                    isFollowing
+                  className={`px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-50 ${isFollowing
                       ? 'bg-red-600 hover:bg-red-700 text-white'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
+                    }`}
                 >
                   {followLoading ? (
                     <div className="flex items-center gap-2">
@@ -413,11 +432,11 @@ const UserProfile = () => {
               <ul className="space-y-3">
                 {followers.map((f) => (
                   <li key={f._id} className="flex items-center gap-3 justify-between">
-                    <Link 
+                    <Link
                       href={`/user/${f.username || f.name?.toLowerCase().replace(/\s+/g, '')}`}
                       className="flex items-center gap-3 flex-1 hover:bg-white/5 rounded-lg p-2 transition-colors cursor-pointer"
                     >
-                      <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                      <Image src={getFullImageUrl(f.profilePicture) || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full object-cover" unoptimized key={f.profilePicture} />
                       <div className="flex flex-col">
                         <span className="text-white font-bold">{f.name}</span>
                         <span className="text-white/70 text-sm">@{f.username}</span>
@@ -471,11 +490,11 @@ const UserProfile = () => {
               <ul className="space-y-3">
                 {following.map((f) => (
                   <li key={f._id} className="flex items-center gap-3 justify-between">
-                    <Link 
+                    <Link
                       href={`/user/${f.username || f.name?.toLowerCase().replace(/\s+/g, '')}`}
                       className="flex items-center gap-3 flex-1 hover:bg-white/5 rounded-lg p-2 transition-colors cursor-pointer"
                     >
-                      <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                      <Image src={getFullImageUrl(f.profilePicture) || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full object-cover" unoptimized key={f.profilePicture} />
                       <div className="flex flex-col">
                         <span className="text-white font-bold">{f.name}</span>
                         <span className="text-white/70 text-sm">@{f.username}</span>
@@ -485,13 +504,12 @@ const UserProfile = () => {
                       <button
                         onClick={() => isOwnProfile ? unfollowUser(f._id) : (followStates[f._id] ? unfollowUser(f._id) : followUser(f._id))}
                         disabled={followingLoading[f._id]}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors disabled:opacity-50 ${
-                          isOwnProfile 
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors disabled:opacity-50 ${isOwnProfile
                             ? 'bg-red-600 hover:bg-red-700 text-white'
                             : followStates[f._id]
                               ? 'bg-red-600 hover:bg-red-700 text-white'
                               : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        }`}
+                          }`}
                       >
                         {followingLoading[f._id] ? (
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

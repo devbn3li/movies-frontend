@@ -1,58 +1,72 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-interface User {
-  id: string;
-  _id?: string;
-  name: string;
-  username?: string;
-  email: string;
-  isAdmin: boolean;
-  profilePicture?: string;
-  country?: string;
-  followersCount?: number;
-  followingCount?: number;
-  followers?: string[];
-  following?: string[];
-}
+import { useUserStore } from "@/store/userStore";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const {
+    user,
+    token,
+    isAuthenticated,
+    mounted,
+    setUser,
+    setToken,
+    updateUser,
+    logout: logoutStore,
+    setMounted,
+    isAdmin,
+  } = useUserStore();
 
   useEffect(() => {
     setMounted(true);
+
     // Only access localStorage after component mounts
     const checkAuth = () => {
       try {
-        const token = localStorage.getItem("token");
+        const storedToken = localStorage.getItem("token");
         const userData = localStorage.getItem("user");
 
-        if (!token || !userData) {
+        if (!storedToken || !userData) {
           setUser(null);
+          setToken(null);
           return;
         }
 
         const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+        // Only update if the stored data is different from current store data
+        if (
+          JSON.stringify(parsedUser) !== JSON.stringify(user) ||
+          storedToken !== token
+        ) {
+          setUser(parsedUser);
+          setToken(storedToken);
+        }
       } catch (error) {
         console.error("Error parsing user data:", error);
         setUser(null);
+        setToken(null);
       }
     };
 
     checkAuth();
-  }, []);
+
+    // Listen for storage changes from other tabs/windows
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "user" || e.key === "token") {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [setUser, setToken, setMounted, user, token]);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-    setUser(null);
+    logoutStore();
     router.push("/");
   };
 
@@ -65,7 +79,7 @@ export const useAuth = () => {
   };
 
   const requireAdmin = () => {
-    if (!user || !user.isAdmin) {
+    if (!user || !isAdmin()) {
       router.push("/");
       return false;
     }
@@ -74,11 +88,13 @@ export const useAuth = () => {
 
   return {
     user,
+    token,
     logout,
     requireAuth,
     requireAdmin,
-    isAuthenticated: !!user,
-    isAdmin: user?.isAdmin || false,
+    updateUser, // New: function to update user data
+    isAuthenticated,
+    isAdmin: isAdmin(),
     mounted,
   };
 };

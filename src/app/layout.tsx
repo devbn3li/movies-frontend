@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Sidebar/AppSidebar";
 import Script from "next/script";
 import Analytics from "@/components/Analytics";
+import { Toaster } from 'react-hot-toast';
 
 
 const geistSans = Geist({
@@ -174,6 +175,34 @@ export default function RootLayout({
 
         {/* Google Analytics Route Tracker */}
         <Analytics />
+        
+        {/* Global Toast Notifications */}
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: 'rgba(255, 255, 255, 0.95)',
+              color: '#374151',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

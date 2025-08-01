@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Loading from "@/components/Loading";
 import WatchlistGrid from "@/components/WatchlistGrid";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotification } from "@/hooks/useNotification";
 
 interface User {
   _id: string;
@@ -19,7 +20,8 @@ interface User {
 }
 
 const Profile = () => {
-  const { user, mounted } = useAuth();
+  const { user, mounted, updateUser } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   const [followersOpen, setFollowersOpen] = useState(false);
   const [followingOpen, setFollowingOpen] = useState(false);
@@ -29,44 +31,14 @@ const Profile = () => {
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
   const [followingLoading, setFollowingLoading] = useState<Record<string, boolean>>({});
-  const [, forceUpdate] = useState({});
 
-  // Fetch updated profile data on mount to get latest follow counts
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!mounted || !user) return;
-
-      try {
-        const token = getToken();
-        if (!token) return;
-
-        const res = await fetch(`https://moviezone.me/api/user/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Cache-Control': 'no-cache'
-          },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const profileUser = data.user;
-
-          // Update user object with latest follow counts
-          if (user && profileUser) {
-            user.followersCount = profileUser.followersCount || 0;
-            user.followingCount = profileUser.followingCount || 0;
-
-            // Force re-render
-            forceUpdate({});
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
-      }
-    };
-
-    fetchProfileData();
-  }, [mounted, user]);
+  // Profile picture management states
+  const [profilePictureLoading, setProfilePictureLoading] = useState(false);
+  const [showProfileOptions, setShowProfileOptions] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Helper: get token from localStorage
   const getToken = () => {
@@ -106,9 +78,9 @@ const Profile = () => {
 
       if (res.ok) {
         setFollowStates(prev => ({ ...prev, [userId]: true }));
-        // Update user's following count if needed
+        // Update user's following count
         if (user) {
-          user.followingCount = (user.followingCount || 0) + 1;
+          updateUser({ followingCount: (user.followingCount || 0) + 1 });
         }
         // Refresh the current lists to get updated data
         if (followersOpen) {
@@ -140,9 +112,9 @@ const Profile = () => {
         setFollowStates(prev => ({ ...prev, [userId]: false }));
         // Remove from following list if unfollowed from following modal
         setFollowing(prev => prev.filter(u => u._id !== userId));
-        // Update user's following count if needed
+        // Update user's following count
         if (user) {
-          user.followingCount = Math.max((user.followingCount || 0) - 1, 0);
+          updateUser({ followingCount: Math.max((user.followingCount || 0) - 1, 0) });
         }
         // Refresh the current lists to get updated data
         if (followersOpen) {
@@ -222,7 +194,190 @@ const Profile = () => {
     setLoadingFollowing(false);
   };
 
+  // Profile Picture Management Functions
+
+  // Validate image file
+  const validateImageFile = (file: File) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Unsupported file type. Use JPEG, PNG, GIF or WebP');
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      throw new Error('File size too large. Maximum 5MB');
+    }
+
+    return true;
+  };
+
+  // Upload profile picture from device
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      validateImageFile(file);
+    } catch (error) {
+      showError((error as Error).message);
+      return;
+    }
+
+    setProfilePictureLoading(true);
+
+    try {
+      // Step 1: Upload the image
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await fetch('https://moviezone.me/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: formData
+      });
+
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        throw new Error(uploadResult.message || 'Failed to upload image');
+      }
+
+      // Step 2: Update profile
+      const updateResponse = await fetch('https://moviezone.me/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+          profilePicture: uploadResult.imageUrl
+        })
+      });
+
+      const updatedUser = await updateResponse.json();
+
+      if (!updateResponse.ok) {
+        throw new Error(updatedUser.message || 'Failed to update profile');
+      }
+
+      // Update user in store
+      updateUser({ profilePicture: updatedUser.profilePicture });
+
+      showSuccess('Profile picture updated successfully!');
+      setShowProfileOptions(false);
+
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      showError('Error: ' + (error as Error).message);
+    } finally {
+      setProfilePictureLoading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Update profile picture from URL
+  const handleUrlUpdate = async () => {
+    if (!imageUrl.trim()) {
+      showError('Please enter image URL');
+      return;
+    }
+
+    setProfilePictureLoading(true);
+
+    try {
+      const response = await fetch('https://moviezone.me/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+          profilePicture: imageUrl
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to update image');
+      }
+
+      // Update user in store
+      updateUser({ profilePicture: result.profilePicture });
+
+      setImageUrl('');
+      setShowUrlInput(false);
+      setShowProfileOptions(false);
+      showSuccess('Profile picture updated successfully!');
+
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      showError('Error: ' + (error as Error).message);
+    } finally {
+      setProfilePictureLoading(false);
+    }
+  };
+
+  // Delete profile picture
+  const handleDeletePicture = async () => {
+    setProfilePictureLoading(true);
+
+    try {
+      const response = await fetch('https://moviezone.me/api/user/profile/picture', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to delete image');
+      }
+
+      // Update user in store
+      updateUser({ profilePicture: result.profilePicture });
+
+      setShowProfileOptions(false);
+      showSuccess('Profile picture deleted successfully!');
+
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      showError('Error: ' + (error as Error).message);
+    } finally {
+      setProfilePictureLoading(false);
+    }
+  };
+
   if (!mounted || !user) return <Loading />;
+
+  // Ensure the profile picture URL is absolute and add cache busting
+  const getFullImageUrl = (url: string | undefined) => {
+    if (!url) return undefined;
+
+    let fullUrl = url;
+
+    // If it's already a full URL, use as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      fullUrl = url;
+    }
+    // If it's a relative path, make it absolute
+    else if (url.startsWith('/uploads/') || url.startsWith('uploads/')) {
+      fullUrl = `https://moviezone.me${url.startsWith('/') ? url : '/' + url}`;
+    }
+
+    // Add cache busting timestamp to prevent old cached images
+    const separator = fullUrl.includes('?') ? '&' : '?';
+    return `${fullUrl}${separator}t=${Date.now()}`;
+  };
+
+  const profilePictureUrl = getFullImageUrl(user.profilePicture);
 
   return (
     <div className="relative h-full pb-20">
@@ -233,19 +388,139 @@ const Profile = () => {
       <div className="relative">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="flex flex-col items-center">
-            {user.profilePicture ? (
-              <Image
-                src={user.profilePicture}
-                alt="Avatar"
-                width={200}
-                height={200}
-                className="rounded-full border-4 border-white/20 shadow-xl"
-              />
-            ) : (
-              <div className="w-48 h-48 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center shadow-xl">
-                <span className="text-white text-9xl font-bold">{user.name?.slice(0, 1)}</span>
+            {/* Profile Picture with Edit Option */}
+            <div className="relative group">
+              {profilePictureUrl ? (
+                <Image
+                  src={profilePictureUrl}
+                  alt="Avatar"
+                  width={200}
+                  height={200}
+                  className="rounded-full w-[200px] h-[200px] border-4 border-white/20 shadow-xl object-cover"
+                  unoptimized
+                  key={profilePictureUrl} // Force re-render when URL changes
+                  onError={() => {
+                    console.error('Image failed to load:', profilePictureUrl);
+                  }}
+                  onLoad={() => {
+                  }}
+                />
+              ) : (
+                <div className="w-48 h-48 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center shadow-xl">
+                  <span className="text-white text-9xl font-bold">{user.name?.slice(0, 1)}</span>
+                </div>
+              )}
+
+              {/* Edit Profile Picture Button */}
+              <button
+                onClick={() => setShowProfileOptions(!showProfileOptions)}
+                disabled={profilePictureLoading}
+                className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-colors disabled:opacity-50"
+                title="Change Profile Picture"
+              >
+                {profilePictureLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Profile Picture Options Modal */}
+            {showProfileOptions && (
+              <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowProfileOptions(false)}>
+                <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-white text-xl font-bold">Change Profile Picture</h3>
+                    <button onClick={() => setShowProfileOptions(false)} className="text-white/70 hover:text-white text-2xl">&times;</button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Upload from device */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={profilePictureLoading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Choose Image from Device
+                    </button>
+
+                    {/* URL input toggle */}
+                    <button
+                      onClick={() => setShowUrlInput(!showUrlInput)}
+                      disabled={profilePictureLoading}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      Use External Link
+                    </button>
+
+                    {/* URL Input */}
+                    {showUrlInput && (
+                      <div className="space-y-3">
+                        <input
+                          type="url"
+                          value={imageUrl}
+                          onChange={(e) => setImageUrl(e.target.value)}
+                          placeholder="Enter image URL here"
+                          disabled={profilePictureLoading}
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:border-blue-500"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleUrlUpdate}
+                            disabled={profilePictureLoading || !imageUrl.trim()}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
+                          >
+                            Update
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowUrlInput(false);
+                              setImageUrl('');
+                            }}
+                            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Delete picture */}
+                    {user.profilePicture && (
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        disabled={profilePictureLoading}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete Picture
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
+
             <h1 className="text-white text-4xl font-bold mt-6">{user.name}</h1>
             <p className="text-white/80 text-lg mt-2">@{user.username || user.name?.toLowerCase().replace(/\s+/g, '')}</p>
             <p className="text-white/60">{user.email}</p>
@@ -258,7 +533,7 @@ const Profile = () => {
                   const username = user.username || user.name?.toLowerCase().replace(/\s+/g, '');
                   const profileUrl = `${window.location.origin}/user/${username}`;
                   navigator.clipboard.writeText(profileUrl);
-                  alert('Profile link copied to clipboard!');
+                  showSuccess('Profile link copied to clipboard!');
                 }}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
               >
@@ -320,11 +595,11 @@ const Profile = () => {
               <ul className="space-y-3">
                 {followers.map((f) => (
                   <li key={f._id} className="flex items-center gap-3 justify-between">
-                    <Link 
+                    <Link
                       href={`/user/${f.username || f.name?.toLowerCase().replace(/\s+/g, '')}`}
                       className="flex items-center gap-3 flex-1 hover:bg-white/5 rounded-lg p-2 transition-colors cursor-pointer"
                     >
-                      <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                      <Image src={getFullImageUrl(f.profilePicture) || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full object-cover" unoptimized />
                       <div className="flex flex-col">
                         <span className="text-white font-bold">{f.name}</span>
                         <span className="text-white/70 text-sm">@{f.username}</span>
@@ -376,11 +651,11 @@ const Profile = () => {
               <ul className="space-y-3">
                 {following.map((f) => (
                   <li key={f._id} className="flex items-center gap-3 justify-between">
-                    <Link 
+                    <Link
                       href={`/user/${f.username || f.name?.toLowerCase().replace(/\s+/g, '')}`}
                       className="flex items-center gap-3 flex-1 hover:bg-white/5 rounded-lg p-2 transition-colors cursor-pointer"
                     >
-                      <Image src={f.profilePicture || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full" />
+                      <Image src={getFullImageUrl(f.profilePicture) || '/placeholder-avatar.svg'} alt={f.name} width={32} height={32} className="rounded-full object-cover" unoptimized />
                       <div className="flex flex-col">
                         <span className="text-white font-bold">{f.name}</span>
                         <span className="text-white/70 text-sm">@{f.username}</span>
@@ -401,6 +676,45 @@ const Profile = () => {
                 ))}
               </ul>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">Delete Profile Picture</h3>
+              <p className="text-sm text-white/70 mb-6">Are you sure you want to delete your profile picture? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    handleDeletePicture();
+                  }}
+                  disabled={profilePictureLoading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {profilePictureLoading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

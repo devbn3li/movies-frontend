@@ -34,9 +34,10 @@
     "postcss": "^8.5.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
     "tailwind-merge": "^3.3.1",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
