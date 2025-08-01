@@ -28,6 +28,7 @@ const UserProfile = () => {
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userNotFound, setUserNotFound] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [followersOpen, setFollowersOpen] = useState(false);
@@ -77,9 +78,13 @@ const UserProfile = () => {
           // Use the isOwnProfile and isFollowing from API response
           setIsOwnProfile(data.user.isOwnProfile || false);
           setIsFollowing(data.user.isFollowing || false);
+          setUserNotFound(false);
         } else if (res.status === 404) {
-          // User not found, redirect to 404 or home
-          router.push('/');
+          // User not found
+          const errorData = await res.json();
+          console.log('User not found:', errorData.message);
+          setUserNotFound(true);
+          setProfileUser(null);
         } else {
           // Other error, redirect to home
           router.push('/');
@@ -273,10 +278,31 @@ const UserProfile = () => {
 
   if (!mounted || loading) return <Loading />;
 
+  if (userNotFound) {
+    return (
+      <div className="relative h-full pb-20">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-gray-900 via-gray-800 to-black opacity-50"></div>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="text-6xl mb-4">😕</div>
+            <div className="text-white text-2xl font-bold mb-2">User not found</div>
+            <div className="text-white/70 text-lg mb-6">The user you&apos;re looking for doesn&apos;t exist.</div>
+            <Link 
+              href="/"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors"
+            >
+              Go Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!profileUser) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-white text-xl">User not found</div>
+        <div className="text-white text-xl">Loading user data...</div>
       </div>
     );
   }
