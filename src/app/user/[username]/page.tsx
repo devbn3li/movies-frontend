@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
 import WatchlistGrid from "@/components/WatchlistGrid";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,9 +19,17 @@ interface User {
   isOwnProfile?: boolean;
 }
 
-const Profile = () => {
-  const { user, mounted } = useAuth();
+const UserProfile = () => {
+  const { user: currentUser, mounted } = useAuth();
+  const params = useParams();
+  const router = useRouter();
+  const username = params.username as string;
 
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [followersOpen, setFollowersOpen] = useState(false);
   const [followingOpen, setFollowingOpen] = useState(false);
   const [followers, setFollowers] = useState<User[]>([]);
@@ -29,18 +38,32 @@ const Profile = () => {
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
   const [followingLoading, setFollowingLoading] = useState<Record<string, boolean>>({});
-  const [, forceUpdate] = useState({});
 
-  // Fetch updated profile data on mount to get latest follow counts
+  // Helper: get token from localStorage
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  };
+
+  // Fetch user profile by username
   useEffect(() => {
-    const fetchProfileData = async () => {
-      if (!mounted || !user) return;
+    const fetchUserProfile = async () => {
+      if (!mounted || !username) return;
 
       try {
+        setLoading(true);
         const token = getToken();
-        if (!token) return;
+        
+        // If no token and trying to access profile, redirect to login
+        if (!token) {
+          router.push('/login');
+          return;
+        }
 
-        const res = await fetch(`https://moviezone.me/api/user/profile`, {
+        // Try to fetch user by username using the correct API
+        const res = await fetch(`https://moviezone.me/api/user/username/${username}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Cache-Control': 'no-cache'
@@ -49,31 +72,63 @@ const Profile = () => {
 
         if (res.ok) {
           const data = await res.json();
-          const profileUser = data.user;
-
-          // Update user object with latest follow counts
-          if (user && profileUser) {
-            user.followersCount = profileUser.followersCount || 0;
-            user.followingCount = profileUser.followingCount || 0;
-
-            // Force re-render
-            forceUpdate({});
-          }
+          setProfileUser(data.user);
+          
+          // Use the isOwnProfile and isFollowing from API response
+          setIsOwnProfile(data.user.isOwnProfile || false);
+          setIsFollowing(data.user.isFollowing || false);
+        } else if (res.status === 404) {
+          // User not found, redirect to 404 or home
+          router.push('/');
+        } else {
+          // Other error, redirect to home
+          router.push('/');
         }
+        
       } catch (error) {
-        console.error('Error fetching profile data:', error);
+        console.error('Error fetching user profile:', error);
+        router.push('/');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchProfileData();
-  }, [mounted, user]);
+    fetchUserProfile();
+  }, [mounted, username, currentUser, router]);
 
-  // Helper: get token from localStorage
-  const getToken = () => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
+  // Follow/Unfollow the profile user
+  const toggleFollow = async () => {
+    if (!profileUser || isOwnProfile) return;
+    
+    setFollowLoading(true);
+    try {
+      const endpoint = isFollowing 
+        ? `https://moviezone.me/api/follow/${profileUser._id}/unfollow`
+        : `https://moviezone.me/api/follow/${profileUser._id}/follow`;
+      
+      const method = isFollowing ? 'DELETE' : 'POST';
+      
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          'Cache-Control': 'no-cache'
+        },
+      });
+
+      if (res.ok) {
+        setIsFollowing(!isFollowing);
+        // Update the followers count
+        if (profileUser) {
+          profileUser.followersCount = isFollowing 
+            ? Math.max((profileUser.followersCount || 0) - 1, 0)
+            : (profileUser.followersCount || 0) + 1;
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
     }
-    return null;
+    setFollowLoading(false);
   };
 
   // Check follow status for a user
@@ -106,10 +161,7 @@ const Profile = () => {
 
       if (res.ok) {
         setFollowStates(prev => ({ ...prev, [userId]: true }));
-        // Update user's following count if needed
-        if (user) {
-          user.followingCount = (user.followingCount || 0) + 1;
-        }
+        
         // Refresh the current lists to get updated data
         if (followersOpen) {
           setTimeout(() => fetchFollowers(), 500);
@@ -140,10 +192,7 @@ const Profile = () => {
         setFollowStates(prev => ({ ...prev, [userId]: false }));
         // Remove from following list if unfollowed from following modal
         setFollowing(prev => prev.filter(u => u._id !== userId));
-        // Update user's following count if needed
-        if (user) {
-          user.followingCount = Math.max((user.followingCount || 0) - 1, 0);
-        }
+        
         // Refresh the current lists to get updated data
         if (followersOpen) {
           setTimeout(() => fetchFollowers(), 500);
@@ -160,7 +209,7 @@ const Profile = () => {
 
   // Fetch followers list
   const fetchFollowers = async () => {
-    const userId = user?._id || user?.id;
+    const userId = profileUser?._id;
     if (!userId) return;
 
     setLoadingFollowers(true);
@@ -195,7 +244,7 @@ const Profile = () => {
 
   // Fetch following list
   const fetchFollowing = async () => {
-    const userId = user?._id || user?.id;
+    const userId = profileUser?._id;
     if (!userId) return;
 
     setLoadingFollowing(true);
@@ -222,7 +271,15 @@ const Profile = () => {
     setLoadingFollowing(false);
   };
 
-  if (!mounted || !user) return <Loading />;
+  if (!mounted || loading) return <Loading />;
+
+  if (!profileUser) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-white text-xl">User not found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-full pb-20">
@@ -233,9 +290,9 @@ const Profile = () => {
       <div className="relative">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="flex flex-col items-center">
-            {user.profilePicture ? (
+            {profileUser.profilePicture ? (
               <Image
-                src={user.profilePicture}
+                src={profileUser.profilePicture}
                 alt="Avatar"
                 width={200}
                 height={200}
@@ -243,28 +300,36 @@ const Profile = () => {
               />
             ) : (
               <div className="w-48 h-48 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center shadow-xl">
-                <span className="text-white text-9xl font-bold">{user.name?.slice(0, 1)}</span>
+                <span className="text-white text-9xl font-bold">{profileUser.name?.slice(0, 1)}</span>
               </div>
             )}
-            <h1 className="text-white text-4xl font-bold mt-6">{user.name}</h1>
-            <p className="text-white/80 text-lg mt-2">@{user.username || user.name?.toLowerCase().replace(/\s+/g, '')}</p>
-            <p className="text-white/60">{user.email}</p>
-            <p className="text-white/60">{user.country}</p>
+            <h1 className="text-white text-4xl font-bold mt-6">{profileUser.name}</h1>
+            <p className="text-white/80 text-lg mt-2">@{profileUser.username || username}</p>
+            {isOwnProfile && <p className="text-white/60">{profileUser.email}</p>}
 
-            {/* Share Profile Button */}
-            <div className="mt-4">
-              <button
-                onClick={() => {
-                  const username = user.username || user.name?.toLowerCase().replace(/\s+/g, '');
-                  const profileUrl = `${window.location.origin}/user/${username}`;
-                  navigator.clipboard.writeText(profileUrl);
-                  alert('Profile link copied to clipboard!');
-                }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                Share Profile Link
-              </button>
-            </div>
+            {/* Follow/Unfollow Button - Only show for other users */}
+            {!isOwnProfile && (
+              <div className="mt-4">
+                <button
+                  onClick={toggleFollow}
+                  disabled={followLoading}
+                  className={`px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-50 ${
+                    isFollowing
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {followLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {isFollowing ? 'Unfollowing...' : 'Following...'}
+                    </div>
+                  ) : (
+                    isFollowing ? 'Unfollow' : 'Follow'
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="flex items-center gap-8 mt-6">
@@ -274,7 +339,7 @@ const Profile = () => {
                 setFollowersOpen(true);
                 fetchFollowers();
               }}>
-                <div className="text-2xl font-bold text-white">{user.followersCount ?? user.followers?.length ?? 0}</div>
+                <div className="text-2xl font-bold text-white">{profileUser.followersCount ?? 0}</div>
                 <div className="text-sm text-white/70">Followers</div>
               </div>
               <div className="text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-4 cursor-pointer" onClick={() => {
@@ -283,7 +348,7 @@ const Profile = () => {
                 setFollowingOpen(true);
                 fetchFollowing();
               }}>
-                <div className="text-2xl font-bold text-white">{user.followingCount ?? user.following?.length ?? 0}</div>
+                <div className="text-2xl font-bold text-white">{profileUser.followingCount ?? 0}</div>
                 <div className="text-sm text-white/70">Following</div>
               </div>
             </div>
@@ -291,12 +356,14 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Watchlist Section */}
-      <div className="relative max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-          <WatchlistGrid />
+      {/* Watchlist Section - Only show for own profile */}
+      {isOwnProfile && (
+        <div className="relative max-w-6xl mx-auto px-6 py-8">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <WatchlistGrid />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Followers Modal */}
       {followersOpen && (
@@ -330,22 +397,24 @@ const Profile = () => {
                         <span className="text-white/70 text-sm">@{f.username}</span>
                       </div>
                     </Link>
-                    <button
-                      onClick={() => followStates[f._id] ? unfollowUser(f._id) : followUser(f._id)}
-                      disabled={followingLoading[f._id]}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${followStates[f._id]
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        } disabled:opacity-50`}
-                    >
-                      {followingLoading[f._id] ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : followStates[f._id] ? (
-                        'Unfollow'
-                      ) : (
-                        'Follow Back'
-                      )}
-                    </button>
+                    {!isOwnProfile && f._id !== currentUser?._id && f._id !== currentUser?.id && (
+                      <button
+                        onClick={() => followStates[f._id] ? unfollowUser(f._id) : followUser(f._id)}
+                        disabled={followingLoading[f._id]}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${followStates[f._id]
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          } disabled:opacity-50`}
+                      >
+                        {followingLoading[f._id] ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : followStates[f._id] ? (
+                          'Unfollow'
+                        ) : (
+                          'Follow Back'
+                        )}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -386,17 +455,29 @@ const Profile = () => {
                         <span className="text-white/70 text-sm">@{f.username}</span>
                       </div>
                     </Link>
-                    <button
-                      onClick={() => unfollowUser(f._id)}
-                      disabled={followingLoading[f._id]}
-                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
-                    >
-                      {followingLoading[f._id] ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        'Unfollow'
-                      )}
-                    </button>
+                    {(isOwnProfile || (!isOwnProfile && f._id !== currentUser?._id && f._id !== currentUser?.id)) && (
+                      <button
+                        onClick={() => isOwnProfile ? unfollowUser(f._id) : (followStates[f._id] ? unfollowUser(f._id) : followUser(f._id))}
+                        disabled={followingLoading[f._id]}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors disabled:opacity-50 ${
+                          isOwnProfile 
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : followStates[f._id]
+                              ? 'bg-red-600 hover:bg-red-700 text-white'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                      >
+                        {followingLoading[f._id] ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : isOwnProfile ? (
+                          'Unfollow'
+                        ) : followStates[f._id] ? (
+                          'Unfollow'
+                        ) : (
+                          'Follow'
+                        )}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -408,4 +489,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default UserProfile;
