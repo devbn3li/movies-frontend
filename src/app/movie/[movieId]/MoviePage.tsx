@@ -67,7 +67,7 @@ const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
   overview: tmdbMovie.overview,
   release_date: tmdbMovie.release_date,
   genre_names: tmdbMovie.genres.map(g => g.name),
-  poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null,
+  poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w300${tmdbMovie.poster_path}` : null,
   backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbMovie.backdrop_path}` : null,
   popularity: tmdbMovie.popularity,
   vote_average: tmdbMovie.vote_average,

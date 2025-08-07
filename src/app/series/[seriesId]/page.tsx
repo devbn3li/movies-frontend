@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           overview: tmdbSeries.overview,
           first_air_date: tmdbSeries.first_air_date,
           genre_names: tmdbSeries.genres?.map((g: { id: number; name: string }) => g.name) || [],
-          poster_url: tmdbSeries.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbSeries.poster_path}` : null,
+          poster_url: tmdbSeries.poster_path ? `https://image.tmdb.org/t/p/w300${tmdbSeries.poster_path}` : null,
           backdrop_url: tmdbSeries.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbSeries.backdrop_path}` : null,
           popularity: tmdbSeries.popularity,
           vote_average: tmdbSeries.vote_average,

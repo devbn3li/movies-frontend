@@ -168,7 +168,7 @@ const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; ty
                   ) : null}
 
                   <Image
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                     alt={movie.title || movie.name || "Poster"}
                     className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movie.title || movie.name || ""))
                         ? 'blur-sm group-hover:blur-none'

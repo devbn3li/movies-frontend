@@ -105,7 +105,7 @@ const convertTMDBToLocal = (tmdbShow: TMDBTVShow): TVShow => ({
   overview: tmdbShow.overview,
   first_air_date: tmdbShow.first_air_date,
   genre_names: tmdbShow.genres.map(g => g.name),
-  poster_url: tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}` : null,
+  poster_url: tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w300${tmdbShow.poster_path}` : null,
   backdrop_url: tmdbShow.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbShow.backdrop_path}` : null,
   popularity: tmdbShow.popularity,
   vote_average: tmdbShow.vote_average,
