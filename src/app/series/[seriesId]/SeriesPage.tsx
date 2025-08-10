@@ -34,7 +34,6 @@ import TrendingNow from "@/components/TrendingNow";
 import WatchlistButton from "@/components/WatchlistButton";
 import Cast from "@/components/Cast";
 import Loading from "@/components/Loading";
-import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import Trailer from "@/components/Trailer";
@@ -365,11 +364,6 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Watch Providers Section */}
-        <div className="max-w-[1080px] w-full mt-6">
-          {seriesId && <WatchProviders id={seriesId} mediaType="tv" />}
         </div>
 
         <div className="mt-10">

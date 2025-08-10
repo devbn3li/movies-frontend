@@ -12,7 +12,6 @@ import { useScrollTracking } from "@/hooks/useScrollTracking";
 import MayLike from "@/components/MayLike";
 import TrendingNow from "@/components/TrendingNow";
 import Cast from "@/components/Cast";
-import WatchProviders from "@/components/WatchProviders";
 import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
 import { getAllContent } from "@/lib/api";
@@ -305,11 +304,6 @@ export default function MoviePage({ movieId }: { movieId: number }) {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Watch Providers Section */}
-        <div className="max-w-[1080px] w-full mt-6">
-          <WatchProviders id={id} mediaType={mediaType as 'movie' | 'tv'} />
         </div>
 
         <div className="mt-10 max-w-[1080px] w-full">

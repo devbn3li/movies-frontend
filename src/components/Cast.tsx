@@ -79,7 +79,7 @@ export default function Cast({ movieId, mediaType, movieTitle = 'Unknown Title' 
     return null;
   }
 
-  const displayedCast = showAll ? credits.cast : credits.cast.slice(0, 12);
+  const displayedCast = showAll ? credits.cast : credits.cast.slice(0, 6);
   const director = credits.crew?.find(member => member.job === 'Director');
   const creator = credits.crew?.find(member => member.job === 'Creator' || member.job === 'Executive Producer');
   const keyCrewMember = director || creator;
@@ -156,7 +156,7 @@ export default function Cast({ movieId, mediaType, movieTitle = 'Unknown Title' 
       </div>
 
       {/* Show More/Less Button */}
-      {credits.cast.length > 12 && (
+      {credits.cast.length > 6 && (
         <div className="text-center">
           <button
             onClick={() => setShowAll(!showAll)}

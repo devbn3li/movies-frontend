@@ -157,29 +157,6 @@ export type PersonExternalIds = {
   youtube_id: string | null;
 };
 
-// Watch Providers Types
-export type WatchProvider = {
-  display_priority: number;
-  logo_path: string;
-  provider_id: number;
-  provider_name: string;
-};
-
-export type CountryWatchProviders = {
-  link?: string;
-  flatrate?: WatchProvider[];
-  rent?: WatchProvider[];
-  buy?: WatchProvider[];
-  ads?: WatchProvider[];
-  free?: WatchProvider[];
-};
-
-export type WatchProvidersResponse = {
-  id: number;
-  results: {
-    [countryCode: string]: CountryWatchProviders;
-  };
-};
 
 // Video/Trailer Types
 export type Video = {
