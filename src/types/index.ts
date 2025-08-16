@@ -1,3 +1,14 @@
+export type User = {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  country?: string;
+  isEmailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Movie = {
   id: number;
   title: string;

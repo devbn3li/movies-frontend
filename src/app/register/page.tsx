@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import axios from "@/lib/axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { getCountries } from "@/data/countries-cities";
 export default function RegisterPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -20,6 +22,7 @@ export default function RegisterPage() {
   });
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
 
   useEffect(() => {
@@ -49,15 +52,30 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const res = await axios.post("/auth/register", form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      window.location.href = "/";
+      
+      // Check if email verification is required
+      if (res.data.requiresVerification) {
+        // Store verification data
+        localStorage.setItem("pendingUserId", res.data.userId);
+        localStorage.setItem("pendingEmail", res.data.email);
+        
+        // Redirect to verification page
+        router.push("/verify-email");
+      } else {
+        // Direct login (if no verification required)
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        router.push("/");
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,9 +128,10 @@ export default function RegisterPage() {
         </div>
         <Button
           type="submit"
-          className="py-2 px-4  w-full"
+          className="py-2 px-4 w-full"
+          disabled={loading}
         >
-          Register
+          {loading ? "Creating Account..." : "Register"}
         </Button>
       </form>
     </div>
