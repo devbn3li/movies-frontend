@@ -1,6 +1,8 @@
 import { MetadataRoute } from "next";
+import { getMovies, getTVShows } from "@/lib/api";
+import { Movie, TVShow } from "@/types/index";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://moviezone.me";
 
   // Static pages
@@ -43,19 +45,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // You can add dynamic pages for movies and series here
-  // Example:
-  // const movies = await getMovies() // Your function to get movies
-  // const moviePages = movies.map(movie => ({
-  //   url: `${baseUrl}/movie/${movie.id}`,
-  //   lastModified: new Date(),
-  //   changeFrequency: 'weekly' as const,
-  //   priority: 0.8,
-  // }))
+  try {
+    // Dynamic pages for movies
+    const moviesResponse = await getMovies({ limit: 10000 });
+    const moviePages =
+      moviesResponse?.results?.map((movie: Movie) => ({
+        url: `${baseUrl}/movie/${movie.id}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      })) || [];
 
-  return [
-    ...staticPages,
-    // ...moviePages,
-    // ...seriesPages,
-  ];
+    // Dynamic pages for TV shows/series
+    const tvShowsResponse = await getTVShows({ limit: 10000 });
+    const seriesPages =
+      tvShowsResponse?.results?.map((series: TVShow) => ({
+        url: `${baseUrl}/series/${series.id}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      })) || [];
+
+    return [...staticPages, ...moviePages, ...seriesPages];
+  } catch (error) {
+    console.error("Error generating sitemap:", error);
+    return staticPages;
+  }
 }
