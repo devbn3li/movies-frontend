@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import axios from "@/lib/axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,13 +46,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center">
-      <form onSubmit={handleSubmit} className="p-6 w-80">
+    <div className="flex flex-col justify-center items-center h-[calc(100vh-4rem)]">
+      <form onSubmit={handleSubmit} className="p-6 rounded w-96">
         <h2 className="text-2xl font-bold mb-4">Login</h2>
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <Input
           type="email"
-          className="w-full p-2 border mb-3 rounded"
+          className="w-full p-2 border mb-3"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -59,7 +60,7 @@ export default function LoginPage() {
         />
         <Input
           type="password"
-          className="w-full p-2 border mb-3 rounded"
+          className="w-full p-2 border mb-3"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -74,9 +75,9 @@ export default function LoginPage() {
       </form>
       <p className="text-sm mt-3">
         Don&apos;t have an account?{" "}
-        <a href="/register" className="text-blue-600 underline">
+        <Link href="/register" className="text-blue-600 underline">
           Register here
-        </a>
+        </Link>
       </p>
 
     </div>

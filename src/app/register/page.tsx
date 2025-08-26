@@ -12,6 +12,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { getCountries } from "@/data/countries-cities";
+import Link from "next/link";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -80,7 +82,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex  flex-col justify-center items-center h-[calc(100vh-4rem)]">
       <form onSubmit={handleSubmit} className="p-6 rounded w-96">
         <h2 className="text-2xl font-bold mb-4">Register</h2>
         {error && <p className="text-red-500 mb-3">{error}</p>}
@@ -134,6 +136,12 @@ export default function RegisterPage() {
           {loading ? "Creating Account..." : "Register"}
         </Button>
       </form>
+            <p className="text-sm mt-3">
+        Already have an account?{" "}
+        <Link href="/login" className="text-blue-600 underline">
+          Login here
+        </Link>
+      </p>
     </div>
   );
 }

@@ -4,8 +4,8 @@ import { useScrollTracking } from "@/hooks/useScrollTracking";
 import Image from "next/image";
 import TrendingNow from "@/components/TrendingNow";
 import FeaturedContent from "@/components/FeaturedContent";
-import AuthModal from "@/components/AuthModal";
 import GlobalSearch from "@/components/GlobalSearch";
+import Link from "next/link";
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -42,11 +42,9 @@ export default function HomePage() {
 
           <div className="mt-8">
             {!isAuthenticated && (
-              <AuthModal>
-                <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect">
+                <Link href="/register" className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect">
                   Start Watching
-                </button>
-              </AuthModal>
+                </Link>
             )}
             {isAuthenticated && (
               <div className="text-center w-full max-w-[800px] mx-auto relative px-4 z-50">
