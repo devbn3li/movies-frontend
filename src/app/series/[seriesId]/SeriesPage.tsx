@@ -37,6 +37,7 @@ import Loading from "@/components/Loading";
 import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import Trailer from "@/components/Trailer";
+import Reviews from "@/components/Reviews";
 
 // TMDB TV Show type
 interface TMDBTVShow {
@@ -58,6 +59,7 @@ interface TMDBTVShow {
 
 // API Content Item type
 interface APIContentItem {
+  _id?: string;
   id: number;
   type: string;
   title?: string;
@@ -79,6 +81,7 @@ interface APIContentItem {
 
 function convertAPIToLocal(apiItem: APIContentItem): TVShow {
   return {
+    _id: apiItem._id,
     id: apiItem.id,
     name: apiItem.title || apiItem.name || "Unknown Series",
     original_name: apiItem.original_name || "",
@@ -373,6 +376,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
         {seriesId && <Recommendations movieId={String(seriesId)} type="tv" />}
         {seriesId && <MayLike movieId={String(seriesId)} type={mediaType} />}
         {seriesId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
+        {seriesId && <Reviews movieId={item?._id || String(seriesId)} mediaType="tv" />}
       </div>
     </div>
   );

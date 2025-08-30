@@ -10,6 +10,7 @@ export type User = {
 };
 
 export type Movie = {
+  _id?: string;
   id: number;
   title: string;
   original_title: string;
@@ -27,6 +28,7 @@ export type Movie = {
 };
 
 export type TVShow = {
+  _id?: string;
   id: number;
   name: string;
   original_name: string;
@@ -168,7 +170,6 @@ export type PersonExternalIds = {
   youtube_id: string | null;
 };
 
-
 // Video/Trailer Types
 export type Video = {
   iso_639_1: string;
@@ -213,4 +214,46 @@ export type FilterResponse = {
     contentType: "movie" | "tv";
     lastUpdated: string;
   };
+};
+
+export type ReviewUser = {
+  _id: string;
+  name: string;
+  profilePicture?: string;
+  username: string;
+};
+
+export type Review = {
+  _id: string;
+  movie: string;
+  mediaType: string;
+  user: ReviewUser;
+  comment: string;
+  rating: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+};
+
+export type ReviewInput = {
+  comment: string;
+  rating: number;
+};
+
+export type ReviewResponse = {
+  message: string;
+  review: Review;
+};
+
+export type ReviewStats = {
+  totalReviews: number;
+  averageRating: number;
+  ratingDistribution: {
+    [key: string]: number;
+  };
+};
+
+export type ReviewUpdateInput = {
+  comment: string;
+  rating: number;
 };

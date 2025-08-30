@@ -1,5 +1,22 @@
 import axios from "./axios";
-import { Video, VideosResponse, BackendGenre } from "@/types/index";
+import {
+  Video,
+  VideosResponse,
+  BackendGenre,
+  Review,
+  ReviewInput,
+  ReviewResponse,
+  ReviewStats,
+  ReviewUpdateInput,
+} from "@/types/index";
+
+// Helper function to get token from localStorage
+const getToken = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("token");
+  }
+  return null;
+};
 
 export const getAllMovies = async () => {
   const res = await axios.get("/movies");
@@ -497,10 +514,12 @@ export const getMovieGenres = async () => {
     const filtersData = await getMovieFilters();
     if (filtersData && filtersData.success) {
       // Convert backend genre format to the expected format
-      return filtersData.filters.genres.map((genre: BackendGenre, index: number) => ({
-        id: index + 1, // Generate ID since backend doesn't provide it
-        name: genre.name,
-      }));
+      return filtersData.filters.genres.map(
+        (genre: BackendGenre, index: number) => ({
+          id: index + 1, // Generate ID since backend doesn't provide it
+          name: genre.name,
+        })
+      );
     }
     return [];
   } catch (error) {
@@ -515,10 +534,12 @@ export const getTVGenres = async () => {
     const filtersData = await getTVFilters();
     if (filtersData && filtersData.success) {
       // Convert backend genre format to the expected format
-      return filtersData.filters.genres.map((genre: BackendGenre, index: number) => ({
-        id: index + 1, // Generate ID since backend doesn't provide it
-        name: genre.name,
-      }));
+      return filtersData.filters.genres.map(
+        (genre: BackendGenre, index: number) => ({
+          id: index + 1, // Generate ID since backend doesn't provide it
+          name: genre.name,
+        })
+      );
     }
     return [];
   } catch (error) {
@@ -552,5 +573,152 @@ export const getTVYears = async () => {
   } catch (error) {
     console.error("Error fetching TV years:", error);
     return [];
+  }
+};
+
+// Reviews API functions
+export const getMovieReviews = async (movieId: string): Promise<Review[]> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`/reviews/${movieId}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching movie reviews:", error);
+    return [];
+  }
+};
+
+export const getSeriesReviews = async (seriesId: string): Promise<Review[]> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`/reviews/${seriesId}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching series reviews:", error);
+    return [];
+  }
+};
+
+export const addMovieReview = async (
+  movieId: string,
+  reviewData: ReviewInput
+): Promise<ReviewResponse> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.post(`/reviews/${movieId}`, reviewData, {
+      headers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding movie review:", error);
+    throw error;
+  }
+};
+
+export const addSeriesReview = async (
+  seriesId: string,
+  reviewData: ReviewInput
+): Promise<ReviewResponse> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.post(`/reviews/${seriesId}`, reviewData, {
+      headers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding series review:", error);
+    throw error;
+  }
+};
+
+export const updateReview = async (
+  movieId: string,
+  reviewData: ReviewUpdateInput
+): Promise<ReviewResponse> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.put(`/reviews/${movieId}`, reviewData, {
+      headers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating review:", error);
+    throw error;
+  }
+};
+
+export const deleteReview = async (
+  movieId: string
+): Promise<{ message: string }> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.delete(`/reviews/${movieId}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    throw error;
+  }
+};
+
+export const getReviewStats = async (movieId: string): Promise<ReviewStats> => {
+  try {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`/reviews/${movieId}/stats`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching review stats:", error);
+    return {
+      totalReviews: 0,
+      averageRating: 0,
+      ratingDistribution: {},
+    };
   }
 };

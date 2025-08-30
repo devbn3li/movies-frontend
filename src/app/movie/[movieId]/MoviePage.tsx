@@ -14,10 +14,12 @@ import TrendingNow from "@/components/TrendingNow";
 import Cast from "@/components/Cast";
 import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
+import Reviews from "@/components/Reviews";
 import { getAllContent } from "@/lib/api";
 
 // API Content Item type
 interface APIContentItem {
+  _id?: string;
   id: number;
   type?: string;
   title?: string;
@@ -76,6 +78,25 @@ const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
   video: tmdbMovie.video,
 });
 
+// Convert API data to local format
+const convertAPIToLocal = (apiItem: APIContentItem): Movie => ({
+  _id: apiItem._id,
+  id: apiItem.id,
+  title: apiItem.title || "Unknown Title",
+  original_title: apiItem.original_title || "",
+  overview: apiItem.overview || "",
+  release_date: apiItem.release_date || "",
+  genre_names: apiItem.genre_names || [],
+  poster_url: apiItem.poster_url || null,
+  backdrop_url: apiItem.backdrop_url || null,
+  popularity: apiItem.popularity || 0,
+  vote_average: apiItem.vote_average || 0,
+  vote_count: apiItem.vote_count || 0,
+  original_language: apiItem.original_language || "",
+  adult: apiItem.adult || false,
+  video: apiItem.video || false,
+});
+
 export default function MoviePage({ movieId }: { movieId: number }) {
   const id = useMemo(() => {
     return movieId;
@@ -109,12 +130,13 @@ export default function MoviePage({ movieId }: { movieId: number }) {
           const foundMovie = apiResponse.content.find((m: APIContentItem) => m.id === id && (m.type === "movie" || !m.type));
 
           if (foundMovie) {
-            setItem(foundMovie);
+            const convertedMovie = convertAPIToLocal(foundMovie);
+            setItem(convertedMovie);
             setIsLoading(false);
 
             // Track Analytics page view
-            const title = foundMovie.title || foundMovie.name || 'Unknown';
-            trackMoviePageView(title, foundMovie.id);
+            const title = convertedMovie.title || 'Unknown';
+            trackMoviePageView(title, convertedMovie.id);
             return;
           }
         }
@@ -315,6 +337,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
         {movieId && <MayLike movieId={String(movieId)} type={mediaType} />}
 
         {movieId && <TrendingNow title={"Now"} type={mediaType} isLarge={false} />}
+        {movieId && <Reviews movieId={item?._id || String(movieId)} />}
       </div>
     </div>
   );
