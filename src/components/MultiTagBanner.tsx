@@ -1,13 +1,15 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 interface MultiTagBannerProps {
   isAdultContent?: boolean;
 }
 
 export default function MultiTagBanner({ isAdultContent = false }: MultiTagBannerProps) {
+  const uniqueId = useId();
+  const bannerId = `multitag-banner-${uniqueId.replace(/:/g, '-')}`;
+
   useEffect(() => {
-    // فقط يظهر الإعلان إذا كان المحتوى للبالغين
     if (!isAdultContent) return;
 
     if (typeof window !== "undefined") {
@@ -15,21 +17,20 @@ export default function MultiTagBanner({ isAdultContent = false }: MultiTagBanne
       script.src = "//useful-appearance.com/b/XUVFscd.Gnla0/YnWHcb/ReSmK9/uDZBUYl/kPPcTxY/2AOjTOMn5gOsDQYgtZNMjxYB5QMUzyk/4hNow_";
       script.async = true;
       script.referrerPolicy = "no-referrer-when-downgrade";
-      const bannerElement = document.getElementById("multitag-banner");
+      const bannerElement = document.getElementById(bannerId);
       if (bannerElement) {
         bannerElement.appendChild(script);
       }
     }
-  }, [isAdultContent]);
+  }, [isAdultContent, bannerId]);
 
-  // لا يظهر أي شيء إذا لم يكن محتوى للبالغين
   if (!isAdultContent) {
     return null;
   }
 
   return (
     <div
-      id="multitag-banner"
+      id={bannerId}
       className="my-4 mx-auto w-full max-w-[300px]"
     ></div>
   );
