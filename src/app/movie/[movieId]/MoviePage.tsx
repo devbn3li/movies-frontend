@@ -17,6 +17,8 @@ import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
 import { getAllContent } from "@/lib/api";
 import MultiTagBanner from "@/components/MultiTagBanner";
+import MultiTagBanner2 from "@/components/MultiTagBanner2";
+import MultiTagBanner3 from "@/components/MultiTagBanner3";
 
 // API Content Item type
 interface APIContentItem {
@@ -334,7 +336,11 @@ export default function MoviePage({ movieId }: { movieId: number }) {
         </div>
 
         {/* Ads */}
-          <MultiTagBanner isAdultContent={item.adult} />
+        <div className="flex">
+            <MultiTagBanner isAdultContent={item.adult} />
+            <MultiTagBanner2 isAdultContent={item.adult} />
+            <MultiTagBanner3 isAdultContent={item.adult} />
+        </div>
 
         {movieId && <Recommendations movieId={String(movieId)} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
 
