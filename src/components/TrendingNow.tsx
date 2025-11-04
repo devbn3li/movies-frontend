@@ -52,6 +52,9 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
     },
     staleTime: 1000 * 60 * 60, // 1 hour - البيانات تبقى fresh لمدة ساعة
     gcTime: 1000 * 60 * 60 * 24, // 24 hours - الـ cache يبقى 24 ساعة
+    refetchOnMount: false, // لا نعيد الـ fetch عند mount
+    refetchOnWindowFocus: false, // لا نعيد الـ fetch عند focus
+    refetchOnReconnect: false, // لا نعيد الـ fetch عند reconnect
   });
 
   // Helper functions

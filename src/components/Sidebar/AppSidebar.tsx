@@ -53,6 +53,9 @@ function SidebarContent_() {
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 hours - الـ genres نادراً ما تتغير
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - نحتفظ بيها في الـ cache أسبوع
+    refetchOnMount: false, // لا نعيد الـ fetch عند mount
+    refetchOnWindowFocus: false, // لا نعيد الـ fetch عند focus
+    refetchOnReconnect: false, // لا نعيد الـ fetch عند reconnect
   });
 
   const { data: tvGenres = [] } = useQuery<Genre[]>({
@@ -63,6 +66,9 @@ function SidebarContent_() {
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+    refetchOnMount: false, // لا نعيد الـ fetch عند mount
+    refetchOnWindowFocus: false, // لا نعيد الـ fetch عند focus
+    refetchOnReconnect: false, // لا نعيد الـ fetch عند reconnect
   });
 
   const isGenreActive = (genre: string) => {

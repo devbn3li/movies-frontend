@@ -54,6 +54,9 @@ const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; ty
     staleTime: 1000 * 60 * 60, // 1 hour
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
     enabled: !!movieId, // فقط اعمل fetch لو movieId موجود
+    refetchOnMount: false, // لا نعيد الـ fetch عند mount
+    refetchOnWindowFocus: false, // لا نعيد الـ fetch عند focus
+    refetchOnReconnect: false, // لا نعيد الـ fetch عند reconnect
   });
 
   // Helper functions

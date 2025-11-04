@@ -11,6 +11,7 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
         gcTime: 1000 * 60 * 60 * 24, // 24 hours - البيانات تبقى في الـ cache لمدة 24 ساعة
         refetchOnWindowFocus: false, // لا نعيد الـ fetch عند focus على النافذة
         refetchOnReconnect: false, // لا نعيد الـ fetch عند إعادة الاتصال
+        refetchOnMount: false, // ⭐ الأهم - لا نعيد الـ fetch عند mount الكومبوننت
         retry: 1, // محاولة واحدة فقط عند الفشل
       },
     },
