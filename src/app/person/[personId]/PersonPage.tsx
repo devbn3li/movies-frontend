@@ -313,11 +313,7 @@ export default function PersonPage({ personId }: PersonPageProps) {
                 </div>
 
                 {/* Ads */}
-                <div className="flex flex-wrap justify-center gap-4 my-6">
-                  <MultiTagBanner isAdultContent={hasAdultContent} />
-                  <MultiTagBanner isAdultContent={hasAdultContent} />
-                  <MultiTagBanner isAdultContent={hasAdultContent} />
-                </div>
+                <MultiTagBanner isAdultContent={hasAdultContent} />
 
                 {/* Filmography Tabs */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">

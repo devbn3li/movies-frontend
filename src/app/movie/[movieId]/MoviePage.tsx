@@ -334,11 +334,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
         </div>
 
         {/* Ads */}
-        <div className="flex flex-wrap justify-center gap-4 my-6">
           <MultiTagBanner isAdultContent={item.adult} />
-          <MultiTagBanner isAdultContent={item.adult} />
-          <MultiTagBanner isAdultContent={item.adult} />
-        </div>
 
         {movieId && <Recommendations movieId={String(movieId)} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
 
