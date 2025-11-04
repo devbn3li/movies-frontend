@@ -125,6 +125,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#000000" />
+        <meta name="referrer" content="no-referrer-when-downgrade" />
 
         {/* Google Analytics */}
         <Script
