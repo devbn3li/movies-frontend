@@ -28,7 +28,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { containsSensitiveContent } from "@/lib/utils";
 import MultiTagBanner from "@/components/MultiTagBanner";
 import MultiTagBanner2 from "@/components/MultiTagBanner2";
-import MultiTagBanner3 from "@/components/MultiTagBanner3";
 
 interface PersonPageProps {
   personId: number;
@@ -315,10 +314,13 @@ export default function PersonPage({ personId }: PersonPageProps) {
                 </div>
 
                 {/* Ads */}
-                <div className="flex">
-                  <MultiTagBanner isAdultContent={hasAdultContent} />
-                  <MultiTagBanner2 isAdultContent={hasAdultContent} />
-                  <MultiTagBanner3 isAdultContent={hasAdultContent} />
+                <div className="flex flex-wrap justify-center items-start gap-4 my-6">
+                  <div className="w-[300px] h-[250px] flex-shrink-0">
+                    <MultiTagBanner isAdultContent={hasAdultContent} />
+                  </div>
+                  <div className="w-[300px] h-[250px] flex-shrink-0">
+                    <MultiTagBanner2 isAdultContent={hasAdultContent} />
+                  </div>
                 </div>
 
                 {/* Filmography Tabs */}
