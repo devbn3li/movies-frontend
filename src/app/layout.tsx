@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/Sidebar/AppSidebar";
 import Script from "next/script";
 import Analytics from "@/components/Analytics";
 import { Toaster } from 'react-hot-toast';
+import QueryProvider from "@/components/providers/QueryProvider";
 
 
 const geistSans = Geist({
@@ -147,37 +148,39 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
         suppressHydrationWarning={true}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          storageKey="theme"
-          disableTransitionOnChange
-        >
-          <SidebarProvider defaultOpen={false}>
-            <div className="min-h-screen w-full">
-              <div className="relative">
-                <div className="fixed top-0 left-0 w-full z-50">
-                  <SidebarTrigger className="sidebar-trigger" />
-                  <Navbar />
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            storageKey="theme"
+            disableTransitionOnChange
+          >
+            <SidebarProvider defaultOpen={false}>
+              <div className="min-h-screen w-full">
+                <div className="relative">
+                  <div className="fixed top-0 left-0 w-full z-50">
+                    <SidebarTrigger className="sidebar-trigger" />
+                    <Navbar />
+                  </div>
+                </div>
+                <AppSidebar />
+                <div className="pt-16 min-h-[calc(100vh-5.07rem)]">
+                  {children}
+                </div>
+                <div className="relative bottom-0 w-full">
+                  <Footer />
                 </div>
               </div>
-              <AppSidebar />
-              <div className="pt-16 min-h-[calc(100vh-5.07rem)]">
-                {children}
-              </div>
-              <div className="relative bottom-0 w-full">
-                <Footer />
-              </div>
-            </div>
-          </SidebarProvider>
-        </ThemeProvider>
+            </SidebarProvider>
+          </ThemeProvider>
+        </QueryProvider>
 
         {/* Google Analytics Route Tracker */}
         <Analytics />
-        
+
         {/* Global Toast Notifications */}
-        <Toaster 
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,

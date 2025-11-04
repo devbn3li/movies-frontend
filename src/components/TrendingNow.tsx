@@ -8,9 +8,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from '@tanstack/react-query';
 
 interface Movie {
   id: number;
@@ -28,10 +28,31 @@ interface Movie {
 }
 
 const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: string; isLarge: boolean }) => {
-  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const { isAdmin } = useAuth();
   const mediaType = type === "movie" ? "movie" : "series";
+
+  // استخدام React Query للـ caching
+  const { data: trendingMovies = [], isLoading } = useQuery({
+    queryKey: ['trending', type],
+    queryFn: async () => {
+      const url = `https://api.themoviedb.org/3/trending/${type}/day?language=en-US`;
+      const response = await fetch(url, {
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch trending movies');
+      }
+
+      const data = await response.json();
+      return data.results.filter((movie: Movie) => movie.poster_path) as Movie[];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour - البيانات تبقى fresh لمدة ساعة
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours - الـ cache يبقى 24 ساعة
+  });
 
   // Helper functions
   const getYear = (movie: Movie) => {
@@ -76,33 +97,6 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
     return text.substring(0, maxLength).trim() + "...";
   };
 
-  useEffect(() => {
-  }, [trendingMovies]);
-
-  useEffect(() => {
-    const url = `https://api.themoviedb.org/3/trending/${type}/day?language=en-US`;
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-      }
-    };
-
-    setIsLoading(true);
-    fetch(url, options)
-      .then(res => res.json())
-      .then(data => {
-        const filtered = data.results.filter((movie: Movie) => movie.poster_path);
-        setTrendingMovies(filtered);
-        setIsLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setIsLoading(false);
-      });
-  }, [type]);
-
   if (isLoading) {
     return (
       <div className={`${isLarge ? "w-full" : "max-w-[1080px]"} w-full mt-10 relative px-2`}>
@@ -128,12 +122,12 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
                   <div className="relative overflow-hidden rounded-2xl">
                     {/* Skeleton for poster */}
                     <Skeleton className="w-full h-[420px] rounded-2xl" />
-                    
+
                     {/* Skeleton for badges */}
                     <div className="absolute top-2 left-2">
                       <Skeleton className="w-12 h-6 rounded-full" />
                     </div>
-                    
+
                     <div className="absolute top-2 right-2">
                       <Skeleton className="w-12 h-6 rounded-full" />
                     </div>
@@ -194,8 +188,8 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
                     src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                     alt={movie.title || movie.name || "Trending Movie"}
                     className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movie.title || movie.name || ""))
-                        ? 'blur-sm group-hover:blur-none'
-                        : ''
+                      ? 'blur-sm group-hover:blur-none'
+                      : ''
                       }`}
                     width={280}
                     height={420}

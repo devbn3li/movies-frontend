@@ -39,6 +39,7 @@ export const getMovieCredits = async (movieId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -60,6 +61,7 @@ export const getTVCredits = async (tvId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -90,6 +92,7 @@ export const getTVSeriesDetails = async (seriesId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -112,6 +115,7 @@ export const getPersonDetails = async (personId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -133,6 +137,7 @@ export const getPersonMovieCredits = async (personId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -156,6 +161,7 @@ export const getPersonTVCredits = async (personId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -175,6 +181,7 @@ export const getPersonImages = async (personId: number) => {
     const response = await fetch(`${TMDB_BASE_URL}/person/${personId}/images`, {
       method: "GET",
       headers: tmdbHeaders,
+      next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
     if (!response.ok) {
@@ -195,6 +202,7 @@ export const getPersonExternalIds = async (personId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -219,6 +227,7 @@ export const getMovieVideos = async (movieId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -240,6 +249,7 @@ export const getTVVideos = async (tvId: number) => {
       {
         method: "GET",
         headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -338,6 +348,7 @@ export const getMovies = async (params?: {
     const response = await fetch(url.toString(), {
       method: "GET",
       headers,
+      next: { revalidate: 1800 }, // Cache for 30 minutes (movies data changes less frequently)
     });
 
     if (!response.ok) {
@@ -394,6 +405,7 @@ export const getTVShows = async (params?: {
     const response = await fetch(url.toString(), {
       method: "GET",
       headers,
+      next: { revalidate: 1800 }, // Cache for 30 minutes (TV shows data changes less frequently)
     });
 
     if (!response.ok) {
@@ -451,6 +463,7 @@ export const getAllContent = async (params?: {
     const response = await fetch(url.toString(), {
       method: "GET",
       headers,
+      next: { revalidate: 1800 }, // Cache for 30 minutes (content data changes less frequently)
     });
 
     if (!response.ok) {
@@ -472,6 +485,7 @@ export const getMovieFilters = async () => {
       headers: {
         accept: "application/json",
       },
+      next: { revalidate: 7200 }, // Cache for 2 hours (filters rarely change)
     });
 
     if (!response.ok) {
@@ -494,6 +508,7 @@ export const getTVFilters = async () => {
       headers: {
         accept: "application/json",
       },
+      next: { revalidate: 7200 }, // Cache for 2 hours (filters rarely change)
     });
 
     if (!response.ok) {

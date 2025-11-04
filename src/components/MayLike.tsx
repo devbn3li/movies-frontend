@@ -7,9 +7,9 @@ import {
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from '@tanstack/react-query';
 
 interface Movie {
   id: string;
@@ -27,8 +27,31 @@ interface Movie {
 }
 
 const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) => {
-  const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
-  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const { isAdmin } = useAuth();
+
+  // استخدام React Query للـ caching
+  const { data: similarMovies = [] } = useQuery({
+    queryKey: ['similar', type, movieId],
+    queryFn: async () => {
+      const url = `https://api.themoviedb.org/3/${type}/${movieId}/similar?language=en-US&page=1`;
+      const response = await fetch(url, {
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch similar movies');
+      }
+
+      const data = await response.json();
+      return data.results.filter((movie: Movie) => movie.poster_path) as Movie[];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
+    enabled: !!movieId, // فقط اعمل fetch لو movieId موجود
+  });
 
   // Helper functions
   const getYear = (movie: Movie) => {
@@ -71,27 +94,6 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength).trim() + "...";
   };
-  useEffect(() => {
-  }, [similarMovies]);
-
-  useEffect(() => {
-    const url = `https://api.themoviedb.org/3/${type}/${movieId}/similar?language=en-US&page=1`;
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-      }
-    };
-
-    fetch(url, options)
-      .then(res => res.json())
-      .then(data => {
-        const filtered = data.results.filter((movie: Movie) => movie.poster_path);
-        setSimilarMovies(filtered);
-      })
-      .catch(err => console.error(err));
-  }, [movieId, type]);
 
   if (!similarMovies.length) return null;
 
@@ -136,8 +138,8 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
                     src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                     alt={movie.title || movie.name || "Poster"}
                     className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movie.title || movie.name || ""))
-                        ? 'blur-sm group-hover:blur-none'
-                        : ''
+                      ? 'blur-sm group-hover:blur-none'
+                      : ''
                       }`}
                     width={280}
                     height={420}

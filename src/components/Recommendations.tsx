@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { trackRecommendationClick } from "@/lib/analytics";
+import { useQuery } from '@tanstack/react-query';
 
 interface Movie {
   id: number;
@@ -30,9 +30,31 @@ interface Movie {
 }
 
 const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; type: "movie" | "tv"; originalTitle?: string }) => {
-  const [recommendations, setRecommendations] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const { isAdmin } = useAuth();
+
+  // استخدام React Query للـ caching
+  const { data: recommendations = [], isLoading } = useQuery({
+    queryKey: ['recommendations', type, movieId],
+    queryFn: async () => {
+      const url = `https://api.themoviedb.org/3/${type}/${movieId}/recommendations?language=en-US&page=1`;
+      const response = await fetch(url, {
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch recommendations');
+      }
+
+      const data = await response.json();
+      return data.results.filter((movie: Movie) => movie.poster_path) as Movie[];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
+    enabled: !!movieId, // فقط اعمل fetch لو movieId موجود
+  });
 
   // Helper functions
   const getYear = (movie: Movie) => {
@@ -76,36 +98,6 @@ const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; ty
     return text.substring(0, maxLength).trim() + "...";
   };
 
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      setIsLoading(true);
-
-      const url = `https://api.themoviedb.org/3/${type}/${movieId}/recommendations?language=en-US&page=1`;
-      const options = {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-        }
-      };
-
-      try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-
-        // Filter out items without poster_path
-        const filtered = data.results.filter((movie: Movie) => movie.poster_path);
-        setRecommendations(filtered);
-      } catch (error) {
-        console.error('Error fetching recommendations:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRecommendations();
-  }, [movieId, type]);
-
   if (isLoading) {
     return (
       <div className="max-w-[1080px] w-full mt-10 relative px-2">
@@ -143,8 +135,8 @@ const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; ty
                 flex justify-center
               "
             >
-              <Link 
-                href={`/${type === 'tv' ? 'series' : 'movie'}/${movie.id}`} 
+              <Link
+                href={`/${type === 'tv' ? 'series' : 'movie'}/${movie.id}`}
                 className="p-2 block group"
                 onClick={() => {
                   const recommendedTitle = movie.title || movie.name || 'Unknown';
@@ -171,8 +163,8 @@ const Recommendations = ({ movieId, type, originalTitle }: { movieId: string; ty
                     src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                     alt={movie.title || movie.name || "Poster"}
                     className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movie.title || movie.name || ""))
-                        ? 'blur-sm group-hover:blur-none'
-                        : ''
+                      ? 'blur-sm group-hover:blur-none'
+                      : ''
                       }`}
                     width={280}
                     height={420}

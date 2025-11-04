@@ -31,7 +31,8 @@ async function getMovieDetails(movieId: number) {
       headers: {
         accept: 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-      }
+      },
+      next: { revalidate: 3600 } // Cache for 1 hour
     };
 
     const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, options);
