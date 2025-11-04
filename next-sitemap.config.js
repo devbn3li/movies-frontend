@@ -14,31 +14,27 @@ module.exports = {
     "/profile",
   ],
   additionalPaths: async () => {
-    const paths = [];
-
-    // Add static pages with custom priority
-    paths.push({
-      loc: "/",
-      changefreq: "daily",
-      priority: 1.0,
-      lastmod: new Date().toISOString(),
-    });
-
-    paths.push({
-      loc: "/main-movies",
-      changefreq: "weekly",
-      priority: 0.9,
-      lastmod: new Date().toISOString(),
-    });
-
-    paths.push({
-      loc: "/main-series",
-      changefreq: "weekly",
-      priority: 0.9,
-      lastmod: new Date().toISOString(),
-    });
-
-    return paths;
+    const now = new Date().toISOString();
+    return [
+      {
+        loc: "/",
+        changefreq: "daily",
+        priority: 1.0,
+        lastmod: now,
+      },
+      {
+        loc: "/main-movies",
+        changefreq: "weekly",
+        priority: 0.9,
+        lastmod: now,
+      },
+      {
+        loc: "/main-series",
+        changefreq: "weekly",
+        priority: 0.9,
+        lastmod: now,
+      },
+    ];
   },
   robotsTxtOptions: {
     policies: [
@@ -55,6 +51,5 @@ module.exports = {
         ],
       },
     ],
-    additionalSitemaps: ["https://moviezone.me/sitemap.xml"],
   },
 };
