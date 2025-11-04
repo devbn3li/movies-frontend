@@ -333,8 +333,12 @@ export default function MoviePage({ movieId }: { movieId: number }) {
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
         </div>
 
-        {/* إعلان للمحتوى الخاص بالبالغين فقط */}
-        <MultiTagBanner isAdultContent={item.adult} />
+        {/* Ads */}
+        <div className="flex flex-wrap justify-center gap-4 my-6">
+          <MultiTagBanner isAdultContent={item.adult} />
+          <MultiTagBanner isAdultContent={item.adult} />
+          <MultiTagBanner isAdultContent={item.adult} />
+        </div>
 
         {movieId && <Recommendations movieId={String(movieId)} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
 

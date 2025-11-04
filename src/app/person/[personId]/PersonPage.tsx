@@ -312,8 +312,12 @@ export default function PersonPage({ personId }: PersonPageProps) {
                   )}
                 </div>
 
-                {/* إعلان للمحتوى الخاص بالبالغين فقط */}
-                <MultiTagBanner isAdultContent={hasAdultContent} />
+                {/* Ads */}
+                <div className="flex flex-wrap justify-center gap-4 my-6">
+                  <MultiTagBanner isAdultContent={hasAdultContent} />
+                  <MultiTagBanner isAdultContent={hasAdultContent} />
+                  <MultiTagBanner isAdultContent={hasAdultContent} />
+                </div>
 
                 {/* Filmography Tabs */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">

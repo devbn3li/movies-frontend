@@ -375,8 +375,12 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
           {seriesId && <Cast movieId={seriesId} mediaType="tv" />}
         </div>
 
-        {/* إعلان للمحتوى الخاص بالبالغين فقط */}
-        <MultiTagBanner isAdultContent={item.adult} />
+        {/* Ads */}
+        <div className="flex flex-wrap justify-center gap-4 my-6">
+          <MultiTagBanner isAdultContent={item.adult} />
+          <MultiTagBanner isAdultContent={item.adult} />
+          <MultiTagBanner isAdultContent={item.adult} />
+        </div>
 
         {seriesId && <Recommendations movieId={String(seriesId)} type="tv" />}
         {seriesId && <MayLike movieId={String(seriesId)} type={mediaType} />}
