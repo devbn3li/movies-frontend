@@ -1,27 +1,6 @@
 import { Metadata } from "next";
 import { Movie } from "@/types/index";
 import MoviePage from "./MoviePage";
-import { getAllContent } from "@/lib/api";
-
-type APIContentItem = {
-  id: number;
-  type?: string;
-  title?: string;
-  name?: string;
-  original_title?: string;
-  overview?: string;
-  release_date?: string;
-  first_air_date?: string;
-  genre_names?: string[];
-  poster_url?: string;
-  backdrop_url?: string;
-  popularity?: number;
-  vote_average?: number;
-  vote_count?: number;
-  original_language?: string;
-  adult?: boolean;
-  video?: boolean;
-};
 
 // TMDB Movie Details API function
 async function getMovieDetails(movieId: number) {
@@ -59,81 +38,44 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   let movie: Movie | null = null;
 
-  // Try to get movie data from API first
+  // استخدام TMDB مباشرة بدلاً من backend API (لتجنب 403 errors)
   try {
-    const apiResponse = await getAllContent({
-      page: 1,
-      limit: 1000, // Get more items to increase chance of finding the movie
-    });
-
-    // Check if we can find the movie in the API response
-    if (apiResponse && apiResponse.content) {
-      const foundMovie = apiResponse.content.find((m: APIContentItem) => m.id === id && (m.type === "movie" || !m.type)) || null;
-
-      // Transform the API response to match Movie interface
-      if (foundMovie) {
-        movie = {
-          id: foundMovie.id,
-          title: foundMovie.title || foundMovie.name || "Unknown Movie",
-          original_title: foundMovie.original_title || "",
-          overview: foundMovie.overview || "",
-          release_date: foundMovie.release_date || "",
-          genre_names: foundMovie.genre_names || [],
-          poster_url: foundMovie.poster_url || "",
-          backdrop_url: foundMovie.backdrop_url || "",
-          popularity: foundMovie.popularity || 0,
-          vote_average: foundMovie.vote_average || 0,
-          vote_count: foundMovie.vote_count || 0,
-          original_language: foundMovie.original_language || "",
-          adult: foundMovie.adult || false,
-          video: foundMovie.video || false,
-        } as Movie;
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching movie from API:', error);
-  }
-
-  // If not found in API, try TMDB as fallback
-  if (!movie) {
-    try {
-      const tmdbMovie = await getMovieDetails(id);
-      if (tmdbMovie) {
-        movie = {
-          id: tmdbMovie.id,
-          title: tmdbMovie.title,
-          original_title: tmdbMovie.original_title,
-          overview: tmdbMovie.overview,
-          release_date: tmdbMovie.release_date,
-          genre_names: tmdbMovie.genres?.map((g: { id: number; name: string }) => g.name) || [],
-          poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w300${tmdbMovie.poster_path}` : null,
-          backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbMovie.backdrop_path}` : null,
-          popularity: tmdbMovie.popularity,
-          vote_average: tmdbMovie.vote_average,
-          vote_count: tmdbMovie.vote_count,
-          original_language: tmdbMovie.original_language,
-          adult: tmdbMovie.adult,
-          video: tmdbMovie.video,
-        };
-      }
-    } catch (error) {
-      console.error('Error fetching movie from TMDB:', error);
-      // Fallback metadata if movie fetch fails
-      return {
-        title: `Movie - Movie Zone`,
-        description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
-        keywords: ["movie", "watch online", "streaming", "entertainment"],
-        alternates: {
-          canonical: `https://moviezone.me/movie/${movieId}`,
-        },
-        openGraph: {
-          title: `Movie - Movie Zone`,
-          description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
-          url: `https://moviezone.me/movie/${movieId}`,
-          type: "video.movie",
-        },
+    const tmdbMovie = await getMovieDetails(id);
+    if (tmdbMovie) {
+      movie = {
+        id: tmdbMovie.id,
+        title: tmdbMovie.title,
+        original_title: tmdbMovie.original_title,
+        overview: tmdbMovie.overview,
+        release_date: tmdbMovie.release_date,
+        genre_names: tmdbMovie.genres?.map((g: { id: number; name: string }) => g.name) || [],
+        poster_url: tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w300${tmdbMovie.poster_path}` : null,
+        backdrop_url: tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/w780${tmdbMovie.backdrop_path}` : null,
+        popularity: tmdbMovie.popularity,
+        vote_average: tmdbMovie.vote_average,
+        vote_count: tmdbMovie.vote_count,
+        original_language: tmdbMovie.original_language,
+        adult: tmdbMovie.adult,
+        video: tmdbMovie.video,
       };
     }
+  } catch (error) {
+    console.error('Error fetching movie from TMDB:', error);
+    // Fallback metadata if movie fetch fails
+    return {
+      title: `Movie - Movie Zone`,
+      description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
+      keywords: ["movie", "watch online", "streaming", "entertainment"],
+      alternates: {
+        canonical: `https://moviezone.me/movie/${movieId}`,
+      },
+      openGraph: {
+        title: `Movie - Movie Zone`,
+        description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
+        url: `https://moviezone.me/movie/${movieId}`,
+        type: "video.movie",
+      },
+    };
   }
 
   if (!movie) {
