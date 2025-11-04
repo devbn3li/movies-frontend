@@ -4,9 +4,10 @@ import { MdLiveTv } from "react-icons/md";
 import { BiMoviePlay } from "react-icons/bi";
 import { RiMovieLine } from "react-icons/ri";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { getMovieGenres, getTVGenres } from "@/lib/api";
 import { Genre } from "@/types/index";
+import { useQuery } from '@tanstack/react-query';
 
 import {
   Sidebar,
@@ -42,8 +43,27 @@ const items = [
 // مكون منفصل لـ sidebar content
 function SidebarContent_() {
   const router = useRouter();
-  const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
-  const [tvGenres, setTvGenres] = useState<Genre[]>([]);
+
+  // استخدام React Query لـ caching الـ genres (نادراً ما تتغير)
+  const { data: movieGenres = [] } = useQuery<Genre[]>({
+    queryKey: ['movieGenres'],
+    queryFn: async () => {
+      const genres = await getMovieGenres();
+      return genres;
+    },
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours - الـ genres نادراً ما تتغير
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - نحتفظ بيها في الـ cache أسبوع
+  });
+
+  const { data: tvGenres = [] } = useQuery<Genre[]>({
+    queryKey: ['tvGenres'],
+    queryFn: async () => {
+      const genres = await getTVGenres();
+      return genres;
+    },
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+  });
 
   const isGenreActive = (genre: string) => {
     // بدلاً من searchParams، هنشوف الـ current path
@@ -53,25 +73,6 @@ function SidebarContent_() {
     }
     return false;
   };
-
-  useEffect(() => {
-    // جلب الأنواع مباشرة من TMDB API
-    const loadGenres = async () => {
-      try {
-        const [movieGenresList, tvGenresList] = await Promise.all([
-          getMovieGenres(),
-          getTVGenres(),
-        ]);
-
-        setMovieGenres(movieGenresList);
-        setTvGenres(tvGenresList);
-      } catch (error) {
-        console.error('Error loading genres:', error);
-      }
-    };
-
-    loadGenres();
-  }, []);
 
   return (
     <SidebarContent>
