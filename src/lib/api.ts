@@ -120,7 +120,11 @@ export const getPersonDetails = async (personId: number) => {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch person details: ${response.status}`);
+      // Don't log 404 errors (person not found is expected sometimes)
+      if (response.status !== 404) {
+        console.error(`Failed to fetch person details: ${response.status}`);
+      }
+      return null;
     }
 
     return await response.json();
@@ -142,9 +146,10 @@ export const getPersonMovieCredits = async (personId: number) => {
     );
 
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch person movie credits: ${response.status}`
-      );
+      if (response.status !== 404) {
+        console.error(`Failed to fetch person movie credits: ${response.status}`);
+      }
+      return null;
     }
 
     return await response.json();
@@ -166,7 +171,10 @@ export const getPersonTVCredits = async (personId: number) => {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch person TV credits: ${response.status}`);
+      if (response.status !== 404) {
+        console.error(`Failed to fetch person TV credits: ${response.status}`);
+      }
+      return null;
     }
 
     return await response.json();
@@ -185,7 +193,10 @@ export const getPersonImages = async (personId: number) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch person images: ${response.status}`);
+      if (response.status !== 404) {
+        console.error(`Failed to fetch person images: ${response.status}`);
+      }
+      return null;
     }
 
     return await response.json();
@@ -207,9 +218,10 @@ export const getPersonExternalIds = async (personId: number) => {
     );
 
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch person external IDs: ${response.status}`
-      );
+      if (response.status !== 404) {
+        console.error(`Failed to fetch person external IDs: ${response.status}`);
+      }
+      return null;
     }
 
     return await response.json();
