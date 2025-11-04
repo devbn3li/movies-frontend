@@ -26,6 +26,7 @@ import SocialMediaLinks from "@/components/common/SocialMediaLinks/SocialMediaLi
 import ImageGallery from "@/components/ImageGallery";
 import { useAuth } from "@/hooks/useAuth";
 import { containsSensitiveContent } from "@/lib/utils";
+import MultiTagBanner from "@/components/MultiTagBanner";
 
 interface PersonPageProps {
   personId: number;
@@ -171,6 +172,14 @@ export default function PersonPage({ personId }: PersonPageProps) {
     return dateB - dateA;
   });
 
+  // التحقق من وجود محتوى للبالغين في أعمال الشخص
+  const hasAdultContent = [
+    ...(movieCredits?.cast || []),
+    ...(movieCredits?.crew || []),
+    ...(tvCredits?.cast || []),
+    ...(tvCredits?.crew || [])
+  ].some(credit => credit.adult === true);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Hero Section */}
@@ -302,6 +311,9 @@ export default function PersonPage({ personId }: PersonPageProps) {
                     </div>
                   )}
                 </div>
+
+                {/* إعلان للمحتوى الخاص بالبالغين فقط */}
+                <MultiTagBanner isAdultContent={hasAdultContent} />
 
                 {/* Filmography Tabs */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">

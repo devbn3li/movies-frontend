@@ -16,6 +16,7 @@ import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
 import { getAllContent } from "@/lib/api";
+import MultiTagBanner from "@/components/MultiTagBanner";
 
 // API Content Item type
 interface APIContentItem {
@@ -331,6 +332,9 @@ export default function MoviePage({ movieId }: { movieId: number }) {
         <div className="mt-10 max-w-[1080px] w-full">
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
         </div>
+
+        {/* إعلان للمحتوى الخاص بالبالغين فقط */}
+        <MultiTagBanner isAdultContent={item.adult} />
 
         {movieId && <Recommendations movieId={String(movieId)} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}
 
