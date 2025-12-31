@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    unoptimized: true, // Disable Vercel image optimization to avoid 402 error
   },
 };
 
