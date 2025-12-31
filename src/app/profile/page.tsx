@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Loading from "@/components/Loading";
@@ -39,6 +39,20 @@ const Profile = () => {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load profile picture from localStorage on mount
+  useEffect(() => {
+    if (user && typeof window !== 'undefined') {
+      const userId = user._id || user.id;
+      if (userId) {
+        const savedPicture = localStorage.getItem(`profilePicture_${userId}`);
+        if (savedPicture && savedPicture !== user.profilePicture) {
+          updateUser({ profilePicture: savedPicture });
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id, user?.id]);
 
   // Helper: get token from localStorage
   const getToken = () => {
@@ -211,7 +225,17 @@ const Profile = () => {
     return true;
   };
 
-  // Upload profile picture from device
+  // Convert file to Base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Upload profile picture from device - saves to localStorage
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -226,44 +250,17 @@ const Profile = () => {
     setProfilePictureLoading(true);
 
     try {
-      // Step 1: Upload the image
-      const formData = new FormData();
-      formData.append('image', file);
+      // Convert image to Base64
+      const base64Image = await fileToBase64(file);
 
-      const uploadResponse = await fetch('https://moviezone.me/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`
-        },
-        body: formData
-      });
-
-      const uploadResult = await uploadResponse.json();
-
-      if (!uploadResponse.ok) {
-        throw new Error(uploadResult.message || 'Failed to upload image');
-      }
-
-      // Step 2: Update profile
-      const updateResponse = await fetch('https://moviezone.me/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
-        },
-        body: JSON.stringify({
-          profilePicture: uploadResult.imageUrl
-        })
-      });
-
-      const updatedUser = await updateResponse.json();
-
-      if (!updateResponse.ok) {
-        throw new Error(updatedUser.message || 'Failed to update profile');
+      // Save to localStorage with user-specific key
+      const userId = user?._id || user?.id;
+      if (userId) {
+        localStorage.setItem(`profilePicture_${userId}`, base64Image);
       }
 
       // Update user in store
-      updateUser({ profilePicture: updatedUser.profilePicture });
+      updateUser({ profilePicture: base64Image });
 
       showSuccess('Profile picture updated successfully!');
       setShowProfileOptions(false);
@@ -280,7 +277,7 @@ const Profile = () => {
     }
   };
 
-  // Update profile picture from URL
+  // Update profile picture from URL - saves to localStorage
   const handleUrlUpdate = async () => {
     if (!imageUrl.trim()) {
       showError('Please enter image URL');
@@ -290,25 +287,14 @@ const Profile = () => {
     setProfilePictureLoading(true);
 
     try {
-      const response = await fetch('https://moviezone.me/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
-        },
-        body: JSON.stringify({
-          profilePicture: imageUrl
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to update image');
+      // Save URL to localStorage with user-specific key
+      const userId = user?._id || user?.id;
+      if (userId) {
+        localStorage.setItem(`profilePicture_${userId}`, imageUrl);
       }
 
       // Update user in store
-      updateUser({ profilePicture: result.profilePicture });
+      updateUser({ profilePicture: imageUrl });
 
       setImageUrl('');
       setShowUrlInput(false);
@@ -323,28 +309,22 @@ const Profile = () => {
     }
   };
 
-  // Delete profile picture
+  // Delete profile picture - removes from localStorage
   const handleDeletePicture = async () => {
     setProfilePictureLoading(true);
 
     try {
-      const response = await fetch('https://moviezone.me/api/user/profile/picture', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${getToken()}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to delete image');
+      // Remove from localStorage
+      const userId = user?._id || user?.id;
+      if (userId) {
+        localStorage.removeItem(`profilePicture_${userId}`);
       }
 
-      // Update user in store
-      updateUser({ profilePicture: result.profilePicture });
+      // Update user in store (set to undefined/empty)
+      updateUser({ profilePicture: undefined });
 
       setShowProfileOptions(false);
+      setShowDeleteConfirm(false);
       showSuccess('Profile picture deleted successfully!');
 
     } catch (error) {
@@ -360,6 +340,11 @@ const Profile = () => {
   // Ensure the profile picture URL is absolute and add cache busting
   const getFullImageUrl = (url: string | undefined) => {
     if (!url) return undefined;
+
+    // If it's a Base64 data URL, return as is (localStorage images)
+    if (url.startsWith('data:image/')) {
+      return url;
+    }
 
     let fullUrl = url;
 

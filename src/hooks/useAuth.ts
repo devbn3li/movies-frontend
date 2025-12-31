@@ -34,6 +34,18 @@ export const useAuth = () => {
         }
 
         const parsedUser = JSON.parse(userData);
+
+        // Load profile picture from localStorage if exists
+        const userId = parsedUser._id || parsedUser.id;
+        if (userId) {
+          const savedProfilePicture = localStorage.getItem(
+            `profilePicture_${userId}`
+          );
+          if (savedProfilePicture) {
+            parsedUser.profilePicture = savedProfilePicture;
+          }
+        }
+
         // Only update if the stored data is different from current store data
         if (
           JSON.stringify(parsedUser) !== JSON.stringify(user) ||
