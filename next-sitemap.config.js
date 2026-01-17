@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: "https://moviezone.me",
+  siteUrl: "https://moviezone-inky.vercel.app/",
   generateRobotsTxt: true,
   sitemapSize: 5000,
   changefreq: "daily",

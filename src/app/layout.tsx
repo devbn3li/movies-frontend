@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Mohamed Ali", url: "https://github.com/devbn3li/" }],
   alternates: {
-    canonical: "https://moviezone.me/",
+    canonical: "https://moviezone-inky.vercel.app/",
   },
   robots: {
     index: true,
@@ -70,12 +70,12 @@ export const metadata: Metadata = {
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
     description:
       "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-    url: "https://moviezone.me/",
+    url: "https://moviezone-inky.vercel.app/",
     type: "website",
     siteName: "Movie Zone",
     images: [
       {
-        url: "https://moviezone.me/og-image.png",
+        url: "https://moviezone-inky.vercel.app/og-image.png",
         width: 1200,
         height: 630,
         alt: "Movie Zone - Free Movies and TV Shows Streaming Platform",
@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
     description:
       "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-    images: ["https://moviezone.me/og-image.png"],
+    images: ["https://moviezone-inky.vercel.app/og-image.png"],
     creator: "@devbn3li",
   },
   icons: {
@@ -100,17 +100,17 @@ export const metadata: Metadata = {
       name: "Movie Zone",
       description:
         "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-      url: "https://moviezone.me/",
+      url: "https://moviezone-inky.vercel.app/",
       potentialAction: {
         "@type": "SearchAction",
-        target: "https://moviezone.me/search?q={search_term_string}",
+        target: "https://moviezone-inky.vercel.app/search?q={search_term_string}",
         "query-input": "required name=search_term_string",
       },
       publisher: {
         "@type": "Organization",
         name: "Movie Zone",
-        url: "https://moviezone.me/",
-        logo: "https://moviezone.me/logo.png",
+        url: "https://moviezone-inky.vercel.app/",
+        logo: "https://moviezone-inky.vercel.app/logo.png",
       },
     }),
   },

@@ -9,7 +9,7 @@ Disallow: /register
 Disallow: /profile
 
 # Host
-Host: https://moviezone.me
+Host: https://moviezone-inky.vercel.app/
 
 # Sitemaps
-Sitemap: https://moviezone.me/sitemap.xml
+Sitemap: https://moviezone-inky.vercel.app/sitemap.xml

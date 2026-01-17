@@ -52,7 +52,7 @@ export default function Navbar() {
     }
     // If it's a relative path, make it absolute
     else if (url.startsWith('/uploads/') || url.startsWith('uploads/')) {
-      fullUrl = `https://moviezone.me${url.startsWith('/') ? url : '/' + url}`;
+      fullUrl = `https://moviezone-inky.vercel.app${url.startsWith('/') ? url : '/' + url}`;
     }
 
     // Add cache busting timestamp to prevent old cached images
@@ -68,7 +68,7 @@ export default function Navbar() {
       const newSetting = !hideAdultContent;
 
       // Update settings via API
-      const response = await fetch('https://moviezone.me/api/user/settings', {
+      const response = await fetch('https://movies-api-theta-weld.vercel.app/api/user/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

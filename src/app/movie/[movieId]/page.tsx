@@ -67,12 +67,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
       keywords: ["movie", "watch online", "streaming", "entertainment"],
       alternates: {
-        canonical: `https://moviezone.me/movie/${movieId}`,
+        canonical: `https://moviezone-inky.vercel.app/movie/${movieId}`,
       },
       openGraph: {
         title: `Movie - Movie Zone`,
         description: `Watch this amazing movie and discover more entertainment on Movie Zone.`,
-        url: `https://moviezone.me/movie/${movieId}`,
+        url: `https://moviezone-inky.vercel.app/movie/${movieId}`,
         type: "video.movie",
       },
     };
@@ -105,7 +105,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Movie Zone"
     ].filter(Boolean),
     alternates: {
-      canonical: `https://moviezone.me/movie/${movieId}`,
+      canonical: `https://moviezone-inky.vercel.app/movie/${movieId}`,
     },
     openGraph: {
       title: `${title}${year ? ` (${year})` : ""} - Movie Zone`,
@@ -118,7 +118,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           alt: `${title} poster`,
         },
       ],
-      url: `https://moviezone.me/movie/${movieId}`,
+      url: `https://moviezone-inky.vercel.app/movie/${movieId}`,
       type: "video.movie",
       siteName: "Movie Zone",
     },

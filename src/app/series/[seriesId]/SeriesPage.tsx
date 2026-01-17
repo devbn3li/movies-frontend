@@ -218,18 +218,18 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
               worstRating: 0,
             },
             contentRating: item.adult ? "18+" : "13+",
-            url: typeof window !== 'undefined' ? window.location.href : `https://moviezone.me/series/${seriesId}`,
+            url: typeof window !== 'undefined' ? window.location.href : `https://moviezone-inky.vercel.app/series/${seriesId}`,
             potentialAction: {
               "@type": "WatchAction",
               target: {
                 "@type": "EntryPoint",
-                urlTemplate: typeof window !== 'undefined' ? window.location.href : `https://moviezone.me/series/${seriesId}`,
+                urlTemplate: typeof window !== 'undefined' ? window.location.href : `https://moviezone-inky.vercel.app/series/${seriesId}`,
               },
             },
             provider: {
               "@type": "Organization",
               name: "Movie Zone",
-              url: "https://moviezone.me",
+              url: "https://moviezone-inky.vercel.app",
             },
           }),
         }}
