@@ -19,7 +19,7 @@ const Analytics = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("config", "G-PXH771LG5B", {
+      window.gtag("config", "G-SHSM2HT143", {
         page_path: pathname,
       });
     }
