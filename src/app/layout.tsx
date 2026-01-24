@@ -11,6 +11,7 @@ import RouteTracker from "@/components/Analytics";
 import { Toaster } from 'react-hot-toast';
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 
 const geistSans = Geist({
@@ -213,7 +214,9 @@ export default function RootLayout({
 
         {/* Google Analytics Route Tracker */}
         <RouteTracker />
+
         <Analytics />
+        <SpeedInsights />
 
         {/* Global Toast Notifications */}
         <Toaster
