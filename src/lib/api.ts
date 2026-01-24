@@ -25,7 +25,8 @@ export const getAllMovies = async () => {
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const MOVIE_ZONE_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// API URL for backend (separate from frontend base URL)
+const MOVIE_ZONE_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://movies-api-theta-weld.vercel.app/api";
 
 const tmdbHeaders = {
   accept: "application/json",
@@ -334,7 +335,7 @@ export const getMovies = async (params?: {
   min_votes?: number;
 }) => {
   try {
-    const url = new URL(`${MOVIE_ZONE_BASE_URL}/movies-only`);
+    const url = new URL(`${MOVIE_ZONE_API_URL}/movies-only`);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -390,7 +391,7 @@ export const getTVShows = async (params?: {
   country?: string;
 }) => {
   try {
-    const url = new URL(`${MOVIE_ZONE_BASE_URL}/tvshows-only`);
+    const url = new URL(`${MOVIE_ZONE_API_URL}/tvshows-only`);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -447,7 +448,7 @@ export const getAllContent = async (params?: {
   type?: "movie" | "tv";
 }) => {
   try {
-    const url = new URL(`${MOVIE_ZONE_BASE_URL}/movies`);
+    const url = new URL(`${MOVIE_ZONE_API_URL}/movies`);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -489,7 +490,7 @@ export const getAllContent = async (params?: {
 // Get movie filters from backend
 export const getMovieFilters = async () => {
   try {
-    const response = await fetch(`${MOVIE_ZONE_BASE_URL}/filters/movies`, {
+    const response = await fetch(`${MOVIE_ZONE_API_URL}/filters/movies`, {
       method: "GET",
       headers: {
         accept: "application/json",
@@ -512,7 +513,7 @@ export const getMovieFilters = async () => {
 // Get TV show filters from backend
 export const getTVFilters = async () => {
   try {
-    const response = await fetch(`${MOVIE_ZONE_BASE_URL}/filters/tvshows`, {
+    const response = await fetch(`${MOVIE_ZONE_API_URL}/filters/tvshows`, {
       method: "GET",
       headers: {
         accept: "application/json",
