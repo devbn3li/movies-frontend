@@ -7,9 +7,10 @@ import Footer from "@/components/common/Footer/Footer";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Sidebar/AppSidebar";
 import Script from "next/script";
-import Analytics from "@/components/Analytics";
+import RouteTracker from "@/components/Analytics";
 import { Toaster } from 'react-hot-toast';
 import QueryProvider from "@/components/providers/QueryProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 
 const geistSans = Geist({
@@ -211,6 +212,7 @@ export default function RootLayout({
         </QueryProvider>
 
         {/* Google Analytics Route Tracker */}
+        <RouteTracker />
         <Analytics />
 
         {/* Global Toast Notifications */}

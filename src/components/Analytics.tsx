@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-const Analytics = () => {
+const RouteTracker = () => {
   const pathname = usePathname();
 
   useEffect(() => {
@@ -28,4 +28,4 @@ const Analytics = () => {
   return null;
 };
 
-export default Analytics;
+export default RouteTracker;
