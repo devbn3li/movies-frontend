@@ -14,7 +14,6 @@ type TMDBTVShow = {
   poster_path?: string;
 };
 
-// استخدام TMDB مباشرة لتجنب 403 errors
 async function getPopularMovies(): Promise<TMDBMovie[]> {
   try {
     const options = {
@@ -23,11 +22,10 @@ async function getPopularMovies(): Promise<TMDBMovie[]> {
         accept: "application/json",
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`,
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 3600 },
     };
 
-    // Get multiple pages of popular movies (increased for better coverage)
-    const pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // 10 pages = 200 movies
+    const pages = Array.from({ length: 500 }, (_, i) => i + 1);
     const allResults = await Promise.all(
       pages.map(async (page) => {
         const response = await fetch(
@@ -57,11 +55,10 @@ async function getPopularTVShows(): Promise<TMDBTVShow[]> {
         accept: "application/json",
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`,
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 3600 },
     };
 
-    // Get multiple pages of popular TV shows (increased for better coverage)
-    const pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // 10 pages = 200 TV shows
+    const pages = Array.from({ length: 500 }, (_, i) => i + 1);
     const allResults = await Promise.all(
       pages.map(async (page) => {
         const response = await fetch(
