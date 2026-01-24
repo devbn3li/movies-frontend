@@ -252,7 +252,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
             <Image
               src={poster}
               alt={title}
-              className="object-cover mb-4 aspect-[2/3] rounded-2xl h-auto"
+              className="object-cover mb-4 aspect-2/3 rounded-2xl h-auto"
               width={400}
               height={600}
             />
@@ -264,7 +264,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
               src={backdrop}
               alt={title}
               className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
-                ? "aspect-[2/3] max-w-md mx-auto"
+                ? "aspect-2/3 max-w-md mx-auto"
                 : "aspect-video"
                 }`}
               width={isUsingPosterAsBackdrop ? 400 : 1080}
