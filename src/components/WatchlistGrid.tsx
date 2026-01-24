@@ -25,7 +25,7 @@ const WatchlistCard: React.FC<WatchlistCardProps> = ({ item }) => {
       <Link href={linkHref} className="block">
         <div className="flex gap-4 p-4">
           {/* Poster */}
-          <div className="flex-shrink-0 relative">
+          <div className="shrink-0 relative">
             <div className="w-24 h-36 relative overflow-hidden rounded-lg">
               <Image
                 src={item.poster_url || '/placeholder-movie.jpg'}
@@ -52,7 +52,7 @@ const WatchlistCard: React.FC<WatchlistCardProps> = ({ item }) => {
               <h3 className="font-semibold text-white text-lg line-clamp-2 flex-1">
                 {item.title}
               </h3>
-              <div className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded-lg flex-shrink-0">
+              <div className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded-lg shrink-0">
                 <Star size={14} className="fill-yellow-400 text-yellow-400" />
                 <span className="text-sm font-medium text-white">{item.vote_average.toFixed(1)}</span>
               </div>

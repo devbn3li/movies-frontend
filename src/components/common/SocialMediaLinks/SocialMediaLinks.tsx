@@ -109,7 +109,7 @@ export default function SocialMediaLinks({
               title={`Follow ${personName} on ${link.platform}`}
             >
               {/* Background gradient effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
 
               {/* Icon */}
               <div className={`p-2 rounded-lg ${link.bgColor} group-hover:scale-110 transition-transform duration-200 relative z-10`}>

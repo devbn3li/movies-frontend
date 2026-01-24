@@ -140,7 +140,7 @@ const DashboardPage = () => {
 
       {/* Quick Overview Cards */}
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg p-4 text-white">
+        <div className="bg-linear-to-r from-indigo-500 to-indigo-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-indigo-100 text-sm">Total Movies</p>
@@ -150,7 +150,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg p-4 text-white">
+        <div className="bg-linear-to-r from-pink-500 to-pink-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-pink-100 text-sm">Total TV Shows</p>
@@ -160,7 +160,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg p-4 text-white">
+        <div className="bg-linear-to-r from-emerald-500 to-emerald-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-emerald-100 text-sm">Total Collection</p>
@@ -170,7 +170,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white">
+        <div className="bg-linear-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-amber-100 text-sm">Avg Rating</p>
@@ -196,7 +196,7 @@ const DashboardPage = () => {
         {/* Statistics Section */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Count */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+          <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm">Total {tab === "movies" ? "Movies" : "TV Shows"}</p>
@@ -207,7 +207,7 @@ const DashboardPage = () => {
           </div>
 
           {/* Average Rating */}
-          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg p-4 text-white">
+          <div className="bg-linear-to-r from-yellow-500 to-yellow-600 rounded-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-100 text-sm">Average Rating</p>
@@ -218,7 +218,7 @@ const DashboardPage = () => {
           </div>
 
           {/* Recent Releases */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+          <div className="bg-linear-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm">Recent (2 years)</p>
@@ -229,7 +229,7 @@ const DashboardPage = () => {
           </div>
 
           {/* Most Voted */}
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+          <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm">Most Voted</p>
@@ -251,7 +251,7 @@ const DashboardPage = () => {
             <div className="space-y-2">
               {stats.mostPopular.slice(0, 3).map((item, index) => (
                 <div key={item.id} className="flex items-center gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">
                     {index + 1}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -274,7 +274,7 @@ const DashboardPage = () => {
             <div className="space-y-2">
               {stats.highestRated.slice(0, 3).map((item, index) => (
                 <div key={item.id} className="flex items-center gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-500 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-yellow-500 text-white text-xs flex items-center justify-center font-bold">
                     {index + 1}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -297,7 +297,7 @@ const DashboardPage = () => {
             <div className="space-y-2">
               {stats.topGenres.slice(0, 3).map(([genre, count], index) => (
                 <div key={genre} className="flex items-center gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">
                     {index + 1}
                   </span>
                   <div className="flex-1 min-w-0">

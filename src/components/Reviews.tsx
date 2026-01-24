@@ -376,7 +376,7 @@ const Reviews = ({ movieId, mediaType = "movie" }: ReviewsProps) => {
                   className="border border-white/20 p-4 rounded-xl bg-white/5"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       {review.user.profilePicture ? (
                         <Image
                           src={review.user.profilePicture}

@@ -39,9 +39,6 @@ import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
-import MultiTagBanner from "@/components/MultiTagBanner";
-import MultiTagBanner2 from "@/components/MultiTagBanner2";
-import MultiTagBanner3 from "@/components/MultiTagBanner3";
 
 // TMDB TV Show type
 interface TMDBTVShow {
@@ -375,19 +372,6 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
 
         <div className="mt-10">
           {seriesId && <Cast movieId={seriesId} mediaType="tv" />}
-        </div>
-
-        {/* Ads */}
-        <div className="flex flex-wrap justify-center items-start gap-4 my-6">
-          <div className="w-[300px] h-[250px] flex-shrink-0">
-            <MultiTagBanner isAdultContent={item.adult} />
-          </div>
-          <div className="w-[300px] h-[250px] flex-shrink-0">
-            <MultiTagBanner2 isAdultContent={item.adult} />
-          </div>
-          <div className="w-[300px] h-[250px] flex-shrink-0">
-            <MultiTagBanner3 isAdultContent={item.adult} />
-          </div>
         </div>
 
         {seriesId && <Recommendations movieId={String(seriesId)} type="tv" />}

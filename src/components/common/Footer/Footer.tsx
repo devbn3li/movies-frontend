@@ -85,7 +85,7 @@ export default function Footer() {
               className="text-sm text-muted-foreground hover:text-foreground transition-all duration-300 transform hover:scale-105 relative overflow-hidden shine-effect"
             >
               <span className="relative z-10">Developed by devbn3li</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out shine-animation"></span>
+              <span className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-1000 ease-out shine-animation"></span>
             </Link>
           </div>
         </div>

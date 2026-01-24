@@ -68,7 +68,7 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
     // Track Analytics event
     const title = result.title || result.name || 'Unknown';
     trackSearchResultClick(title, result.id, index + 1);
-    
+
     // Call the original click handler
     onResultClick(result);
   };
@@ -79,12 +79,12 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
       className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer transition-colors group ${index === selectedIndex ? "bg-white/20" : "hover:bg-white/10"
         }`}
     >
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         {getMediaIcon(result.media_type)}
       </div>
 
       {(result.poster_path || result.profile_path) && (
-        <div className="flex-shrink-0 w-10 h-12 sm:w-12 sm:h-16 relative rounded overflow-hidden bg-gray-800">
+        <div className="shrink-0 w-10 h-12 sm:w-12 sm:h-16 relative rounded overflow-hidden bg-gray-800">
           <Image
             src={`https://image.tmdb.org/t/p/w92${result.poster_path || result.profile_path}`}
             alt={result.title || result.name || ""}

@@ -16,9 +16,6 @@ import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
 import { getAllContent } from "@/lib/api";
-import MultiTagBanner from "@/components/MultiTagBanner";
-import MultiTagBanner2 from "@/components/MultiTagBanner2";
-import MultiTagBanner3 from "@/components/MultiTagBanner3";
 
 // API Content Item type
 interface APIContentItem {
@@ -217,7 +214,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
             <Image
               src={poster}
               alt={title}
-              className="object-cover mb-4 aspect-[2/3] rounded-2xl h-auto"
+              className="object-cover mb-4 aspect-2/3 rounded-2xl h-auto"
               width={400}
               height={600}
             />
@@ -227,7 +224,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
               src={backdrop}
               alt={title}
               className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
-                ? "aspect-[2/3] max-w-md mx-auto"
+                ? "aspect-2/3 max-w-md mx-auto"
                 : "aspect-video"
                 }`}
               width={isUsingPosterAsBackdrop ? 400 : 1080}
@@ -333,19 +330,6 @@ export default function MoviePage({ movieId }: { movieId: number }) {
 
         <div className="mt-10 max-w-[1080px] w-full">
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
-        </div>
-
-        {/* Ads */}
-        <div className="flex flex-wrap justify-center items-start gap-4 my-6">
-          <div className="w-[300px] h-[250px] flex-shrink-0">
-            <MultiTagBanner isAdultContent={item.adult} />
-          </div>
-          <div className="w-[300px] h-[250px] flex-shrink-0">
-            <MultiTagBanner2 isAdultContent={item.adult} />
-          </div>
-          <div className="w-[300px] h-[250px] flex-shrink-0">
-            <MultiTagBanner3 isAdultContent={item.adult} />
-          </div>
         </div>
 
         {movieId && <Recommendations movieId={String(movieId)} type={mediaType as 'movie' | 'tv'} originalTitle={title} />}

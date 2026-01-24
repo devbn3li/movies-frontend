@@ -26,8 +26,6 @@ import SocialMediaLinks from "@/components/common/SocialMediaLinks/SocialMediaLi
 import ImageGallery from "@/components/ImageGallery";
 import { useAuth } from "@/hooks/useAuth";
 import { containsSensitiveContent } from "@/lib/utils";
-import MultiTagBanner from "@/components/MultiTagBanner";
-import MultiTagBanner2 from "@/components/MultiTagBanner2";
 
 interface PersonPageProps {
   personId: number;
@@ -313,16 +311,6 @@ export default function PersonPage({ personId }: PersonPageProps) {
                   )}
                 </div>
 
-                {/* Ads */}
-                <div className="flex flex-wrap justify-center items-start gap-4 my-6">
-                  <div className="w-[300px] h-[250px] flex-shrink-0">
-                    <MultiTagBanner isAdultContent={hasAdultContent} />
-                  </div>
-                  <div className="w-[300px] h-[250px] flex-shrink-0">
-                    <MultiTagBanner2 isAdultContent={hasAdultContent} />
-                  </div>
-                </div>
-
                 {/* Filmography Tabs */}
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
                   <Tabs defaultValue="movies" className="w-full">
@@ -331,27 +319,27 @@ export default function PersonPage({ personId }: PersonPageProps) {
                       <TabsList className="flex w-max min-w-full bg-white/10 gap-1 p-1 rounded-xl">
                         <TabsTrigger
                           value="movies"
-                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex-shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
+                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
                         >
-                          <Film size={16} className="mr-2 flex-shrink-0" />
+                          <Film size={16} className="mr-2 shrink-0" />
                           <span className="whitespace-nowrap text-sm font-medium">
                             Movies ({movieCredits?.cast?.length || 0})
                           </span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="tv"
-                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex-shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
+                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
                         >
-                          <Tv size={16} className="mr-2 flex-shrink-0" />
+                          <Tv size={16} className="mr-2 shrink-0" />
                           <span className="whitespace-nowrap text-sm font-medium">
                             TV Shows ({tvCredits?.cast?.length || 0})
                           </span>
                         </TabsTrigger>
                         <TabsTrigger
                           value="photos"
-                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex-shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
+                          className="data-[state=active]:bg-purple-600 data-[state=active]:text-white shrink-0 px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/20"
                         >
-                          <Camera size={16} className="mr-2 flex-shrink-0" />
+                          <Camera size={16} className="mr-2 shrink-0" />
                           <span className="whitespace-nowrap text-sm font-medium">
                             Photos ({images?.profiles?.length || 0})
                           </span>
@@ -420,7 +408,7 @@ function FilmographyGrid({
           return (
             <div key={credit.credit_id} className="group">
               <Link href={`/${mediaType === 'movie' ? 'movie' : 'series'}/${credit.id}`}>
-                <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+                <div className="relative aspect-2/3 rounded-lg overflow-hidden">
                   <Image
                     src={
                       credit.poster_path
