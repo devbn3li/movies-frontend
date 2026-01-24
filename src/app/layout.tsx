@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   description:
     "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
   keywords: [
+    // English keywords
     "movies",
     "TV shows",
     "streaming",
@@ -50,6 +51,27 @@ export const metadata: Metadata = {
     "latest tv shows",
     "popular series",
     "binge watch",
+    "HD movies",
+    "full movies",
+    "watch free",
+    // Arabic keywords - مهمة للبحث العربي
+    "موفي زون",
+    "مشاهدة افلام",
+    "مشاهدة مسلسلات",
+    "افلام اون لاين",
+    "مسلسلات اون لاين",
+    "افلام مترجمة",
+    "مسلسلات مترجمة",
+    "افلام جديدة",
+    "مسلسلات جديدة",
+    "تحميل افلام",
+    "افلام اجنبية",
+    "مسلسلات اجنبية",
+    "افلام عربية",
+    "مسلسلات عربية",
+    "افلام هندية",
+    "افلام تركية",
+    "مسلسلات تركية",
   ],
   authors: [{ name: "Mohamed Ali", url: "https://github.com/devbn3li/" }],
   alternates: {
@@ -126,6 +148,17 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#000000" />
         <meta name="referrer" content="no-referrer-when-downgrade" />
+
+        {/* Preconnect hints for faster resource loading */}
+        <link rel="preconnect" href="https://image.tmdb.org" />
+        <link rel="preconnect" href="https://api.themoviedb.org" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        {/* Verification and language */}
+        <meta name="google-site-verification" content="googleeefc2203045cdc48" />
+        <meta httpEquiv="content-language" content="en,ar" />
 
         {/* Google Analytics */}
         <Script

@@ -8,7 +8,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import Link from "next/link";
-import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from '@tanstack/react-query';
 
@@ -24,11 +23,9 @@ interface Movie {
   genre_names?: string[];
   overview?: string;
   popularity?: number;
-  adult?: boolean;
 }
 
 const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: string; isLarge: boolean }) => {
-  const { isAdmin } = useAuth();
   const mediaType = type === "movie" ? "movie" : "series";
 
   // استخدام React Query للـ caching
@@ -50,11 +47,11 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
       const data = await response.json();
       return data.results.filter((movie: Movie) => movie.poster_path) as Movie[];
     },
-    staleTime: 1000 * 60 * 60, // 1 hour - البيانات تبقى fresh لمدة ساعة
-    gcTime: 1000 * 60 * 60 * 24, // 24 hours - الـ cache يبقى 24 ساعة
-    refetchOnMount: false, // لا نعيد الـ fetch عند mount
-    refetchOnWindowFocus: false, // لا نعيد الـ fetch عند focus
-    refetchOnReconnect: false, // لا نعيد الـ fetch عند reconnect
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Helper functions
@@ -69,17 +66,6 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
   };
 
   const getBadge = (movie: Movie) => {
-    // Priority: Adult content first
-    if (movie.adult) {
-      return { text: "18+", color: "bg-red-600" };
-    }
-
-    // التحقق من المحتوى الحساس في العنوان
-    const title = movie.title || movie.name || "";
-    if (containsSensitiveContent(title)) {
-      return { text: "Sensitive", color: "bg-orange-600" };
-    }
-
     if (!movie.vote_average || !movie.popularity) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "badge-high-rating" };
@@ -190,16 +176,13 @@ const TrendingNow = ({ type, title, isLarge }: { type: "movie" | "tv"; title: st
                   <Image
                     src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
                     alt={movie.title || movie.name || "Trending Movie"}
-                    className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movie.title || movie.name || ""))
-                      ? 'blur-sm group-hover:blur-none'
-                      : ''
-                      }`}
+                    className="object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
                     width={280}
                     height={420}
                   />
 
                   {/* Enhanced Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
 
                   {/* Enhanced Content */}
                   <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">

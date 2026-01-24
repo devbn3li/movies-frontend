@@ -20,12 +20,10 @@ import { LuLogOut } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 import { CgProfile } from "react-icons/cg";
 import { RxDashboard } from "react-icons/rx";
-import { useAdultContent } from "@/hooks/useAdultContent";
 
 export default function Navbar() {
   const { user, logout, mounted } = useAuth();
   const dropdownRef = useRef(null);
-  const { hideAdultContent, toggleAdultContent, isLoading } = useAdultContent();
 
   const handleLogout = () => {
     logout();
@@ -58,36 +56,6 @@ export default function Navbar() {
     // Add cache busting timestamp to prevent old cached images
     const separator = fullUrl.includes('?') ? '&' : '?';
     return `${fullUrl}${separator}t=${Date.now()}`;
-  };
-
-  // Handle adult content setting change
-  const handleAdultContentToggle = async () => {
-    if (isLoading) return; // Prevent toggle while loading
-
-    try {
-      const newSetting = !hideAdultContent;
-
-      // Update settings via API
-      const response = await fetch('https://movies-api-theta-weld.vercel.app/api/user/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({
-          showAdultContent: !newSetting, // API expects showAdultContent, but our state is hideAdultContent
-        }),
-      });
-
-      if (response.ok) {
-        // Only toggle the local state if API call was successful
-        toggleAdultContent();
-      } else {
-        console.error('Failed to update adult content settings');
-      }
-    } catch (error) {
-      console.error('Error updating adult content settings:', error);
-    }
   };
 
   return (
@@ -157,18 +125,6 @@ export default function Navbar() {
                     </DropdownMenuItem>
                   </Link>
                 )}
-
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>Hide Adult Content</span>
-                    <Switch
-                      checked={hideAdultContent}
-                      onCheckedChange={handleAdultContentToggle}
-                      disabled={isLoading}
-                      className="ml-2"
-                    />
-                  </div>
-                </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />

@@ -55,7 +55,6 @@ interface TMDBTVShow {
   vote_count: number;
   original_language: string;
   origin_country: string[];
-  adult: boolean;
 }
 
 // API Content Item type
@@ -77,7 +76,6 @@ interface APIContentItem {
   vote_count?: number;
   original_language?: string;
   origin_country?: string[];
-  adult?: boolean;
 }
 
 function convertAPIToLocal(apiItem: APIContentItem): TVShow {
@@ -96,7 +94,6 @@ function convertAPIToLocal(apiItem: APIContentItem): TVShow {
     vote_count: apiItem.vote_count || 0,
     original_language: apiItem.original_language || "",
     origin_country: apiItem.origin_country || [],
-    adult: apiItem.adult || false,
   };
 }
 
@@ -115,7 +112,6 @@ const convertTMDBToLocal = (tmdbShow: TMDBTVShow): TVShow => ({
   vote_count: tmdbShow.vote_count,
   original_language: tmdbShow.original_language,
   origin_country: tmdbShow.origin_country,
-  adult: tmdbShow.adult,
 });
 
 interface SeriesPageProps {
@@ -214,7 +210,6 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
               bestRating: 10,
               worstRating: 0,
             },
-            contentRating: item.adult ? "18+" : "13+",
             url: typeof window !== 'undefined' ? window.location.href : `https://moviezone-inky.vercel.app/series/${seriesId}`,
             potentialAction: {
               "@type": "WatchAction",
@@ -293,8 +288,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
             </div>
           </div>
           <p className="text-[#FFFFFF] mb-2 text-lg font-medium">
-            {rDate.slice(0, 4)} | {item.adult ? "18+" : "+13"} |{" "}
-            {item.genre_names[0] || "Unknown Genre"}
+            {rDate.slice(0, 4)} | {item.genre_names[0] || "Unknown Genre"}
           </p>
           <p className="mb-4 text-white text-lg font-medium">
             {item.overview || "No description available."}

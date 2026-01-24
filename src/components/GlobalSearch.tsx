@@ -4,8 +4,6 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { useAdultContentFilter } from "@/hooks/useAdultContentFilter";
-import { containsSensitiveContent } from "@/lib/utils";
 import { trackSearch } from "@/lib/analytics";
 import { SearchResultItem } from "./SearchResultItem";
 import { LoadingSpinner, LoadMoreButton } from "./SearchComponents";
@@ -21,7 +19,6 @@ interface SearchResult {
   release_date?: string;
   first_air_date?: string;
   known_for_department?: string;
-  adult?: boolean;
   popularity?: number;
   vote_average?: number;
   vote_count?: number;
@@ -38,7 +35,6 @@ interface GlobalSearchProps {
 
 export default function GlobalSearch({ className }: GlobalSearchProps) {
   const { isAdmin } = useAuth();
-  const { hideAdultContent, refreshFromStorage } = useAdultContentFilter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,16 +58,10 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     }
 
     const filtered = results.filter((result) => {
-      const isSensitive = result.adult || containsSensitiveContent(result.title || result.name || "");
 
       // If admin, ignore hiding regardless of settings
       if (isAdmin) {
         return true;
-      }
-
-      // If hideAdultContent is enabled and content is sensitive, hide it
-      if (hideAdultContent && isSensitive) {
-        return false;
       }
 
       return true;
@@ -81,7 +71,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       filteredResults: filtered,
       hiddenCount: results.length - filtered.length
     };
-  }, [results, hideAdultContent, isAdmin]);
+  }, [results, isAdmin]);
 
   const handleResultClick = useCallback((result: SearchResult) => {
     const title = result.title || result.name || "";
@@ -196,7 +186,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
       };
 
       const encodedQuery = encodeURIComponent(searchQuery);
-      const response = await fetch(`https://api.themoviedb.org/3/search/multi?query=${encodedQuery}&include_adult=true&language=en-US&page=${page}`, options);
+      const response = await fetch(`https://api.themoviedb.org/3/search/multi?query=${encodedQuery}&language=en-US&page=${page}`, options);
       const data = await response.json();
 
       const newResults: SearchResult[] = [];
@@ -286,13 +276,10 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
 
   // Function to check localStorage and re-filter results when needed
   const handleFocus = useCallback(() => {
-    // Refresh adult content setting from localStorage
-    refreshFromStorage();
-
     if (query.trim()) {
       setIsOpen(true);
     }
-  }, [query, refreshFromStorage]);
+  }, [query]);
 
   return (
     <div ref={searchRef} className={`relative w-full ${className}`}>
@@ -327,15 +314,6 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
               <LoadingSpinner />
             ) : results.length > 0 ? (
               <div className="py-2 overflow-x-hidden">
-                {hiddenCount > 0 && hideAdultContent && (
-                  <div className="px-4 py-2 mb-2 bg-amber-600/20 border border-amber-600/30 rounded-lg mx-2">
-                    <p className="text-amber-200 text-sm text-center">
-                      {hiddenCount} result{hiddenCount > 1 ? 's' : ''} hidden due to your content settings.{' '}
-                      <span className="font-medium">Go to Settings to change this.</span>
-                    </p>
-                  </div>
-                )}
-
                 {filteredResults.map((result, index) => (
                   <SearchResultItem
                     key={`${result.media_type}-${result.id}-${index}`}

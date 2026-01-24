@@ -36,7 +36,6 @@ interface APIContentItem {
   vote_average?: number;
   vote_count?: number;
   original_language?: string;
-  adult?: boolean;
   video?: boolean;
 }
 
@@ -56,7 +55,6 @@ interface TMDBMovie {
   vote_average: number;
   vote_count: number;
   original_language: string;
-  adult: boolean;
   video: boolean;
 }
 
@@ -74,7 +72,6 @@ const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
   vote_average: tmdbMovie.vote_average,
   vote_count: tmdbMovie.vote_count,
   original_language: tmdbMovie.original_language,
-  adult: tmdbMovie.adult,
   video: tmdbMovie.video,
 });
 
@@ -93,7 +90,6 @@ const convertAPIToLocal = (apiItem: APIContentItem): Movie => ({
   vote_average: apiItem.vote_average || 0,
   vote_count: apiItem.vote_count || 0,
   original_language: apiItem.original_language || "",
-  adult: apiItem.adult || false,
   video: apiItem.video || false,
 });
 
@@ -247,7 +243,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
             </div>
           </div>
           <p className="text-[#FFFFFF] mb-2 text-lg font-medium">
-            {rDate?.slice(0, 4)} | {item.adult ? "18+" : "+16"} |{" "}
+            {rDate?.slice(0, 4)} |{" "}
             {item.genre_names[0] || "Unknown Genre"}
           </p>
           <p className="mb-4 text-white text-lg font-medium">

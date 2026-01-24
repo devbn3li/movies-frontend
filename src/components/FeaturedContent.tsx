@@ -10,7 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { getMovies, getTVShows } from "@/lib/api";
 
@@ -31,7 +30,6 @@ interface Movie {
   genre_names?: string[];
   overview?: string;
   popularity?: number;
-  adult?: boolean;
   [key: string]: unknown;
 }
 
@@ -91,15 +89,6 @@ const FeaturedContent = ({
   };
 
   const getBadge = (movie: Movie) => {
-    if (movie.adult) {
-      return { text: "18+", color: "bg-red-600" };
-    }
-
-    const title = movie.title || movie.name || "";
-    if (containsSensitiveContent(title)) {
-      return { text: "Sensitive", color: "bg-orange-600" };
-    }
-
     if (!movie.vote_average || !movie.popularity) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "badge-high-rating" };
@@ -124,7 +113,7 @@ const FeaturedContent = ({
     const loadFeaturedContent = async () => {
       try {
         setIsLoading(true);
-        
+
         let response;
         if (type === "movie") {
           response = await getMovies({
@@ -137,7 +126,7 @@ const FeaturedContent = ({
           response = await getTVShows({
             page: 1,
             limit: 20,
-            sort_by: "popularity", 
+            sort_by: "popularity",
             order: "desc"
           });
         }
@@ -162,18 +151,8 @@ const FeaturedContent = ({
     loadFeaturedContent();
   }, [type]);
 
-  const filteredContent = featuredContent.filter((movie) => {
-    // If user is admin, show all content returned by API
-    if (isAdmin) return true;
-
-    // For non-admin users, filter out adult content and sensitive content
-    const title = movie.title || movie.name || "";
-    const hasSensitiveContent = containsSensitiveContent(title);
-
-    // The API should already filter adult content for non-admin users,
-    // but we add this as an extra safety measure
-    return !movie.adult && !hasSensitiveContent;
-  });
+  // No filtering needed - show all content
+  const filteredContent = featuredContent;
 
   if (isLoading) {
     return (
@@ -200,12 +179,12 @@ const FeaturedContent = ({
                   <div className="relative overflow-hidden rounded-2xl">
                     {/* Skeleton for poster */}
                     <Skeleton className="w-full h-[420px] rounded-2xl" />
-                    
+
                     {/* Skeleton for badges */}
                     <div className="absolute top-2 left-2">
                       <Skeleton className="w-12 h-6 rounded-full" />
                     </div>
-                    
+
                     <div className="absolute top-2 right-2">
                       <Skeleton className="w-12 h-6 rounded-full" />
                     </div>
@@ -305,16 +284,13 @@ const FeaturedContent = ({
                     <Image
                       src={getPosterUrl(movie)}
                       alt={movieTitle}
-                      className={`object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (movie.adult || containsSensitiveContent(movieTitle))
-                        ? 'blur-sm group-hover:blur-none'
-                        : ''
-                        }`}
+                      className="object-cover h-auto rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
                       width={280}
                       height={420}
                     />
 
                     {/* Enhanced Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
 
                     {/* Enhanced Content */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">

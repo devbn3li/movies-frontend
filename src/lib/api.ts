@@ -328,7 +328,6 @@ export const getMovies = async (params?: {
   order?: string;
   min_rating?: number;
   max_rating?: number;
-  adult?: boolean;
   language?: string;
   original_language?: string;
   min_popularity?: number;
@@ -384,7 +383,6 @@ export const getTVShows = async (params?: {
   order?: string;
   min_rating?: number;
   max_rating?: number;
-  adult?: boolean;
   language?: string;
   original_language?: string;
   min_popularity?: number;
@@ -441,7 +439,6 @@ export const getAllContent = async (params?: {
   order?: string;
   min_rating?: number;
   max_rating?: number;
-  adult?: boolean;
   language?: string;
   original_language?: string;
   min_popularity?: number;

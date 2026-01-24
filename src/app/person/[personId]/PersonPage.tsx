@@ -25,7 +25,6 @@ import { Calendar, MapPin, Star, Film, Tv, Camera } from "lucide-react";
 import SocialMediaLinks from "@/components/common/SocialMediaLinks/SocialMediaLinks";
 import ImageGallery from "@/components/ImageGallery";
 import { useAuth } from "@/hooks/useAuth";
-import { containsSensitiveContent } from "@/lib/utils";
 
 interface PersonPageProps {
   personId: number;
@@ -40,7 +39,7 @@ export default function PersonPage({ personId }: PersonPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFullBio, setShowFullBio] = useState(false);
-  const { isAdmin } = useAuth(); // إضافة التحقق من صلاحيات الأدمن
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchPersonData = async () => {
@@ -110,12 +109,12 @@ export default function PersonPage({ personId }: PersonPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Image Skeleton */}
             <div className="lg:col-span-1">
-              <Skeleton className="w-full aspect-[2/3] rounded-2xl" />
+              <Skeleton className="w-full aspect-2/3 rounded-2xl" />
             </div>
 
             {/* Details Skeleton */}
@@ -139,7 +138,7 @@ export default function PersonPage({ personId }: PersonPageProps) {
 
   if (error || !person) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4">Person Not Found</h1>
           <p className="text-gray-300 mb-6">{error || 'The person you are looking for does not exist.'}</p>
@@ -171,20 +170,12 @@ export default function PersonPage({ personId }: PersonPageProps) {
     return dateB - dateA;
   });
 
-  // التحقق من وجود محتوى للبالغين في أعمال الشخص
-  const hasAdultContent = [
-    ...(movieCredits?.cast || []),
-    ...(movieCredits?.crew || []),
-    ...(tvCredits?.cast || []),
-    ...(tvCredits?.crew || [])
-  ].some(credit => credit.adult === true);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Hero Section */}
       <div className="relative">
         {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent z-10"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/50 to-transparent z-10"></div>
 
         <div className="relative z-20 max-w-7xl mx-auto p-6 pt-20">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -201,7 +192,7 @@ export default function PersonPage({ personId }: PersonPageProps) {
                     alt={person.name}
                     width={500}
                     height={750}
-                    className="w-full rounded-2xl shadow-2xl object-cover aspect-[2/3] border border-white/20"
+                    className="w-full rounded-2xl shadow-2xl object-cover aspect-2/3 border border-white/20"
                     priority
                   />
 
@@ -397,13 +388,10 @@ function FilmographyGrid({
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {displayedCredits.map((credit) => {
-          const isAdult = credit.adult || false;
           const title = mediaType === 'movie'
             ? (credit as PersonMovieCredit).title || ''
             : (credit as PersonTVCredit).name || '';
-          const isSensitive = containsSensitiveContent(title);
-          const shouldBlur = !isAdmin && (isAdult || isSensitive);
-          const shouldShowBadge = isAdult || isSensitive;
+
 
           return (
             <div key={credit.credit_id} className="group">
@@ -417,19 +405,8 @@ function FilmographyGrid({
                     }
                     alt={title}
                     fill
-                    className={`object-cover group-hover:scale-105 transition-all duration-200 ${shouldBlur ? 'blur-sm group-hover:blur-none' : ''
-                      }`}
+                    className={`object-cover group-hover:scale-105 transition-all duration-200`}
                   />
-
-                  {/* Content Badge */}
-                  {shouldShowBadge && (
-                    <div className={`absolute top-2 right-2 backdrop-blur-sm px-2 py-1 rounded-full text-xs group-hover:opacity-0 transition-opacity duration-200 ${isAdult ? 'bg-red-600/90' : 'bg-orange-600/90'
-                      }`}>
-                      <span className="text-white font-bold">
-                        {isAdult ? '18+' : 'SENSITIVE'}
-                      </span>
-                    </div>
-                  )}
 
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                 </div>

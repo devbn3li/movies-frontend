@@ -17,9 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Movie } from "@/types/index";
 import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
 import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
-import { containsSensitiveContent } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useAdultContent } from "@/hooks/useAdultContent";
 import { CompactTrailer } from "@/components/Trailer";
 import { getMovies, getMovieGenres, getMovieYears } from "@/lib/api";
 import { Genre } from "@/types/index";
@@ -37,11 +35,9 @@ function MoviesContent() {
   const [filters, setFilters] = useState<FilterOptions>({ sortBy: "default" });
   const [totalPages, setTotalPages] = useState(0);
   const [totalMovies, setTotalMovies] = useState(0);
-  const [adultMovies, setAdultMovies] = useState(0);
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const { isAdmin } = useAuth();
-  const { hideAdultContent } = useAdultContent();
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -93,7 +89,6 @@ function MoviesContent() {
           year?: number;
           sort_by?: string;
           order?: string;
-          adult?: boolean;
         } = {
           page: 1,
           limit: ITEMS_PER_PAGE,
@@ -134,18 +129,12 @@ function MoviesContent() {
           }
         }
 
-        // Add adult filter only if user is admin and has made a choice
-        if (isAdmin && filters.includeAdult !== undefined) {
-          params.adult = filters.includeAdult;
-        }
-
         const response = await getMovies(params);
 
         if (response) {
           setMovies(response.movies || []);
           setTotalPages(response.totalPages || 0);
           setTotalMovies(response.totalMovies || 0);
-          setAdultMovies(response.adultMovies || 0);
         }
         setPage(1);
       } catch (error) {
@@ -180,7 +169,6 @@ function MoviesContent() {
         year?: number;
         sort_by?: string;
         order?: string;
-        adult?: boolean;
       } = {
         page: newPage,
         limit: ITEMS_PER_PAGE,
@@ -221,18 +209,12 @@ function MoviesContent() {
         }
       }
 
-      // Add adult filter only if user is admin and has made a choice
-      if (isAdmin && filters.includeAdult !== undefined) {
-        params.adult = filters.includeAdult;
-      }
-
       const response = await getMovies(params);
 
       if (response) {
         setMovies(response.movies || []);
         setTotalPages(response.totalPages || 0);
         setTotalMovies(response.totalMovies || 0);
-        setAdultMovies(response.adultMovies || 0);
       }
     } catch (error) {
       console.error('Error loading movies:', error);
@@ -268,7 +250,6 @@ function MoviesContent() {
           genres={genres}
           years={years}
           disabled={isLoading}
-          showAdultFilter={isAdmin}
           initialFilters={filters}
         />
 
@@ -278,15 +259,6 @@ function MoviesContent() {
           isLoading={isLoading}
           itemType="movies"
         />
-
-        {adultMovies > 0 && !isLoading && !isAdmin && hideAdultContent && (
-          <div className="mt-2 text-center">
-            <p className="text-amber-200 text-sm bg-amber-600/20 border border-amber-600/30 rounded-lg px-4 py-2 inline-block">
-              {adultMovies} adult movie{adultMovies > 1 ? 's' : ''} hidden by default.{' '}
-              <span className="font-medium">Login to change this.</span>
-            </p>
-          </div>
-        )}
       </div>
 
       <CardsGrid items={movies} isLoading={isLoading} />
@@ -386,14 +358,6 @@ function CardsGrid({
   };
 
   const getBadge = (movie: Movie) => {
-    if (movie.adult) {
-      return { text: "18+", color: "bg-red-600" };
-    }
-
-    if (containsSensitiveContent(movie.title)) {
-      return { text: "Sensitive", color: "bg-orange-600" };
-    }
-
     if (!movie.vote_average) return null;
 
     if (movie.vote_average >= 8) return { text: "High Rated", color: "bg-yellow-500" };
@@ -484,14 +448,11 @@ function CardsGrid({
                   alt={item.title}
                   width={230}
                   height={340}
-                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75 ${!isAdmin && (item.adult || containsSensitiveContent(item.title))
-                    ? 'blur-sm group-hover:blur-none'
-                    : ''
-                    }`}
+                  className={`rounded-2xl object-cover h-auto mb-2 transition-all duration-500 group-hover:scale-110 group-hover:brightness-75`}
                 />
 
                 {/* Enhanced Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
 
                 {/* Enhanced Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">

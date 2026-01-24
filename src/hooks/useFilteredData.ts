@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 import { Movie, TVShow } from "@/types";
 import { FilterOptions } from "@/components/common/FilterBar/FilterBar";
-import { containsSensitiveContent } from "@/lib/utils";
-import { useAdultContent } from "./useAdultContent";
 
 type MediaItem = Movie | TVShow;
 
@@ -12,10 +10,8 @@ export function useFilteredData<T extends MediaItem>(
   filters: FilterOptions,
   isAdmin: boolean = false
 ) {
-  const { hideAdultContent } = useAdultContent();
-
-  const { filteredAndSorted, hiddenCount } = useMemo(() => {
-    if (!data.length) return { filteredAndSorted: [], hiddenCount: 0 };
+  const { filteredAndSorted } = useMemo(() => {
+    if (!data.length) return { filteredAndSorted: [] };
 
     let filtered = data.filter((item) => {
       // Search filter
@@ -52,21 +48,6 @@ export function useFilteredData<T extends MediaItem>(
       return true;
     });
 
-    // Calculate hidden count before further filtering
-    const beforeAdultFilter = filtered.length;
-
-    // Adult content filtering
-    if (hideAdultContent && !isAdmin) {
-      filtered = filtered.filter((item) => {
-        const title = "title" in item ? item.title : item.name;
-        const isSensitive = item.adult || containsSensitiveContent(title);
-        return !isSensitive;
-      });
-    }
-
-    const afterAdultFilter = filtered.length;
-    const hiddenCount = beforeAdultFilter - afterAdultFilter;
-
     // Sorting
     if (filters.sortBy && filters.sortBy !== "default") {
       // Apply normal sorting
@@ -99,10 +80,10 @@ export function useFilteredData<T extends MediaItem>(
       });
     }
 
-    return { filteredAndSorted: filtered, hiddenCount };
-  }, [data, searchQuery, filters, isAdmin, hideAdultContent]);
+    return { filteredAndSorted: filtered };
+  }, [data, searchQuery, filters, isAdmin]);
 
-  return { filteredAndSorted, hiddenCount };
+  return { filteredAndSorted };
 }
 
 export function extractGenres<T extends MediaItem>(data: T[]): string[] {

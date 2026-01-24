@@ -23,7 +23,6 @@ export type Movie = {
   vote_average: number;
   vote_count: number;
   original_language: string;
-  adult: boolean;
   video: boolean;
 };
 
@@ -42,11 +41,13 @@ export type TVShow = {
   vote_count: number;
   original_language: string;
   origin_country: string[];
-  adult: boolean;
+  // Optional fields for detailed series info
+  number_of_seasons?: number;
+  number_of_episodes?: number;
 };
 
+
 export type CastMember = {
-  adult: boolean;
   gender: number;
   id: number;
   known_for_department: string;
@@ -61,7 +62,6 @@ export type CastMember = {
 };
 
 export type CrewMember = {
-  adult: boolean;
   gender: number;
   id: number;
   known_for_department: string;
@@ -93,7 +93,6 @@ export type Person = {
   place_of_birth: string | null;
   popularity: number;
   profile_path: string | null;
-  adult: boolean;
   also_known_as: string[];
 };
 
@@ -113,7 +112,6 @@ export type PersonMovieCredit = {
   job?: string;
   department?: string;
   credit_id: string;
-  adult?: boolean;
 };
 
 export type PersonTVCredit = {
@@ -133,7 +131,6 @@ export type PersonTVCredit = {
   department?: string;
   credit_id: string;
   episode_count?: number;
-  adult?: boolean;
 };
 
 export type PersonCredits = {

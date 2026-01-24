@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { Film, Tv, User, Search } from "lucide-react";
 import Image from "next/image";
-import { containsSensitiveContent } from "@/lib/utils";
 import { trackSearchResultClick } from "@/lib/analytics";
 
 interface SearchResult {
@@ -17,7 +16,6 @@ interface SearchResult {
   release_date?: string;
   first_air_date?: string;
   known_for_department?: string;
-  adult?: boolean;
   popularity?: number;
   vote_average?: number;
   vote_count?: number;
@@ -51,11 +49,6 @@ const getMediaIcon = (mediaType?: string) => {
 const getYear = (result: SearchResult) => {
   const date = result.release_date || result.first_air_date;
   return date ? new Date(date).getFullYear() : "";
-};
-
-const isAdultContent = (result: SearchResult) => {
-  const title = result.title || result.name || "";
-  return result.adult || containsSensitiveContent(title);
 };
 
 export const SearchResultItem = memo<SearchResultItemProps>(function SearchResultItem({
@@ -104,11 +97,6 @@ export const SearchResultItem = memo<SearchResultItemProps>(function SearchResul
         </h3>
         <p className="text-white/60 text-xs sm:text-sm capitalize flex items-center gap-1 text-left flex-wrap">
           {result.media_type}
-          {isAdultContent(result) && (
-            <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded font-bold">
-              18+
-            </span>
-          )}
           {result.known_for_department && ` • ${result.known_for_department}`}
           {getYear(result) && ` • ${getYear(result)}`}
           {result.vote_average && result.vote_average > 0 && (
