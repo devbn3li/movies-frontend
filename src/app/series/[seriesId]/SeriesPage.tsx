@@ -1,31 +1,5 @@
 "use client";
-import { getAllContent } from '@/lib/api';
 
-// TMDB TV Series Details API function
-async function getTVSeriesDetails(seriesId: string) {
-  try {
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-      },
-      next: { revalidate: 3600 } // Cache for 1 hour
-    };
-
-    const response = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}`, options);
-
-    if (response.ok) {
-      const tmdbData: TMDBTVShow = await response.json();
-      return tmdbData;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error fetching from TMDB:', error);
-    return null;
-  }
-}
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { TVShow } from "@/types/index";
@@ -39,6 +13,18 @@ import Recommendations from "@/components/Recommendations";
 import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
+import SeasonEpisodeSelector, { SeasonSummary } from "@/components/SeasonEpisodeSelector";
+
+// TMDB Season type
+interface TMDBSeason {
+  id: number;
+  name: string;
+  season_number: number;
+  episode_count: number;
+  poster_path: string | null;
+  air_date: string;
+  overview: string;
+}
 
 // TMDB TV Show type
 interface TMDBTVShow {
@@ -55,46 +41,9 @@ interface TMDBTVShow {
   vote_count: number;
   original_language: string;
   origin_country: string[];
-}
-
-// API Content Item type
-interface APIContentItem {
-  _id?: string;
-  id: number;
-  type: string;
-  title?: string;
-  name?: string;
-  original_name?: string;
-  overview?: string;
-  releaseDate?: string;
-  first_air_date?: string;
-  genre_names?: string[];
-  poster_url?: string;
-  backdrop_url?: string;
-  popularity?: number;
-  vote_average?: number;
-  vote_count?: number;
-  original_language?: string;
-  origin_country?: string[];
-}
-
-function convertAPIToLocal(apiItem: APIContentItem): TVShow {
-  return {
-    _id: apiItem._id,
-    id: apiItem.id,
-    name: apiItem.title || apiItem.name || "Unknown Series",
-    original_name: apiItem.original_name || "",
-    overview: apiItem.overview || "",
-    first_air_date: apiItem.first_air_date || apiItem.releaseDate || "",
-    genre_names: apiItem.genre_names || [],
-    poster_url: apiItem.poster_url || null,
-    backdrop_url: apiItem.backdrop_url || null,
-    popularity: apiItem.popularity || 0,
-    vote_average: apiItem.vote_average || 0,
-    vote_count: apiItem.vote_count || 0,
-    original_language: apiItem.original_language || "",
-    origin_country: apiItem.origin_country || [],
-  };
+  number_of_seasons?: number;
+  number_of_episodes?: number;
+  seasons?: TMDBSeason[];
 }
 
 // Convert TMDB data to local format
@@ -121,6 +70,7 @@ interface SeriesPageProps {
 export default function SeriesPage({ seriesId }: SeriesPageProps) {
   const [item, setItem] = useState<TVShow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
 
   useEffect(() => {
     if (!seriesId) {
@@ -131,30 +81,33 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
       setIsLoading(true);
 
       try {
-        // First, try to get series data from our backend API
-        const apiResponse = await getAllContent({
-          page: 1,
-          limit: 50, // Get enough items to find the specific series
-          type: "tv"
-        });
-
-        // Check if we can find the series in the API response
-        if (apiResponse && apiResponse.content) {
-          const foundSeries = apiResponse.content.find((s: APIContentItem) => s.id === seriesId && (s.type === "series" || s.type === "tv"));
-
-          if (foundSeries) {
-            const convertedSeries = convertAPIToLocal(foundSeries);
-            setItem(convertedSeries);
-            setIsLoading(false);
-            return;
+        // Fetch series details directly from TMDB
+        const options = {
+          method: 'GET',
+          headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
           }
-        }
+        };
 
-        // If not found in our API, try TMDB as fallback
-        const tmdbData = await getTVSeriesDetails(seriesId.toString());
-        if (tmdbData) {
+        const response = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}`, options);
+
+        if (response.ok) {
+          const tmdbData: TMDBTVShow = await response.json();
           const convertedItem = convertTMDBToLocal(tmdbData);
           setItem(convertedItem);
+
+          // Set seasons data
+          if (tmdbData.seasons) {
+            setSeasons(tmdbData.seasons.map(s => ({
+              id: s.id,
+              name: s.name,
+              season_number: s.season_number,
+              episode_count: s.episode_count,
+              poster_path: s.poster_path,
+              air_date: s.air_date,
+            })));
+          }
         } else {
           setItem(null);
         }
@@ -313,6 +266,14 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
             />
           </div>
         </div>
+
+        {/* 💠 Season & Episode Selector */}
+        {seasons.length > 0 && (
+          <SeasonEpisodeSelector
+            seriesId={seriesId}
+            seasons={seasons}
+          />
+        )}
 
         {/* 💠 More Info Cards */}
         <div className="max-w-[1080px] w-full flex flex-col gap-6">

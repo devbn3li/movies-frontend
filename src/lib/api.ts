@@ -2,13 +2,50 @@ import axios from "./axios";
 import {
   Video,
   VideosResponse,
-  BackendGenre,
   Review,
   ReviewInput,
   ReviewResponse,
   ReviewStats,
   ReviewUpdateInput,
 } from "@/types/index";
+
+// TMDB Types
+interface TMDBMovie {
+  id: number;
+  title: string;
+  original_title: string;
+  overview: string;
+  release_date: string;
+  genre_ids: number[];
+  poster_path: string | null;
+  backdrop_path: string | null;
+  popularity: number;
+  vote_average: number;
+  vote_count: number;
+  original_language: string;
+  video: boolean;
+}
+
+interface TMDBTVShow {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string;
+  first_air_date: string;
+  genre_ids: number[];
+  poster_path: string | null;
+  backdrop_path: string | null;
+  popularity: number;
+  vote_average: number;
+  vote_count: number;
+  original_language: string;
+  origin_country: string[];
+}
+
+interface TMDBGenre {
+  id: number;
+  name: string;
+}
 
 // Helper function to get token from localStorage
 const getToken = () => {
@@ -319,6 +356,120 @@ export const getMainTrailer = (videos: VideosResponse) => {
   return anyYouTubeVideo || null;
 };
 
+// Cache for genres to avoid multiple API calls
+let movieGenresCache: TMDBGenre[] | null = null;
+let tvGenresCache: TMDBGenre[] | null = null;
+
+// Helper function to get genre names from genre IDs
+const getGenreNames = (genreIds: number[], genres: TMDBGenre[]): string[] => {
+  return genreIds
+    .map(id => genres.find(g => g.id === id)?.name)
+    .filter((name): name is string => !!name);
+};
+
+// Helper to convert TMDB movie to local format
+const convertTMDBMovieToLocal = (movie: TMDBMovie, genres: TMDBGenre[]) => ({
+  id: movie.id,
+  title: movie.title,
+  original_title: movie.original_title,
+  overview: movie.overview,
+  release_date: movie.release_date,
+  genre_names: getGenreNames(movie.genre_ids, genres),
+  poster_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+  backdrop_url: movie.backdrop_path ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}` : null,
+  popularity: movie.popularity,
+  vote_average: movie.vote_average,
+  vote_count: movie.vote_count,
+  original_language: movie.original_language,
+  video: movie.video,
+});
+
+// Helper to convert TMDB TV show to local format
+const convertTMDBTVShowToLocal = (show: TMDBTVShow, genres: TMDBGenre[]) => ({
+  id: show.id,
+  name: show.name,
+  original_name: show.original_name,
+  overview: show.overview,
+  first_air_date: show.first_air_date,
+  genre_names: getGenreNames(show.genre_ids, genres),
+  poster_url: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
+  backdrop_url: show.backdrop_path ? `https://image.tmdb.org/t/p/w780${show.backdrop_path}` : null,
+  popularity: show.popularity,
+  vote_average: show.vote_average,
+  vote_count: show.vote_count,
+  original_language: show.original_language,
+  origin_country: show.origin_country,
+});
+
+// Get movie genres from TMDB
+export const getMovieGenres = async (): Promise<TMDBGenre[]> => {
+  try {
+    if (movieGenresCache) return movieGenresCache;
+
+    const response = await fetch(
+      `${TMDB_BASE_URL}/genre/movie/list?language=en-US`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+        next: { revalidate: 86400 }, // Cache for 24 hours
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch movie genres: ${response.status}`);
+    }
+
+    const data = await response.json();
+    movieGenresCache = data.genres;
+    return data.genres;
+  } catch (error) {
+    console.error("Error fetching movie genres:", error);
+    return [];
+  }
+};
+
+// Get TV show genres from TMDB
+export const getTVGenres = async (): Promise<TMDBGenre[]> => {
+  try {
+    if (tvGenresCache) return tvGenresCache;
+
+    const response = await fetch(
+      `${TMDB_BASE_URL}/genre/tv/list?language=en-US`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+        next: { revalidate: 86400 }, // Cache for 24 hours
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch TV genres: ${response.status}`);
+    }
+
+    const data = await response.json();
+    tvGenresCache = data.genres;
+    return data.genres;
+  } catch (error) {
+    console.error("Error fetching TV genres:", error);
+    return [];
+  }
+};
+
+// Generate years dynamically (current year to 1950)
+export const getMovieYears = async (): Promise<string[]> => {
+  const currentYear = new Date().getFullYear();
+  const years: string[] = [];
+  for (let year = currentYear; year >= 1950; year--) {
+    years.push(year.toString());
+  }
+  return years;
+};
+
+export const getTVYears = async (): Promise<string[]> => {
+  return getMovieYears(); // Same logic for TV shows
+};
+
+// Get movies from TMDB
 export const getMovies = async (params?: {
   page?: number;
   limit?: number;
@@ -335,45 +486,92 @@ export const getMovies = async (params?: {
   min_votes?: number;
 }) => {
   try {
-    const url = new URL(`${MOVIE_ZONE_API_URL}/movies-only`);
+    const genres = await getMovieGenres();
+    const page = params?.page || 1;
 
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          url.searchParams.append(key, value.toString());
-        }
+    let url: string;
+    
+    // Use search endpoint if search param is provided
+    if (params?.search) {
+      url = `${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(params.search)}&page=${page}&language=en-US`;
+    } else {
+      // Use discover endpoint for filtering
+      const urlParams = new URLSearchParams({
+        language: "en-US",
+        page: page.toString(),
+        include_adult: "false",
       });
+
+      // Sort by
+      if (params?.sort_by) {
+        let tmdbSortBy = "popularity.desc";
+        switch (params.sort_by) {
+          case "title":
+            tmdbSortBy = params.order === "desc" ? "title.desc" : "title.asc";
+            break;
+          case "release_date":
+            tmdbSortBy = params.order === "desc" ? "primary_release_date.desc" : "primary_release_date.asc";
+            break;
+          case "vote_average":
+            tmdbSortBy = params.order === "desc" ? "vote_average.desc" : "vote_average.asc";
+            break;
+          case "popularity":
+            tmdbSortBy = params.order === "desc" ? "popularity.desc" : "popularity.asc";
+            break;
+        }
+        urlParams.set("sort_by", tmdbSortBy);
+      } else {
+        urlParams.set("sort_by", "popularity.desc");
+      }
+
+      // Genre filter
+      if (params?.genre && params.genre !== "all") {
+        const genreObj = genres.find(g => g.name.toLowerCase() === params.genre?.toLowerCase());
+        if (genreObj) {
+          urlParams.set("with_genres", genreObj.id.toString());
+        }
+      }
+
+      // Year filter
+      if (params?.year) {
+        urlParams.set("primary_release_year", params.year.toString());
+      }
+
+      // Min rating filter
+      if (params?.min_rating) {
+        urlParams.set("vote_average.gte", params.min_rating.toString());
+      }
+
+      url = `${TMDB_BASE_URL}/discover/movie?${urlParams.toString()}`;
     }
 
-    // Get token from localStorage for client-side requests
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : "";
-
-    const headers: Record<string, string> = {
-      accept: "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: "GET",
-      headers,
-      next: { revalidate: 1800 }, // Cache for 30 minutes (movies data changes less frequently)
+      headers: tmdbHeaders,
+      next: { revalidate: 1800 }, // Cache for 30 minutes
     });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch movies: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    const movies = data.results.map((movie: TMDBMovie) => convertTMDBMovieToLocal(movie, genres));
+
+    return {
+      movies,
+      content: movies,
+      totalMovies: data.total_results,
+      totalPages: data.total_pages,
+      currentPage: data.page,
+    };
   } catch (error) {
     console.error("Error fetching movies:", error);
     return null;
   }
 };
 
+// Get TV shows from TMDB
 export const getTVShows = async (params?: {
   page?: number;
   limit?: number;
@@ -391,45 +589,92 @@ export const getTVShows = async (params?: {
   country?: string;
 }) => {
   try {
-    const url = new URL(`${MOVIE_ZONE_API_URL}/tvshows-only`);
+    const genres = await getTVGenres();
+    const page = params?.page || 1;
 
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          url.searchParams.append(key, value.toString());
-        }
+    let url: string;
+    
+    // Use search endpoint if search param is provided
+    if (params?.search) {
+      url = `${TMDB_BASE_URL}/search/tv?query=${encodeURIComponent(params.search)}&page=${page}&language=en-US`;
+    } else {
+      // Use discover endpoint for filtering
+      const urlParams = new URLSearchParams({
+        language: "en-US",
+        page: page.toString(),
+        include_adult: "false",
       });
+
+      // Sort by
+      if (params?.sort_by) {
+        let tmdbSortBy = "popularity.desc";
+        switch (params.sort_by) {
+          case "name":
+            tmdbSortBy = params.order === "desc" ? "name.desc" : "name.asc";
+            break;
+          case "first_air_date":
+            tmdbSortBy = params.order === "desc" ? "first_air_date.desc" : "first_air_date.asc";
+            break;
+          case "vote_average":
+            tmdbSortBy = params.order === "desc" ? "vote_average.desc" : "vote_average.asc";
+            break;
+          case "popularity":
+            tmdbSortBy = params.order === "desc" ? "popularity.desc" : "popularity.asc";
+            break;
+        }
+        urlParams.set("sort_by", tmdbSortBy);
+      } else {
+        urlParams.set("sort_by", "popularity.desc");
+      }
+
+      // Genre filter
+      if (params?.genre && params.genre !== "all") {
+        const genreObj = genres.find(g => g.name.toLowerCase() === params.genre?.toLowerCase());
+        if (genreObj) {
+          urlParams.set("with_genres", genreObj.id.toString());
+        }
+      }
+
+      // Year filter
+      if (params?.year) {
+        urlParams.set("first_air_date_year", params.year.toString());
+      }
+
+      // Min rating filter
+      if (params?.min_rating) {
+        urlParams.set("vote_average.gte", params.min_rating.toString());
+      }
+
+      url = `${TMDB_BASE_URL}/discover/tv?${urlParams.toString()}`;
     }
 
-    // Get token from localStorage for client-side requests
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : "";
-
-    const headers: Record<string, string> = {
-      accept: "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: "GET",
-      headers,
-      next: { revalidate: 1800 }, // Cache for 30 minutes (TV shows data changes less frequently)
+      headers: tmdbHeaders,
+      next: { revalidate: 1800 }, // Cache for 30 minutes
     });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch TV shows: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    const tvShows = data.results.map((show: TMDBTVShow) => convertTMDBTVShowToLocal(show, genres));
+
+    return {
+      tvShows,
+      content: tvShows,
+      totalShows: data.total_results,
+      totalPages: data.total_pages,
+      currentPage: data.page,
+    };
   } catch (error) {
     console.error("Error fetching TV shows:", error);
     return null;
   }
 };
 
+// Get all content (movies + TV shows) from TMDB
 export const getAllContent = async (params?: {
   page?: number;
   limit?: number;
@@ -448,158 +693,43 @@ export const getAllContent = async (params?: {
   type?: "movie" | "tv";
 }) => {
   try {
-    const url = new URL(`${MOVIE_ZONE_API_URL}/movies`);
-
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          url.searchParams.append(key, value.toString());
-        }
-      });
+    // Extract type and country, pass remaining params
+    const { type, country, ...baseParams } = params || {};
+    
+    if (type === "movie") {
+      const result = await getMovies(baseParams);
+      return result;
+    } else if (type === "tv") {
+      const result = await getTVShows({ ...baseParams, country });
+      return result;
     }
 
-    // Get token from localStorage for client-side requests
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : "";
+    // If no type specified, fetch both and combine
+    const [moviesResult, tvShowsResult] = await Promise.all([
+      getMovies({ ...baseParams, page: 1 }),
+      getTVShows({ ...baseParams, country, page: 1 }),
+    ]);
 
-    const headers: Record<string, string> = {
-      accept: "application/json",
+    const movies = moviesResult?.content || [];
+    const tvShows = tvShowsResult?.content || [];
+
+    // Combine and sort by popularity
+    const combined = [...movies, ...tvShows].sort((a, b) => 
+      (b.popularity || 0) - (a.popularity || 0)
+    );
+
+    return {
+      content: combined,
+      movies,
+      tvShows,
+      totalResults: (moviesResult?.totalMovies || 0) + (tvShowsResult?.totalShows || 0),
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      headers,
-      next: { revalidate: 1800 }, // Cache for 30 minutes (content data changes less frequently)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch content: ${response.status}`);
-    }
-
-    return await response.json();
   } catch (error) {
     console.error("Error fetching content:", error);
     return null;
   }
 };
 
-// Get movie filters from backend
-export const getMovieFilters = async () => {
-  try {
-    const response = await fetch(`${MOVIE_ZONE_API_URL}/filters/movies`, {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-      },
-      next: { revalidate: 7200 }, // Cache for 2 hours (filters rarely change)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch movie filters: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching movie filters:", error);
-    return null;
-  }
-};
-
-// Get TV show filters from backend
-export const getTVFilters = async () => {
-  try {
-    const response = await fetch(`${MOVIE_ZONE_API_URL}/filters/tvshows`, {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-      },
-      next: { revalidate: 7200 }, // Cache for 2 hours (filters rarely change)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch TV filters: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching TV filters:", error);
-    return null;
-  }
-};
-
-// Get movie genres from backend (for compatibility)
-export const getMovieGenres = async () => {
-  try {
-    const filtersData = await getMovieFilters();
-    if (filtersData && filtersData.success) {
-      // Convert backend genre format to the expected format
-      return filtersData.filters.genres.map(
-        (genre: BackendGenre, index: number) => ({
-          id: index + 1, // Generate ID since backend doesn't provide it
-          name: genre.name,
-        })
-      );
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching movie genres:", error);
-    return [];
-  }
-};
-
-// Get TV show genres from backend (for compatibility)
-export const getTVGenres = async () => {
-  try {
-    const filtersData = await getTVFilters();
-    if (filtersData && filtersData.success) {
-      // Convert backend genre format to the expected format
-      return filtersData.filters.genres.map(
-        (genre: BackendGenre, index: number) => ({
-          id: index + 1, // Generate ID since backend doesn't provide it
-          name: genre.name,
-        })
-      );
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching TV genres:", error);
-    return [];
-  }
-};
-
-// Get movie years from backend
-export const getMovieYears = async () => {
-  try {
-    const filtersData = await getMovieFilters();
-    if (filtersData && filtersData.success) {
-      return filtersData.filters.years.map((year: number) => year.toString());
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching movie years:", error);
-    return [];
-  }
-};
-
-// Get TV show years from backend
-export const getTVYears = async () => {
-  try {
-    const filtersData = await getTVFilters();
-    if (filtersData && filtersData.success) {
-      return filtersData.filters.years.map((year: number) => year.toString());
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching TV years:", error);
-    return [];
-  }
-};
 
 // Reviews API functions
 export const getMovieReviews = async (movieId: string): Promise<Review[]> => {

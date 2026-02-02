@@ -15,29 +15,6 @@ import Cast from "@/components/Cast";
 import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
-import { getAllContent } from "@/lib/api";
-
-// API Content Item type
-interface APIContentItem {
-  _id?: string;
-  id: number;
-  type?: string;
-  title?: string;
-  name?: string;
-  original_title?: string;
-  original_name?: string;
-  overview?: string;
-  release_date?: string;
-  first_air_date?: string;
-  genre_names?: string[];
-  poster_url?: string | null;
-  backdrop_url?: string | null;
-  popularity?: number;
-  vote_average?: number;
-  vote_count?: number;
-  original_language?: string;
-  video?: boolean;
-}
 
 type Media = Movie | TVShow;
 
@@ -75,24 +52,6 @@ const convertTMDBToLocal = (tmdbMovie: TMDBMovie): Movie => ({
   video: tmdbMovie.video,
 });
 
-// Convert API data to local format
-const convertAPIToLocal = (apiItem: APIContentItem): Movie => ({
-  _id: apiItem._id,
-  id: apiItem.id,
-  title: apiItem.title || "Unknown Title",
-  original_title: apiItem.original_title || "",
-  overview: apiItem.overview || "",
-  release_date: apiItem.release_date || "",
-  genre_names: apiItem.genre_names || [],
-  poster_url: apiItem.poster_url || null,
-  backdrop_url: apiItem.backdrop_url || null,
-  popularity: apiItem.popularity || 0,
-  vote_average: apiItem.vote_average || 0,
-  vote_count: apiItem.vote_count || 0,
-  original_language: apiItem.original_language || "",
-  video: apiItem.video || false,
-});
-
 export default function MoviePage({ movieId }: { movieId: number }) {
   const id = useMemo(() => {
     return movieId;
@@ -115,29 +74,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
       setIsLoading(true);
 
       try {
-        // First, try to get movie data from our backend API
-        const apiResponse = await getAllContent({
-          page: 1,
-          limit: 50, // Get enough items to find the specific movie
-        });
-
-        // Check if we can find the movie in the API response
-        if (apiResponse && apiResponse.content) {
-          const foundMovie = apiResponse.content.find((m: APIContentItem) => m.id === id && (m.type === "movie" || !m.type));
-
-          if (foundMovie) {
-            const convertedMovie = convertAPIToLocal(foundMovie);
-            setItem(convertedMovie);
-            setIsLoading(false);
-
-            // Track Analytics page view
-            const title = convertedMovie.title || 'Unknown';
-            trackMoviePageView(title, convertedMovie.id);
-            return;
-          }
-        }
-
-        // If not found in our API, try TMDB as fallback
+        // Fetch movie details directly from TMDB
         const options = {
           method: 'GET',
           headers: {
