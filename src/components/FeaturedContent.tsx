@@ -132,7 +132,8 @@ const FeaturedContent = ({
         }
 
         if (response) {
-          const data = type === "movie" ? response.movies : response.tvShows;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const data = type === "movie" ? (response as any).movies : (response as any).tvShows;
           const filtered = data && data.length > 0 ? data : [];
           setFeaturedContent(filtered);
         } else {

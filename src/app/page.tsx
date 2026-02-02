@@ -1,15 +1,11 @@
 "use client";
-import { useAuth } from "@/hooks/useAuth";
 import { useScrollTracking } from "@/hooks/useScrollTracking";
 import Image from "next/image";
 import TrendingNow from "@/components/TrendingNow";
 import FeaturedContent from "@/components/FeaturedContent";
 import GlobalSearch from "@/components/GlobalSearch";
-import Link from "next/link";
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
-
   // Scroll tracking
   useScrollTracking({
     pageName: 'Home Page',
@@ -41,16 +37,9 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8">
-            {!isAuthenticated && (
-                <Link href="/register" className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-white/20 transition-all duration-300 shimmer-effect">
-                  Start Watching
-                </Link>
-            )}
-            {isAuthenticated && (
-              <div className="text-center w-full max-w-[800px] mx-auto relative px-4 z-50">
-                <GlobalSearch className="w-full relative" />
-              </div>
-            )}
+            <div className="text-center w-full max-w-[800px] mx-auto relative px-4 z-50">
+              <GlobalSearch className="w-full relative" />
+            </div>
           </div>
         </header>
       </section>

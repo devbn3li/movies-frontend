@@ -60,13 +60,40 @@ export default function Navbar() {
 
   return (
     <div className="p-4 flex justify-between bg-white items-center border-b dark:border-[#333333] sm:px-20 sticky top-0 dark:bg-black/70 dark:backdrop-blur-md dark:shadow-xl z-50">
-      <Link
-        href="/"
-        className="text-xl font-bold max-sm:ml-8"
-        onClick={() => trackNavigationClick('Logo/Home', '/')}
-      >
-        Movie Zone
-      </Link>
+      <div className="flex items-center gap-8">
+        <Link
+          href="/"
+          className="text-xl font-bold max-sm:ml-8"
+          onClick={() => trackNavigationClick('Logo/Home', '/')}
+        >
+          Movie Zone
+        </Link>
+
+        {/* Navigation Links */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link
+            href="/main-movies"
+            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
+            onClick={() => trackNavigationClick('Movies', '/main-movies')}
+          >
+            Movies
+          </Link>
+          <Link
+            href="/main-series"
+            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
+            onClick={() => trackNavigationClick('Series', '/main-series')}
+          >
+            Series
+          </Link>
+          <Link
+            href="/disclaimer"
+            className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors font-medium"
+            onClick={() => trackNavigationClick('Disclaimer', '/disclaimer')}
+          >
+            Disclaimer
+          </Link>
+        </nav>
+      </div>
 
       <div className="flex items-center gap-4 relative" ref={dropdownRef}>
         <ThemeToggle />

@@ -58,6 +58,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
   }, [movieId]);
   const [item, setItem] = useState<Media | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
 
   // Scroll tracking
   useScrollTracking({
@@ -142,28 +143,81 @@ export default function MoviePage({ movieId }: { movieId: number }) {
 
       {/* 💠 Page Content */}
       <div className="flex flex-col items-center p-6 mt-5">
-        <div className="mb-4">
-          <div className="block md:hidden">
-            <Image
-              src={poster}
-              alt={title}
-              className="object-cover mb-4 aspect-2/3 rounded-2xl h-auto"
-              width={400}
-              height={600}
-            />
-          </div>
-          <div className="hidden md:block">
-            <Image
-              src={backdrop}
-              alt={title}
-              className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
-                ? "aspect-2/3 max-w-md mx-auto"
-                : "aspect-video"
-                }`}
-              width={isUsingPosterAsBackdrop ? 400 : 1080}
-              height={isUsingPosterAsBackdrop ? 600 : 480}
-            />
-          </div>
+        <div className="mb-4 w-full max-w-[1080px]">
+          {isVideoPlayerOpen ? (
+            /* Video Player - Inline Embed */
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl">
+              <iframe
+                src={`https://vidsrc.to/embed/movie/${id}`}
+                className="w-full h-full"
+                allowFullScreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                referrerPolicy="origin"
+                title={title}
+              />
+              {/* Close Button */}
+              <button
+                onClick={() => setIsVideoPlayerOpen(false)}
+                className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors text-white"
+                aria-label="Close video player"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Mobile: Poster with Play Button Overlay */}
+              <div className="block md:hidden relative group cursor-pointer" onClick={() => setIsVideoPlayerOpen(true)}>
+                <Image
+                  src={poster}
+                  alt={title}
+                  className="object-cover mb-4 aspect-2/3 rounded-2xl h-auto mx-auto"
+                  width={400}
+                  height={600}
+                />
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl">
+                  <div className="w-20 h-20 bg-primary/90 rounded-full flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 text-white ml-1">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+                {/* Always visible play icon hint */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center opacity-70 group-hover:opacity-0 transition-opacity duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white ml-1">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: Backdrop with Play Button Overlay */}
+              <div className="hidden md:block relative group cursor-pointer" onClick={() => setIsVideoPlayerOpen(true)}>
+                <Image
+                  src={backdrop}
+                  alt={title}
+                  className={`object-cover mb-4 rounded-2xl shadow-xl ${isUsingPosterAsBackdrop
+                    ? "aspect-2/3 max-w-md mx-auto"
+                    : "aspect-video"
+                    }`}
+                  width={isUsingPosterAsBackdrop ? 400 : 1080}
+                  height={isUsingPosterAsBackdrop ? 600 : 480}
+                />
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl">
+                  <div className="w-24 h-24 bg-primary/90 rounded-full flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-white ml-1">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="max-w-[1080px] w-full border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl mb-10">
