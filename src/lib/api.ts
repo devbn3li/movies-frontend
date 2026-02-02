@@ -731,149 +731,54 @@ export const getAllContent = async (params?: {
 };
 
 
-// Reviews API functions
-export const getMovieReviews = async (movieId: string): Promise<Review[]> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {};
+// TMDB Reviews Types
+export interface TMDBReview {
+  author: string;
+  author_details: {
+    name: string;
+    username: string;
+    avatar_path: string | null;
+    rating: number | null;
+  };
+  content: string;
+  created_at: string;
+  id: string;
+  updated_at: string;
+  url: string;
+}
 
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
+export interface TMDBReviewsResponse {
+  id: number;
+  page: number;
+  results: TMDBReview[];
+  total_pages: number;
+  total_results: number;
+}
+
+// Get reviews from TMDB
+export const getTMDBReviews = async (
+  id: number,
+  mediaType: "movie" | "tv",
+  page: number = 1
+): Promise<TMDBReviewsResponse | null> => {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/${mediaType}/${id}/reviews?language=en-US&page=${page}`,
+      {
+        method: "GET",
+        headers: tmdbHeaders,
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch reviews: ${response.status}`);
     }
 
-    const response = await axios.get(`/reviews/${movieId}`, { headers });
-    return response.data;
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching movie reviews:", error);
-    return [];
+    console.error("Error fetching TMDB reviews:", error);
+    return null;
   }
 };
 
-export const getSeriesReviews = async (seriesId: string): Promise<Review[]> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {};
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.get(`/reviews/${seriesId}`, { headers });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching series reviews:", error);
-    return [];
-  }
-};
-
-export const addMovieReview = async (
-  movieId: string,
-  reviewData: ReviewInput
-): Promise<ReviewResponse> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.post(`/reviews/${movieId}`, reviewData, {
-      headers,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error adding movie review:", error);
-    throw error;
-  }
-};
-
-export const addSeriesReview = async (
-  seriesId: string,
-  reviewData: ReviewInput
-): Promise<ReviewResponse> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.post(`/reviews/${seriesId}`, reviewData, {
-      headers,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error adding series review:", error);
-    throw error;
-  }
-};
-
-export const updateReview = async (
-  movieId: string,
-  reviewData: ReviewUpdateInput
-): Promise<ReviewResponse> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.put(`/reviews/${movieId}`, reviewData, {
-      headers,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error updating review:", error);
-    throw error;
-  }
-};
-
-export const deleteReview = async (
-  movieId: string
-): Promise<{ message: string }> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {};
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.delete(`/reviews/${movieId}`, { headers });
-    return response.data;
-  } catch (error) {
-    console.error("Error deleting review:", error);
-    throw error;
-  }
-};
-
-export const getReviewStats = async (movieId: string): Promise<ReviewStats> => {
-  try {
-    const token = getToken();
-    const headers: Record<string, string> = {};
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.get(`/reviews/${movieId}/stats`, { headers });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching review stats:", error);
-    return {
-      totalReviews: 0,
-      averageRating: 0,
-      ratingDistribution: {},
-    };
-  }
-};
