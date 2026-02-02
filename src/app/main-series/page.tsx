@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,6 +21,7 @@ function TVShowsContent() {
   const searchParams = useSearchParams();
   const [tvShows, setTvShows] = useState<TVShow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -37,7 +30,12 @@ function TVShowsContent() {
   const [totalShows, setTotalShows] = useState(0);
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [hasMore, setHasMore] = useState(true);
   const { isAdmin } = useAuth();
+
+  // Ref for infinite scroll observer
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -76,69 +74,75 @@ function TVShowsContent() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Build params helper
+  const buildParams = useCallback((pageNum: number) => {
+    const params: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      genre?: string;
+      year?: number;
+      sort_by?: string;
+      order?: string;
+      country?: string;
+    } = {
+      page: pageNum,
+      limit: ITEMS_PER_PAGE,
+    };
+
+    if (debouncedSearch.trim()) {
+      params.search = debouncedSearch.trim();
+    }
+
+    if (filters.genre && filters.genre !== "all") {
+      params.genre = filters.genre;
+    }
+
+    if (filters.year && filters.year !== "all") {
+      params.year = parseInt(filters.year);
+    }
+
+    if (filters.sortBy && filters.sortBy !== "default") {
+      switch (filters.sortBy) {
+        case "title":
+          params.sort_by = "name";
+          params.order = "asc";
+          break;
+        case "release_date":
+          params.sort_by = "first_air_date";
+          params.order = "desc";
+          break;
+        case "rating":
+          params.sort_by = "vote_average";
+          params.order = "desc";
+          break;
+        case "popularity":
+          params.sort_by = "popularity";
+          params.order = "desc";
+          break;
+      }
+    }
+
+    return params;
+  }, [debouncedSearch, filters]);
+
+  // Initial load and filter/search changes
   useEffect(() => {
-    // تحميل المسلسلات عندما تتغير الفلاتر أو البحث
     const loadData = async () => {
       try {
         setIsLoading(true);
+        setPage(1);
+        setHasMore(true);
 
-        const params: {
-          page?: number;
-          limit?: number;
-          search?: string;
-          genre?: string;
-          year?: number;
-          sort_by?: string;
-          order?: string;
-          country?: string;
-        } = {
-          page: 1,
-          limit: ITEMS_PER_PAGE,
-        };
-
-        // Add search parameter
-        if (debouncedSearch.trim()) {
-          params.search = debouncedSearch.trim();
-        }
-
-        // Add filter parameters
-        if (filters.genre && filters.genre !== "all") {
-          params.genre = filters.genre;
-        }
-
-        if (filters.year && filters.year !== "all") {
-          params.year = parseInt(filters.year);
-        }
-
-        if (filters.sortBy && filters.sortBy !== "default") {
-          switch (filters.sortBy) {
-            case "title":
-              params.sort_by = "name";
-              params.order = "asc";
-              break;
-            case "release_date":
-              params.sort_by = "first_air_date";
-              params.order = "desc";
-              break;
-            case "rating":
-              params.sort_by = "vote_average";
-              params.order = "desc";
-              break;
-            case "popularity":
-              params.sort_by = "popularity";
-              params.order = "desc";
-              break;
-          }
-        }
-
+        const params = buildParams(1);
         const response = await getTVShows(params);
 
         if (response) {
           setTvShows(response.tvShows || []);
           setTotalPages(response.totalPages || 0);
           setTotalShows(response.totalShows || 0);
+          setHasMore((response.totalPages || 0) > 1);
         }
-        setPage(1);
       } catch (error) {
         console.error('Error loading TV shows:', error);
         setTvShows([]);
@@ -152,79 +156,59 @@ function TVShowsContent() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [filters, debouncedSearch, isAdmin]);
+  }, [filters, debouncedSearch, isAdmin, buildParams]);
+
+  // Load more function
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore || isLoading) return;
+
+    try {
+      setIsLoadingMore(true);
+      const nextPage = page + 1;
+
+      const params = buildParams(nextPage);
+      const response = await getTVShows(params);
+
+      if (response && response.tvShows) {
+        setTvShows(prev => [...prev, ...response.tvShows]);
+        setPage(nextPage);
+        setHasMore(nextPage < (response.totalPages || 0));
+      }
+    } catch (error) {
+      console.error('Error loading more TV shows:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [page, isLoadingMore, hasMore, isLoading, buildParams]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoadingMore, isLoading, loadMore]);
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
-  };
-
-  const handlePageChange = async (newPage: number) => {
-    try {
-      setIsLoading(true);
-      setPage(newPage);
-
-      const params: {
-        page?: number;
-        limit?: number;
-        search?: string;
-        genre?: string;
-        year?: number;
-        sort_by?: string;
-        order?: string;
-        country?: string;
-      } = {
-        page: newPage,
-        limit: ITEMS_PER_PAGE,
-      };
-
-      // Add search parameter
-      if (debouncedSearch.trim()) {
-        params.search = debouncedSearch.trim();
-      }
-
-      // Add filter parameters
-      if (filters.genre && filters.genre !== "all") {
-        params.genre = filters.genre;
-      }
-
-      if (filters.year && filters.year !== "all") {
-        params.year = parseInt(filters.year);
-      }
-
-      if (filters.sortBy && filters.sortBy !== "default") {
-        switch (filters.sortBy) {
-          case "title":
-            params.sort_by = "name";
-            params.order = "asc";
-            break;
-          case "release_date":
-            params.sort_by = "first_air_date";
-            params.order = "desc";
-            break;
-          case "rating":
-            params.sort_by = "vote_average";
-            params.order = "desc";
-            break;
-          case "popularity":
-            params.sort_by = "popularity";
-            params.order = "desc";
-            break;
-        }
-      }
-
-      const response = await getTVShows(params);
-
-      if (response) {
-        setTvShows(response.tvShows || []);
-        setTotalPages(response.totalPages || 0);
-        setTotalShows(response.totalShows || 0);
-      }
-    } catch (error) {
-      console.error('Error loading TV shows:', error);
-      setTvShows([]);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Extract genres and years from available filters
@@ -265,72 +249,31 @@ function TVShowsContent() {
       </div>
 
       <CardsGrid items={tvShows} isLoading={isLoading} />
-      {!isLoading && totalPages > 1 && (
-        <div className="flex justify-center w-full mt-8">
-          <Pagination className="w-full max-w-3xl">
-            <PaginationContent>
-              {page > 1 && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const newPage = page - 1;
-                      handlePageChange(newPage);
-                    }}
-                  />
-                </PaginationItem>
-              )}
-              {Array.from({ length: totalPages }).map((_, idx) => {
-                const pageNum = idx + 1;
-                const shouldShow =
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  Math.abs(pageNum - page) <= 1;
-                const isEllipsisBefore = pageNum === page - 2 && pageNum !== 1;
-                const isEllipsisAfter = pageNum === page + 2 && pageNum !== totalPages;
 
-                if (isEllipsisBefore || isEllipsisAfter) {
-                  return (
-                    <PaginationItem key={`ellipsis-${pageNum}`}>
-                      <span className="text-gray-500 px-2">...</span>
-                    </PaginationItem>
-                  );
-                }
-
-                if (!shouldShow) return null;
-
-                return (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      href="#"
-                      isActive={page === pageNum}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handlePageChange(pageNum);
-                      }}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-              {page < totalPages && (
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const newPage = page + 1;
-                      handlePageChange(newPage);
-                    }}
-                  />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
+      {/* Loading More Skeletons */}
+      {isLoadingMore && (
+        <div className="w-full flex justify-center">
+          <div
+            className="grid justify-center sm:px-20"
+            style={{
+              gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
+              width: "100%",
+            }}
+          >
+            {Array.from({ length: 12 }).map((_, index) => (
+              <div
+                key={`skeleton-more-${index}`}
+                className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
+              >
+                <Skeleton className="rounded-2xl h-[345px] w-[230px] mb-2" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Load More Trigger */}
+      <div ref={loadMoreRef} className="w-full py-4" />
 
       {!isLoading && tvShows.length === 0 && (
         <div className="flex justify-center items-center h-32">

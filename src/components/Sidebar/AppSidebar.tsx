@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { getMovieGenres, getTVGenres } from "@/lib/api";
 import { Genre } from "@/types/index";
 import { useQuery } from '@tanstack/react-query';
+import { CiWarning } from "react-icons/ci";
 
 import {
   Sidebar,
@@ -37,6 +38,11 @@ const items = [
     title: "TV Shows",
     url: "/main-series",
     icon: MdLiveTv,
+  },
+  {
+    title: "Disclaimer",
+    url: "/disclaimer",
+    icon: CiWarning,
   },
 ]
 
