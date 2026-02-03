@@ -177,6 +177,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
+            "@id": `https://moviezone-inky.vercel.app/series/${seriesId}`,
             "@context": "https://schema.org",
             "@type": "TVSeries",
             name: title,
@@ -206,7 +207,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
               name: "Movie Zone",
               url: "https://moviezone-inky.vercel.app",
             },
-          }),
+          }).replace(/</g, '\\u003c'),
         }}
       />
 

@@ -125,8 +125,52 @@ export default function MoviePage({ movieId }: { movieId: number }) {
   // Check if we're using poster as backdrop (no backdrop available)
   const isUsingPosterAsBackdrop = !item.backdrop_url && item.poster_url;
 
+  // JSON-LD structured data for SEO
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Movie",
+    "@id": `https://moviezone-inky.vercel.app/movie/${id}`,
+    name: title,
+    alternateName: original_title !== title ? original_title : undefined,
+    description: item.overview,
+    image: [poster, backdrop].filter(Boolean),
+    datePublished: rDate,
+    genre: item.genre_names,
+    inLanguage: item.original_language,
+    aggregateRating: item.vote_average && item.vote_count ? {
+      "@type": "AggregateRating",
+      ratingValue: item.vote_average,
+      bestRating: 10,
+      worstRating: 0,
+      ratingCount: item.vote_count
+    } : undefined,
+    url: `https://moviezone-inky.vercel.app/movie/${id}`,
+    potentialAction: {
+      "@type": "WatchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `https://moviezone-inky.vercel.app/movie/${id}`
+      }
+    },
+    provider: {
+      "@type": "Organization",
+      name: "Movie Zone",
+      url: "https://moviezone-inky.vercel.app"
+    }
+  };
+
+  // Clean undefined values
+  const cleanJsonLd = JSON.parse(JSON.stringify(jsonLd));
+
   return (
     <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
+      {/* JSON-LD for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(cleanJsonLd).replace(/</g, '\\u003c')
+        }}
+      />
       {/* 💠 Dynamic Background Blur */}
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat bg-fixed blur-2xl opacity-30"

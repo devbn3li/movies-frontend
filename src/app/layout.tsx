@@ -117,27 +117,6 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-  other: {
-    "application/ld+json": JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "Movie Zone",
-      description:
-        "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-      url: "https://moviezone-inky.vercel.app/",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: "https://moviezone-inky.vercel.app/search?q={search_term_string}",
-        "query-input": "required name=search_term_string",
-      },
-      publisher: {
-        "@type": "Organization",
-        name: "Movie Zone",
-        url: "https://moviezone-inky.vercel.app/",
-        logo: "https://moviezone-inky.vercel.app/logo.png",
-      },
-    }),
-  },
 };
 
 export default function RootLayout({
@@ -184,6 +163,46 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
         suppressHydrationWarning={true}
       >
+        {/* JSON-LD Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": "https://moviezone-inky.vercel.app/#website",
+                  name: "Movie Zone",
+                  url: "https://moviezone-inky.vercel.app/",
+                  description: "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
+                  inLanguage: ["en", "ar"],
+                  potentialAction: {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: "https://moviezone-inky.vercel.app/search?q={search_term_string}"
+                    },
+                    "query-input": "required name=search_term_string"
+                  }
+                },
+                {
+                  "@type": "Organization",
+                  "@id": "https://moviezone-inky.vercel.app/#organization",
+                  name: "Movie Zone",
+                  url: "https://moviezone-inky.vercel.app/",
+                  logo: {
+                    "@type": "ImageObject",
+                    url: "https://moviezone-inky.vercel.app/logo.png"
+                  },
+                  sameAs: [
+                    "https://github.com/devbn3li/"
+                  ]
+                }
+              ]
+            }).replace(/</g, '\\u003c')
+          }}
+        />
         <QueryProvider>
           <ThemeProvider
             attribute="class"
