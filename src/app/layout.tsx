@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Sidebar/AppSidebar";
 import Script from "next/script";
 import RouteTracker from "@/components/Analytics";
+import UserBehaviorTracker from "@/components/UserBehaviorTracker";
 import { Toaster } from 'react-hot-toast';
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
@@ -147,7 +148,7 @@ export default function RootLayout({
         <meta name="google-site-verification" content="googleeefc2203045cdc48" />
         <meta httpEquiv="content-language" content="en,ar" />
 
-        {/* Google Analytics */}
+        {/* Google Analytics - Enhanced Configuration */}
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-SHSM2HT143"
@@ -160,7 +161,28 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-SHSM2HT143');
+              gtag('config', 'G-SHSM2HT143', {
+                page_path: window.location.pathname,
+                send_page_view: true,
+                // Enhanced measurement
+                enhanced_link_attribution: true,
+                // User engagement tracking
+                engagement_time_msec: true,
+                // Scroll tracking
+                scroll_tracking: true,
+                // Outbound clicks
+                outbound_click_tracking: true,
+                // Site search tracking
+                site_search: true,
+                // Video engagement
+                video_engagement: true,
+                // File downloads
+                file_download: true,
+                // Form interactions
+                form_interactions: true,
+                // Debug mode (remove in production if needed)
+                debug_mode: false
+              });
             `,
           }}
         />
@@ -239,6 +261,9 @@ export default function RootLayout({
 
         {/* Google Analytics Route Tracker */}
         <RouteTracker />
+        
+        {/* Enhanced User Behavior Tracking */}
+        <UserBehaviorTracker />
 
         <Analytics />
         <SpeedInsights />
