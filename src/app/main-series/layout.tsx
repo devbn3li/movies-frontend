@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Free TV Shows & Series - Stream Online | Movie Zone",
   description:
-    "Watch thousands of free TV shows and series online. Stream the latest episodes, classic series, drama, comedy, action, sci-fi and more. HD streaming without ads. مشاهدة مسلسلات اون لاين مترجمة بجودة عالية - موفي زون",
+    "Watch thousands of free TV shows and series online. Stream the latest episodes, classic series, drama, comedy, action, sci-fi and more. HD streaming without ads.",
   keywords: [
     // English keywords
     "free tv shows",
@@ -33,6 +33,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: "https://moviezone-inky.vercel.app/main-series",
+    languages: {
+      "en": "https://moviezone-inky.vercel.app/main-series",
+      "ar": "https://moviezone-inky.vercel.app/main-series",
+      "x-default": "https://moviezone-inky.vercel.app/main-series",
+    },
   },
   openGraph: {
     title: "Free TV Shows & Series - Stream Online | Movie Zone",

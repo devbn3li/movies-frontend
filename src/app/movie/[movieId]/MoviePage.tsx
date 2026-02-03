@@ -187,7 +187,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
 
       {/* 💠 Page Content */}
       <div className="flex flex-col items-center p-6 mt-5">
-        <div className="mb-4 w-full max-w-[1080px]">
+        <div className="mb-4 w-full max-w-270">
           {isVideoPlayerOpen ? (
             /* Video Player - Inline Embed */
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl">

@@ -42,6 +42,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: "https://moviezone-inky.vercel.app/main-movies",
+    languages: {
+      "en": "https://moviezone-inky.vercel.app/main-movies",
+      "ar": "https://moviezone-inky.vercel.app/main-movies",
+      "x-default": "https://moviezone-inky.vercel.app/main-movies",
+    },
   },
   openGraph: {
     title: "Free Movies - Stream Latest Movies Online | Movie Zone",

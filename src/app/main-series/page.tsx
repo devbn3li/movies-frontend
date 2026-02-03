@@ -8,7 +8,6 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TVShow } from "@/types/index";
 import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
-import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
 import { getTVShows, getTVGenres, getTVYears } from "@/lib/api";
@@ -217,6 +216,7 @@ function TVShowsContent() {
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
+      <h1 className="font-bold text-4xl mb-4 sm:mx-25">Watch best TV series</h1>
       <div className="flex w-full justify-center items-center mb-4">
         <Input
           placeholder="Search TV shows..."
@@ -239,13 +239,6 @@ function TVShowsContent() {
           disabled={isLoading}
           initialFilters={filters}
         />
-
-        <ResultsCount
-          total={totalShows}
-          filtered={tvShows.length}
-          isLoading={isLoading}
-          itemType="series"
-        />
       </div>
 
       <CardsGrid items={tvShows} isLoading={isLoading} />
@@ -265,7 +258,7 @@ function TVShowsContent() {
                 key={`skeleton-more-${index}`}
                 className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
               >
-                <Skeleton className="rounded-2xl h-[345px] w-[230px] mb-2" />
+                <Skeleton className="rounded-2xl h-86.25 w-57.5 mb-2" />
               </div>
             ))}
           </div>
@@ -338,7 +331,7 @@ function CardsGrid({
               key={`skeleton-${index}`}
               className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
             >
-              <Skeleton className="rounded-2xl h-[345px] w-[230px] mb-2" />
+              <Skeleton className="rounded-2xl h-86.25 w-57.5 mb-2" />
             </div>
           ))}
         </div>

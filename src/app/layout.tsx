@@ -77,7 +77,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Mohamed Ali", url: "https://github.com/devbn3li/" }],
   alternates: {
-    canonical: "https://moviezone-inky.vercel.app/",
+    canonical: "https://moviezone-inky.vercel.app",
+    languages: {
+      "en": "https://moviezone-inky.vercel.app",
+      "ar": "https://moviezone-inky.vercel.app",
+      "x-default": "https://moviezone-inky.vercel.app",
+    },
   },
   robots: {
     index: true,
@@ -94,7 +99,7 @@ export const metadata: Metadata = {
     title: "Movie Zone - Watch Free Movies & TV Shows Online",
     description:
       "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
-    url: "https://moviezone-inky.vercel.app/",
+    url: "https://moviezone-inky.vercel.app",
     type: "website",
     siteName: "Movie Zone",
     images: [
@@ -113,6 +118,7 @@ export const metadata: Metadata = {
       "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series without ads or interruptions.",
     images: ["https://moviezone-inky.vercel.app/og-image.png"],
     creator: "@devbn3li",
+    site: "@devbn3li",
   },
   icons: {
     icon: "/favicon.ico",

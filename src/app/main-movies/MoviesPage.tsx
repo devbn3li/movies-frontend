@@ -8,7 +8,6 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Movie } from "@/types/index";
 import FilterBar, { FilterOptions } from "@/components/common/FilterBar/FilterBar";
-import ResultsCount from "@/components/common/ResultsCount/ResultsCount";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactTrailer } from "@/components/Trailer";
 import { getMovies, getMovieGenres, getMovieYears } from "@/lib/api";
@@ -216,6 +215,7 @@ function MoviesContent() {
 
   return (
     <div className="p-5 sm:px-20 pb-20 flex flex-col pt-15">
+      <h1 className="font-bold text-4xl mb-4 sm:mx-25">Watch best Movies</h1>
       <div className="flex w-full justify-center items-center mb-4">
         <Input
           placeholder="Search movies..."
@@ -237,13 +237,6 @@ function MoviesContent() {
           years={years}
           disabled={isLoading}
           initialFilters={filters}
-        />
-
-        <ResultsCount
-          total={totalMovies}
-          filtered={movies.length}
-          isLoading={isLoading}
-          itemType="movies"
         />
       </div>
 
