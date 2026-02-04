@@ -14,6 +14,8 @@ export interface AdminUser {
   followersCount: number;
   createdAt: string;
   updatedAt: string;
+  verificationReminderSent?: boolean;
+  accountDeletionDate?: string;
   settings: {
     showAdultContent: boolean;
   };

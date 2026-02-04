@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { AdminUser } from "@/types/admin";
-import { Shield, Mail, MapPin, Users, Calendar, Trash2 } from "lucide-react";
+import { Shield, Mail, MapPin, Users, Calendar, Trash2, Send } from "lucide-react";
 
 interface UserCardProps {
   user: AdminUser;
@@ -9,6 +9,7 @@ interface UserCardProps {
   onViewContent: (user: AdminUser) => void;
   onToggleAdmin: (user: AdminUser) => void;
   onDelete: (user: AdminUser) => void;
+  onSendReminder: (user: AdminUser) => void;
 }
 
 export default function UserCard({
@@ -17,6 +18,7 @@ export default function UserCard({
   onViewContent,
   onToggleAdmin,
   onDelete,
+  onSendReminder,
 }: UserCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -63,8 +65,26 @@ export default function UserCard({
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <Mail size={14} />
           <span className="truncate">{user.email}</span>
-          {user.isEmailVerified && (
+          {user.isEmailVerified ? (
             <span className="text-green-500 text-xs">✓</span>
+          ) : user.verificationReminderSent ? (
+            <button
+              onClick={() => onSendReminder(user)}
+              className="ml-auto flex items-center gap-1 px-2 py-0.5 text-xs bg-gray-500/20 text-gray-400 rounded hover:bg-orange-500/20 hover:text-orange-400 transition-colors"
+              title="Reminder already sent. Click to resend."
+            >
+              <Send size={10} />
+              Sent ↻
+            </button>
+          ) : (
+            <button
+              onClick={() => onSendReminder(user)}
+              className="ml-auto flex items-center gap-1 px-2 py-0.5 text-xs bg-orange-500/20 text-orange-400 rounded hover:bg-orange-500/30 transition-colors"
+              title="Send verification reminder"
+            >
+              <Send size={10} />
+              Remind
+            </button>
           )}
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-400">

@@ -11,7 +11,7 @@ import {
   SearchBar,
   AdminPagination,
 } from "@/components/admin";
-import { Users, Shield, Loader2 } from "lucide-react";
+import { Users, Shield, Loader2, Mail } from "lucide-react";
 
 const USERS_PER_PAGE = 12;
 
@@ -166,6 +166,68 @@ const DashboardPage = () => {
     }
   };
 
+  const handleSendReminder = async (user: AdminUser) => {
+    if (user.isEmailVerified) {
+      alert("This user's email is already verified.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/send-verification-reminder/${user._id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Update local state to show reminder was sent
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === user._id ? { ...u, verificationReminderSent: true } : u
+        )
+      );
+
+      alert(`Verification reminder sent to ${user.email}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to send reminder");
+    }
+  };
+
+  const handleSendAllReminders = async () => {
+    const unverifiedCount = users.filter((u) => !u.isEmailVerified).length;
+
+    if (unverifiedCount === 0) {
+      alert("All users on this page have verified emails.");
+      return;
+    }
+
+    const confirmed = confirm(
+      `Send verification reminders to ALL unverified users?\n\nThis will send emails to all users who haven't verified their email yet.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/send-verification-reminders`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert(
+        `Reminders sent!\n\nSent: ${res.data.sent}\nFailed: ${res.data.failed}\nTotal Unverified: ${res.data.totalUnverified}`
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to send reminders");
+    }
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -191,7 +253,7 @@ const DashboardPage = () => {
 
       {/* Stats Cards */}
       <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white">
+        <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm">Total Users</p>
@@ -201,7 +263,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-5 text-white">
+        <div className="bg-linear-to-r from-amber-500 to-amber-600 rounded-xl p-5 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-amber-100 text-sm">Admin Users</p>
@@ -213,7 +275,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-5 text-white">
+        <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl p-5 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Total Pages</p>
@@ -224,13 +286,22 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-6 max-w-md">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search users by name, email, or username..."
-        />
+      {/* Search Bar and Actions */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="max-w-md w-full">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search users by name, email, or username..."
+          />
+        </div>
+        <button
+          onClick={handleSendAllReminders}
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+        >
+          <Mail size={16} />
+          Send All Reminders
+        </button>
       </div>
 
       {/* Users Grid */}
@@ -264,6 +335,7 @@ const DashboardPage = () => {
                 onViewContent={handleViewContent}
                 onToggleAdmin={handleToggleAdmin}
                 onDelete={handleDeleteUser}
+                onSendReminder={handleSendReminder}
               />
             ))}
           </div>
