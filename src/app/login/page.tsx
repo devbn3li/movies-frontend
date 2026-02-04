@@ -17,7 +17,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
+
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, { email, password });
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
       // Check if email verification is required
       if (err.response?.data?.requiresVerification) {
         localStorage.setItem("pendingUserId", err.response.data.userId);
-        
+
         const goToVerification = confirm("Please verify your email first. Would you like to verify now?");
         if (goToVerification) {
           router.push("/verify-email");
@@ -66,7 +66,15 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <Button 
+        <div className="flex justify-end mb-3">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-blue-500 hover:text-blue-400 underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+        <Button
           className="w-full py-2 border"
           disabled={loading}
         >
