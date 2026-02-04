@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/lib/slug-utils";
 
 const BASE_URL = "https://moviezone-inky.vercel.app";
-const CHUNK_SIZE = 500; // URLs per sitemap
 const PAGES_PER_CHUNK = 25; // 20 results per page = 500 series
 
 type TMDBTVShow = {
@@ -13,7 +12,6 @@ type TMDBTVShow = {
 
 async function getSeriesForChunk(chunkId: number): Promise<TMDBTVShow[]> {
   const startPage = (chunkId - 1) * PAGES_PER_CHUNK + 1;
-  const endPage = startPage + PAGES_PER_CHUNK - 1;
 
   try {
     const options = {
@@ -22,7 +20,7 @@ async function getSeriesForChunk(chunkId: number): Promise<TMDBTVShow[]> {
         accept: "application/json",
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`,
       },
-      next: { revalidate: 86400 } as RequestInit["next"], // Cache for 24 hours
+      next: { revalidate: 86400 } as RequestInit["next"],
     };
 
     const pages = Array.from(
@@ -57,10 +55,12 @@ async function getSeriesForChunk(chunkId: number): Promise<TMDBTVShow[]> {
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<Record<string, string>> },
+  context: { params: Promise<{ id: string }> },
 ) {
-  const { id } = (await context.params) as { id: string };
-  const chunkId = parseInt(id);
+  const { id } = await context.params;
+  // Remove .xml extension if present
+  const cleanId = id.replace(/\.xml$/, "");
+  const chunkId = parseInt(cleanId);
 
   if (isNaN(chunkId) || chunkId < 1) {
     return new NextResponse("Invalid sitemap ID", { status: 400 });
