@@ -1,14 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EmailStep, VerifyCodeStep, NewPasswordStep } from "@/components/forgot-password";
+import { useAuth } from "@/hooks/useAuth";
 
 type Step = "email" | "verify" | "reset";
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
+  const { isAuthenticated, mounted } = useAuth();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
+
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (mounted && isAuthenticated) {
+      router.replace("/");
+    }
+  }, [mounted, isAuthenticated, router]);
 
   const handleEmailSuccess = (userEmail: string) => {
     setEmail(userEmail);
@@ -24,6 +35,11 @@ export default function ForgotPasswordPage() {
     setStep("email");
     setResetCode("");
   };
+
+  // Don't render if checking auth or already authenticated
+  if (!mounted || isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col justify-center items-center h-[calc(100vh-4rem)]">

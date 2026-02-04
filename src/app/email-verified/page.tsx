@@ -24,7 +24,7 @@ function EmailVerifiedContent() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            router.push("/login");
+            router.push("/");
             return 0;
           }
           return prev - 1;
@@ -60,15 +60,15 @@ function EmailVerifiedContent() {
           >
             Go to Profile
           </Button>
-          <Link href="/login">
+          <Link href="/">
             <Button variant="outline" className="px-6">
-              Login
+              Go to Home
             </Button>
           </Link>
         </div>
 
         <p className="text-sm text-gray-500 mt-8">
-          You will be redirected to login in {countdown} seconds...
+          You will be redirected to Home in {countdown} seconds...
         </p>
       </div>
     );
