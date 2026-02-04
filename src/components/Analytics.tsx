@@ -7,9 +7,9 @@ import { useEffect } from "react";
 declare global {
   interface Window {
     gtag: (
-      command: 'config' | 'event',
+      command: 'set' | 'config' | 'event',
       targetId: string,
-      config?: Record<string, string | number | boolean | undefined>
+      config?: Record<string, string | number | boolean | null | undefined>
     ) => void;
   }
 }
