@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "@/lib/axios";
 import { Loader2 } from "lucide-react";
 
-export default function VerifyEmailLinkPage() {
+function VerifyEmailLinkContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -82,4 +82,21 @@ export default function VerifyEmailLinkPage() {
   }
 
   return null;
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+      <h2 className="text-xl font-semibold text-white">Loading...</h2>
+    </div>
+  );
+}
+
+export default function VerifyEmailLinkPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <VerifyEmailLinkContent />
+    </Suspense>
+  );
 }

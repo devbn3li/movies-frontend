@@ -1,11 +1,12 @@
 "use client";
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default function EmailVerifiedPage() {
+function EmailVerifiedContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
@@ -101,5 +102,21 @@ export default function EmailVerifiedPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+    </div>
+  );
+}
+
+export default function EmailVerifiedPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <EmailVerifiedContent />
+    </Suspense>
   );
 }
