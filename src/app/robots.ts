@@ -14,9 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           "/admin/",
           "/login/",
           "/register/",
-          "/profile/",
           "/verify-email/",
-          "/auth-demo/",
         ],
       },
       {
