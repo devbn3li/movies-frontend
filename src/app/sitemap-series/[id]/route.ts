@@ -8,6 +8,7 @@ type TMDBTVShow = {
   id: number;
   name?: string;
   first_air_date?: string;
+  last_air_date?: string;
 };
 
 async function getSeriesForChunk(chunkId: number): Promise<TMDBTVShow[]> {
@@ -67,7 +68,6 @@ export async function GET(
   }
 
   const series = await getSeriesForChunk(chunkId);
-  const now = new Date().toISOString();
 
   const urlsXml = series
     .map((show) => {
@@ -76,10 +76,13 @@ export async function GET(
         ? `${BASE_URL}/series/${show.id}/${slug}`
         : `${BASE_URL}/series/${show.id}`;
 
+      // Use TMDB last_air_date or first_air_date instead of current date
+      const lastmod = show.last_air_date || show.first_air_date || "2024-01-01";
+
       return `
   <url>
     <loc>${url}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;

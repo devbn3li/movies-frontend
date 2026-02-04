@@ -67,7 +67,6 @@ export async function GET(
   }
 
   const movies = await getMoviesForChunk(chunkId);
-  const now = new Date().toISOString();
 
   const urlsXml = movies
     .map((movie) => {
@@ -76,10 +75,13 @@ export async function GET(
         ? `${BASE_URL}/movie/${movie.id}/${slug}`
         : `${BASE_URL}/movie/${movie.id}`;
 
+      // Use TMDB release_date instead of current date
+      const lastmod = movie.release_date || "2024-01-01";
+
       return `
   <url>
     <loc>${url}</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;
