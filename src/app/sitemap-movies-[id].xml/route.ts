@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { generateSlug } from "@/lib/slug-utils";
 
 const BASE_URL = "https://moviezone-inky.vercel.app";
@@ -26,8 +26,8 @@ async function getMoviesForChunk(chunkId: number): Promise<TMDBMovie[]> {
     };
 
     const pages = Array.from(
-      { length: PAGES_PER_CHUNK }, 
-      (_, i) => startPage + i
+      { length: PAGES_PER_CHUNK },
+      (_, i) => startPage + i,
     );
 
     const results = await Promise.all(
@@ -35,7 +35,7 @@ async function getMoviesForChunk(chunkId: number): Promise<TMDBMovie[]> {
         try {
           const response = await fetch(
             `https://api.themoviedb.org/3/movie/popular?language=en-US&page=${page}`,
-            options
+            options,
           );
           if (response.ok) {
             const data = await response.json();
@@ -45,7 +45,7 @@ async function getMoviesForChunk(chunkId: number): Promise<TMDBMovie[]> {
           // Ignore errors for individual pages
         }
         return [];
-      })
+      }),
     );
 
     return results.flat();
@@ -56,10 +56,10 @@ async function getMoviesForChunk(chunkId: number): Promise<TMDBMovie[]> {
 }
 
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: { params: Promise<Record<string, string>> },
 ) {
-  const { id } = await params;
+  const { id } = (await context.params) as { id: string };
   const chunkId = parseInt(id);
 
   if (isNaN(chunkId) || chunkId < 1) {
@@ -69,20 +69,22 @@ export async function GET(
   const movies = await getMoviesForChunk(chunkId);
   const now = new Date().toISOString();
 
-  const urlsXml = movies.map(movie => {
-    const slug = movie.title ? generateSlug(movie.title) : "";
-    const url = slug 
-      ? `${BASE_URL}/movie/${movie.id}/${slug}`
-      : `${BASE_URL}/movie/${movie.id}`;
+  const urlsXml = movies
+    .map((movie) => {
+      const slug = movie.title ? generateSlug(movie.title) : "";
+      const url = slug
+        ? `${BASE_URL}/movie/${movie.id}/${slug}`
+        : `${BASE_URL}/movie/${movie.id}`;
 
-    return `
+      return `
   <url>
     <loc>${url}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;
-  }).join("");
+    })
+    .join("");
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -90,7 +92,7 @@ ${urlsXml}
 </urlset>`;
 
   return new NextResponse(sitemap, {
-    headers: { 
+    headers: {
       "Content-Type": "application/xml",
       "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
     },
