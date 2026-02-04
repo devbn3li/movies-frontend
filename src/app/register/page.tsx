@@ -57,7 +57,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post("/auth/register", form);
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, form);
       
       // Check if email verification is required
       if (res.data.requiresVerification) {

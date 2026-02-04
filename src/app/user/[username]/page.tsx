@@ -84,7 +84,7 @@ const UserProfile = () => {
         }
 
         // Try to fetch user by username using the correct API
-        const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/user/username/${username}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/username/${username}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Cache-Control': 'no-cache'
@@ -126,8 +126,8 @@ const UserProfile = () => {
     setFollowLoading(true);
     try {
       const endpoint = isFollowing
-        ? `https://movies-api-theta-weld.vercel.app/api/follow/${profileUser._id}/unfollow`
-        : `https://movies-api-theta-weld.vercel.app/api/follow/${profileUser._id}/follow`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/follow/${profileUser._id}/unfollow`
+        : `${process.env.NEXT_PUBLIC_API_URL}/follow/${profileUser._id}/follow`;
 
       const method = isFollowing ? 'DELETE' : 'POST';
 
@@ -157,7 +157,7 @@ const UserProfile = () => {
   // Check follow status for a user
   const checkFollowStatus = async (userId: string) => {
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/follow-status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/follow-status`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           'Cache-Control': 'no-cache'
@@ -174,7 +174,7 @@ const UserProfile = () => {
   const followUser = async (userId: string) => {
     setFollowingLoading(prev => ({ ...prev, [userId]: true }));
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/follow`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/follow`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -203,7 +203,7 @@ const UserProfile = () => {
   const unfollowUser = async (userId: string) => {
     setFollowingLoading(prev => ({ ...prev, [userId]: true }));
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/unfollow`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}//follow/${userId}/unfollow`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -237,7 +237,7 @@ const UserProfile = () => {
 
     setLoadingFollowers(true);
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/followers?page=1&limit=20`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}//follow/${userId}/followers?page=1&limit=20`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           'Cache-Control': 'no-cache'
@@ -272,7 +272,7 @@ const UserProfile = () => {
 
     setLoadingFollowing(true);
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/following?page=1&limit=20`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}//follow/${userId}/following?page=1&limit=20`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           'Cache-Control': 'no-cache'
@@ -360,8 +360,8 @@ const UserProfile = () => {
                   onClick={toggleFollow}
                   disabled={followLoading}
                   className={`px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-50 ${isFollowing
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                 >
                   {followLoading ? (
@@ -505,10 +505,10 @@ const UserProfile = () => {
                         onClick={() => isOwnProfile ? unfollowUser(f._id) : (followStates[f._id] ? unfollowUser(f._id) : followUser(f._id))}
                         disabled={followingLoading[f._id]}
                         className={`px-3 py-1 rounded-full text-sm font-medium transition-colors disabled:opacity-50 ${isOwnProfile
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : followStates[f._id]
                             ? 'bg-red-600 hover:bg-red-700 text-white'
-                            : followStates[f._id]
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
                           }`}
                       >
                         {followingLoading[f._id] ? (

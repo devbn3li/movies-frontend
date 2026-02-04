@@ -65,7 +65,7 @@ const Profile = () => {
   // Check follow status for a user
   const checkFollowStatus = async (userId: string) => {
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/follow-status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/follow-status`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           'Cache-Control': 'no-cache'
@@ -82,7 +82,7 @@ const Profile = () => {
   const followUser = async (userId: string) => {
     setFollowingLoading(prev => ({ ...prev, [userId]: true }));
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/follow`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/follow`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -114,7 +114,7 @@ const Profile = () => {
   const unfollowUser = async (userId: string) => {
     setFollowingLoading(prev => ({ ...prev, [userId]: true }));
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/unfollow`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/unfollow`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -151,7 +151,7 @@ const Profile = () => {
 
     setLoadingFollowers(true);
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/followers?page=1&limit=20`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/followers?page=1&limit=20`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           'Cache-Control': 'no-cache'
@@ -186,7 +186,7 @@ const Profile = () => {
 
     setLoadingFollowing(true);
     try {
-      const res = await fetch(`https://movies-api-theta-weld.vercel.app/api/follow/${userId}/following?page=1&limit=20`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/follow/${userId}/following?page=1&limit=20`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           'Cache-Control': 'no-cache'

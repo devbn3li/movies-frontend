@@ -62,8 +62,6 @@ export const getAllMovies = async () => {
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-// API URL for backend (separate from frontend base URL)
-const MOVIE_ZONE_API_URL = process.env.NEXT_PUBLIC_API_URL || "https://movies-api-theta-weld.vercel.app/api";
 
 const tmdbHeaders = {
   accept: "application/json",
