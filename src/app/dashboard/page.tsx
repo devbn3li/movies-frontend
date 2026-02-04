@@ -134,6 +134,38 @@ const DashboardPage = () => {
     }
   };
 
+  const handleDeleteUser = async (user: AdminUser) => {
+    const confirmed = confirm(
+      `⚠️ Are you sure you want to DELETE ${user.name}?\n\nThis action cannot be undone!`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/users/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Remove from local state
+      setUsers((prev) => prev.filter((u) => u._id !== user._id));
+
+      // Update pagination count
+      if (pagination) {
+        setPagination({
+          ...pagination,
+          totalUsers: pagination.totalUsers - 1,
+        });
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete user");
+    }
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -231,6 +263,7 @@ const DashboardPage = () => {
                 onViewDetails={handleViewDetails}
                 onViewContent={handleViewContent}
                 onToggleAdmin={handleToggleAdmin}
+                onDelete={handleDeleteUser}
               />
             ))}
           </div>

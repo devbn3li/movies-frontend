@@ -1,13 +1,14 @@
 "use client";
 import Image from "next/image";
 import { AdminUser } from "@/types/admin";
-import { Shield, Mail, MapPin, Users, Calendar } from "lucide-react";
+import { Shield, Mail, MapPin, Users, Calendar, Trash2 } from "lucide-react";
 
 interface UserCardProps {
   user: AdminUser;
   onViewDetails: (user: AdminUser) => void;
   onViewContent: (user: AdminUser) => void;
   onToggleAdmin: (user: AdminUser) => void;
+  onDelete: (user: AdminUser) => void;
 }
 
 export default function UserCard({
@@ -15,6 +16,7 @@ export default function UserCard({
   onViewDetails,
   onViewContent,
   onToggleAdmin,
+  onDelete,
 }: UserCardProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -46,6 +48,14 @@ export default function UserCard({
           <h3 className="font-semibold text-white truncate">{user.name}</h3>
           <p className="text-sm text-gray-400 truncate">@{user.username}</p>
         </div>
+        {/* Delete button */}
+        <button
+          onClick={() => onDelete(user)}
+          className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+          title="Delete user"
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
 
       {/* Info */}
@@ -88,8 +98,8 @@ export default function UserCard({
         <button
           onClick={() => onToggleAdmin(user)}
           className={`px-3 py-2 text-sm rounded-lg transition-colors ${user.isAdmin
-              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-              : "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
+            ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+            : "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
             }`}
         >
           {user.isAdmin ? "Remove Admin" : "Make Admin"}
