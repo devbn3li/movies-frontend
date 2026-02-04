@@ -41,6 +41,11 @@ export default function Footer() {
                   TV Series
                 </Link>
               </li>
+              <li>
+                <Link href="/disclaimer" className="text-muted-foreground hover:text-primary transition-all duration-300 hover:pl-2 border-l-2 border-transparent hover:border-primary">
+                  Disclaimer
+                </Link>
+              </li>
             </ul>
           </div>
 

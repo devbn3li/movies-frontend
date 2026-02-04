@@ -42,6 +42,14 @@ export function generateSeriesUrl(id: number, name: string): string {
 }
 
 /**
+ * Generate a person URL with slug
+ */
+export function generatePersonUrl(id: number, name: string): string {
+  const slug = generateSlug(name);
+  return slug ? `/person/${id}/${slug}` : `/person/${id}`;
+}
+
+/**
  * Generate a full canonical URL for a movie
  */
 export function generateFullMovieUrl(id: number, title: string): string {

@@ -276,74 +276,8 @@ export function VideoSchema({
   );
 }
 
-/**
- * Organization Schema Component
- * Generates JSON-LD structured data for the website organization
- */
-export function OrganizationSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Movie Zone",
-    url: BASE_URL,
-    logo: `${BASE_URL}/logo.png`,
-    description:
-      "Watch free movies and TV shows online. Stream the latest releases, classic films, and popular series.",
-    sameAs: ["https://github.com/devbn3li/"],
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "customer service",
-      url: `${BASE_URL}/contact`,
-    },
-  };
-
-  return (
-    <Script
-      id="organization-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
-}
-
-/**
- * Website Search Schema Component
- * Enables sitelinks searchbox in Google
- */
-export function WebsiteSearchSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Movie Zone",
-    url: BASE_URL,
-    description:
-      "Discover and watch thousands of movies and TV shows for free. Stream the latest releases, classic films, and popular series.",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${BASE_URL}/?search={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Movie Zone",
-      logo: {
-        "@type": "ImageObject",
-        url: `${BASE_URL}/logo.png`,
-      },
-    },
-  };
-
-  return (
-    <Script
-      id="website-search-schema"
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
-}
+// NOTE: OrganizationSchema and WebsiteSearchSchema are defined in RootLayout
+// Do not add them here to avoid duplicate structured data
 
 // Export types for use in other components
 export type {
@@ -353,3 +287,4 @@ export type {
   BreadcrumbItem,
   VideoSchemaProps,
 };
+
