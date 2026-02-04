@@ -1,11 +1,13 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Movie } from "@/types/index";
-import MoviePage from "./MoviePage";
+import MoviePage from "../MoviePage";
 import {
   generateMovieKeywords,
   generateMovieDescription,
   generateBreadcrumbs,
 } from "@/lib/seo-utils";
+import { generateSlug, generateFullMovieUrl } from "@/lib/slug-utils";
 
 // Types for TMDB responses
 interface TMDBCastMember {
@@ -84,11 +86,11 @@ async function getMovieCredits(movieId: number): Promise<TMDBCredits | null> {
 }
 
 type Props = {
-  params: Promise<{ movieId: string }>;
+  params: Promise<{ movieId: string; slug?: string[] }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { movieId } = await params;
+  const { movieId, slug } = await params;
   const id = parseInt(movieId);
 
   let movie: Movie | null = null;
@@ -166,6 +168,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const genres = movie.genre_names || [];
   const poster = movie.poster_url || "/og-image.png";
 
+  // Generate canonical URL with slug
+  const canonicalUrl = generateFullMovieUrl(movie.id, title);
+  const movieSlug = generateSlug(title);
+
   // Extract cast and director from credits
   const castNames = credits?.cast?.slice(0, 10).map((c) => c.name) || [];
   const director = credits?.crew?.find((c) => c.job === "Director")?.name;
@@ -189,19 +195,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     movie.vote_average
   );
 
-  // Generate breadcrumbs for structured data
-  const breadcrumbs = generateBreadcrumbs("movie", title, movie.id);
+  // Generate breadcrumbs for structured data (with slug)
+  const breadcrumbs = [
+    { name: "Home", url: "https://moviezone-inky.vercel.app" },
+    { name: "Movies", url: "https://moviezone-inky.vercel.app/main-movies" },
+    { name: title, url: canonicalUrl },
+  ];
 
   // Create JSON-LD structured data
   const movieSchema = {
     "@context": "https://schema.org",
     "@type": "Movie",
-    "@id": `https://moviezone-inky.vercel.app/movie/${movieId}`,
+    "@id": canonicalUrl,
     name: title,
     alternateName: movie.original_title !== title ? movie.original_title : undefined,
     description: movie.overview,
     image: [poster, movie.backdrop_url].filter(Boolean),
-    url: `https://moviezone-inky.vercel.app/movie/${movieId}`,
+    url: canonicalUrl,
     datePublished: movie.release_date,
     inLanguage: movie.original_language,
     genre: genres,
@@ -227,7 +237,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         : undefined,
     potentialAction: {
       "@type": "WatchAction",
-      target: `https://moviezone-inky.vercel.app/movie/${movieId}`,
+      target: canonicalUrl,
     },
   };
 
@@ -250,7 +260,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     keywords: keywords,
     alternates: {
-      canonical: `https://moviezone-inky.vercel.app/movie/${movieId}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title: `${title}${year ? ` (${year})` : ""} - Watch Free on Movie Zone`,
@@ -263,7 +273,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           alt: `${title} movie poster - مشاهدة فيلم ${title}`,
         },
       ],
-      url: `https://moviezone-inky.vercel.app/movie/${movieId}`,
+      url: canonicalUrl,
       type: "video.movie",
       siteName: "Movie Zone",
     },
@@ -294,6 +304,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const { movieId } = await params;
-  return <MoviePage movieId={parseInt(movieId)} />;
+  const { movieId, slug } = await params;
+  const id = parseInt(movieId);
+
+  // Fetch movie to get the correct slug for redirect
+  const tmdbMovie = await getMovieDetails(id);
+
+  if (tmdbMovie) {
+    const correctSlug = generateSlug(tmdbMovie.title);
+    const currentSlug = slug?.[0] || "";
+
+    // Redirect to correct slug URL if slug is missing or incorrect
+    if (correctSlug && correctSlug !== currentSlug) {
+      redirect(`/movie/${id}/${correctSlug}`);
+    }
+  }
+
+  return <MoviePage movieId={id} />;
 }

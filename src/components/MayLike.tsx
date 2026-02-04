@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from '@tanstack/react-query';
+import { generateMovieUrl, generateSeriesUrl } from "@/lib/slug-utils";
 
 interface Movie {
   id: string;
@@ -108,7 +109,7 @@ const MayLike = ({ movieId, type }: { movieId: string; type: "movie" | "tv" }) =
                 flex justify-center
               "
             >
-              <Link href={`/movie/${movie.id}`} className="p-2 block">
+              <Link href={type === 'movie' ? generateMovieUrl(Number(movie.id), movie.title || movie.name || '') : generateSeriesUrl(Number(movie.id), movie.title || movie.name || '')} className="p-2 block">
                 <div className="relative group overflow-hidden rounded-2xl">
                   {/* Badge */}
                   {getBadge(movie) && (

@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { generateSlug } from "@/lib/slug-utils";
 
 type TMDBMovie = {
   id: number;
@@ -187,30 +188,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     });
 
-    // Generate movie pages with images
+    // Generate movie pages with slugs
     const moviePages: MetadataRoute.Sitemap = allMovies.map(
-      (movie: TMDBMovie) => ({
-        url: `${baseUrl}/movie/${movie.id}`,
-        lastModified: movie.release_date
-          ? new Date(movie.release_date)
-          : new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-        // Note: Next.js sitemap doesn't support images directly,
-        // but Google can discover images from the page content
-      })
+      (movie: TMDBMovie) => {
+        const slug = movie.title ? generateSlug(movie.title) : "";
+        const url = slug 
+          ? `${baseUrl}/movie/${movie.id}/${slug}` 
+          : `${baseUrl}/movie/${movie.id}`;
+        return {
+          url,
+          lastModified: movie.release_date
+            ? new Date(movie.release_date)
+            : new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.8,
+        };
+      }
     );
 
-    // Generate series pages with images
+    // Generate series pages with slugs
     const seriesPages: MetadataRoute.Sitemap = allTVShows.map(
-      (series: TMDBTVShow) => ({
-        url: `${baseUrl}/series/${series.id}`,
-        lastModified: series.first_air_date
-          ? new Date(series.first_air_date)
-          : new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-      })
+      (series: TMDBTVShow) => {
+        const slug = series.name ? generateSlug(series.name) : "";
+        const url = slug 
+          ? `${baseUrl}/series/${series.id}/${slug}` 
+          : `${baseUrl}/series/${series.id}`;
+        return {
+          url,
+          lastModified: series.first_air_date
+            ? new Date(series.first_air_date)
+            : new Date(),
+          changeFrequency: "weekly" as const,
+          priority: 0.8,
+        };
+      }
     );
 
     return [...staticPages, ...moviePages, ...seriesPages];

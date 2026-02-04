@@ -13,6 +13,7 @@ import { CompactTrailer } from "@/components/Trailer";
 import { getTVShows, getTVGenres, getTVYears } from "@/lib/api";
 import { Genre } from "@/types/index";
 import Loading from "@/components/Loading";
+import { generateSeriesUrl } from "@/lib/slug-utils";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -360,7 +361,7 @@ function CardsGrid({
           .filter((item) => !!item.poster_url)
           .map((item) => (
             <Link
-              href={`/series/${item.id}`}
+              href={generateSeriesUrl(item.id, item.name || "")}
               key={item.id}
               className="flex flex-col justify-center items-center bg-white dark:bg-black rounded-lg p-3 mx-auto"
             >

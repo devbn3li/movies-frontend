@@ -4,6 +4,7 @@
  */
 
 import Script from "next/script";
+import { generateSlug } from "@/lib/slug-utils";
 
 // Types for schema data
 interface MovieSchemaProps {
@@ -83,15 +84,18 @@ export function MovieSchema({
   runtime,
   language,
 }: MovieSchemaProps) {
+  const slug = generateSlug(title);
+  const movieUrl = slug ? `${BASE_URL}/movie/${id}/${slug}` : `${BASE_URL}/movie/${id}`;
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "Movie",
-    "@id": `${BASE_URL}/movie/${id}`,
+    "@id": movieUrl,
     name: title,
     alternateName: originalTitle !== title ? originalTitle : undefined,
     description: description,
     image: [posterUrl, backdropUrl].filter(Boolean),
-    url: `${BASE_URL}/movie/${id}`,
+    url: movieUrl,
     datePublished: releaseDate,
     inLanguage: language,
     duration: runtime ? `PT${runtime}M` : undefined,
@@ -118,7 +122,7 @@ export function MovieSchema({
         : undefined,
     potentialAction: {
       "@type": "WatchAction",
-      target: `${BASE_URL}/movie/${id}`,
+      target: movieUrl,
     },
   };
 
@@ -155,15 +159,18 @@ export function TVSeriesSchema({
   numberOfEpisodes,
   language,
 }: TVSeriesSchemaProps) {
+  const slug = generateSlug(name);
+  const seriesUrl = slug ? `${BASE_URL}/series/${id}/${slug}` : `${BASE_URL}/series/${id}`;
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "TVSeries",
-    "@id": `${BASE_URL}/series/${id}`,
+    "@id": seriesUrl,
     name: name,
     alternateName: originalName !== name ? originalName : undefined,
     description: description,
     image: [posterUrl, backdropUrl].filter(Boolean),
-    url: `${BASE_URL}/series/${id}`,
+    url: seriesUrl,
     datePublished: firstAirDate,
     inLanguage: language,
     genre: genres,
@@ -191,7 +198,7 @@ export function TVSeriesSchema({
         : undefined,
     potentialAction: {
       "@type": "WatchAction",
-      target: `${BASE_URL}/series/${id}`,
+      target: seriesUrl,
     },
   };
 

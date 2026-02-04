@@ -15,6 +15,7 @@ import Cast from "@/components/Cast";
 import Recommendations from "@/components/Recommendations";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
+import { generateSlug } from "@/lib/slug-utils";
 
 type Media = Movie | TVShow;
 
@@ -125,11 +126,17 @@ export default function MoviePage({ movieId }: { movieId: number }) {
   // Check if we're using poster as backdrop (no backdrop available)
   const isUsingPosterAsBackdrop = !item.backdrop_url && item.poster_url;
 
+  // Generate URL with slug for SEO
+  const slug = generateSlug(title);
+  const movieUrl = slug
+    ? `https://moviezone-inky.vercel.app/movie/${id}/${slug}`
+    : `https://moviezone-inky.vercel.app/movie/${id}`;
+
   // JSON-LD structured data for SEO
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Movie",
-    "@id": `https://moviezone-inky.vercel.app/movie/${id}`,
+    "@id": movieUrl,
     name: title,
     alternateName: original_title !== title ? original_title : undefined,
     description: item.overview,
@@ -144,12 +151,12 @@ export default function MoviePage({ movieId }: { movieId: number }) {
       worstRating: 0,
       ratingCount: item.vote_count
     } : undefined,
-    url: `https://moviezone-inky.vercel.app/movie/${id}`,
+    url: movieUrl,
     potentialAction: {
       "@type": "WatchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `https://moviezone-inky.vercel.app/movie/${id}`
+        urlTemplate: movieUrl
       }
     },
     provider: {

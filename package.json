@@ -10,7 +10,8 @@
     "lint": "next lint",
     "analyze": "cross-env ANALYZE=true npm run build",
     "build:analyze": "cross-env ANALYZE=true next build",
-    "dev:analyze": "cross-env ANALYZE=true next dev"
+    "dev:analyze": "cross-env ANALYZE=true next dev",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.jest.json"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",

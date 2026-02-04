@@ -270,15 +270,21 @@ export function generateSeriesDescription(
 }
 
 /**
- * Generate canonical URL
+ * Generate canonical URL with slug
  */
-export function generateCanonicalUrl(type: "movie" | "series", id: number): string {
+export function generateCanonicalUrl(type: "movie" | "series", id: number, title?: string): string {
   const baseUrl = "https://moviezone-inky.vercel.app";
+  if (title) {
+    const slug = generateSlugForSEO(title);
+    if (slug) {
+      return `${baseUrl}/${type}/${id}/${slug}`;
+    }
+  }
   return `${baseUrl}/${type}/${id}`;
 }
 
 /**
- * Generate breadcrumb items
+ * Generate breadcrumb items with slug
  */
 export function generateBreadcrumbs(
   type: "movie" | "series",
@@ -286,6 +292,8 @@ export function generateBreadcrumbs(
   id: number
 ): Array<{ name: string; url: string }> {
   const baseUrl = "https://moviezone-inky.vercel.app";
+  const slug = generateSlugForSEO(title);
+  const itemUrl = slug ? `${baseUrl}/${type}/${id}/${slug}` : `${baseUrl}/${type}/${id}`;
 
   return [
     { name: "Home", url: baseUrl },
@@ -293,6 +301,21 @@ export function generateBreadcrumbs(
       name: type === "movie" ? "Movies" : "TV Series",
       url: `${baseUrl}/${type === "movie" ? "main-movies" : "main-series"}`,
     },
-    { name: title, url: `${baseUrl}/${type}/${id}` },
+    { name: title, url: itemUrl },
   ];
+}
+
+/**
+ * Generate SEO-friendly slug from title
+ */
+function generateSlugForSEO(title: string): string {
+  if (!title) return "";
+
+  return title
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\w\u0600-\u06FF-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .substring(0, 100);
 }

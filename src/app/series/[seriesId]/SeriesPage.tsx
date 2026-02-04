@@ -15,6 +15,7 @@ import ShareDownloadButtons from "@/components/ShareDownloadButtons";
 import Trailer from "@/components/Trailer";
 import Reviews from "@/components/Reviews";
 import EpisodeSelector, { SeasonSummary } from "@/components/EpisodeSelector";
+import { generateSlug } from "@/lib/slug-utils";
 
 // TMDB Season type
 interface TMDBSeason {
@@ -170,6 +171,12 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
   // Check if we're using poster as backdrop (no backdrop available)
   const isUsingPosterAsBackdrop = !item.backdrop_url && item.poster_url;
 
+  // Generate URL with slug for SEO
+  const slug = generateSlug(title);
+  const seriesUrl = slug
+    ? `https://moviezone-inky.vercel.app/series/${seriesId}/${slug}`
+    : `https://moviezone-inky.vercel.app/series/${seriesId}`;
+
   return (
     <div className="relative min-h-[calc(100vh-5.07rem)] mb-20">
       {/* JSON-LD for SEO */}
@@ -177,7 +184,7 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
-            "@id": `https://moviezone-inky.vercel.app/series/${seriesId}`,
+            "@id": seriesUrl,
             "@context": "https://schema.org",
             "@type": "TVSeries",
             name: title,
@@ -194,12 +201,12 @@ export default function SeriesPage({ seriesId }: SeriesPageProps) {
               bestRating: 10,
               worstRating: 0,
             },
-            url: typeof window !== 'undefined' ? window.location.href : `https://moviezone-inky.vercel.app/series/${seriesId}`,
+            url: seriesUrl,
             potentialAction: {
               "@type": "WatchAction",
               target: {
                 "@type": "EntryPoint",
-                urlTemplate: typeof window !== 'undefined' ? window.location.href : `https://moviezone-inky.vercel.app/series/${seriesId}`,
+                urlTemplate: seriesUrl,
               },
             },
             provider: {

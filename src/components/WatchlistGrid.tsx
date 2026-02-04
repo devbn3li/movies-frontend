@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Trash2, Calendar, Star, Filter } from 'lucide-react';
 import { useWatchlistStore, WatchlistItem } from '@/store/watchlist';
+import { generateMovieUrl, generateSeriesUrl } from '@/lib/slug-utils';
 
 interface WatchlistCardProps {
   item: WatchlistItem;
@@ -18,7 +19,9 @@ const WatchlistCard: React.FC<WatchlistCardProps> = ({ item }) => {
   };
 
   const releaseDate = item.type === 'movie' ? item.release_date : item.first_air_date;
-  const linkHref = item.type === 'movie' ? `/movie/${item.id}` : `/series/${item.id}`;
+  const linkHref = item.type === 'movie'
+    ? generateMovieUrl(item.id, item.title)
+    : generateSeriesUrl(item.id, item.title);
 
   return (
     <div className="group bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden hover:bg-white/15">

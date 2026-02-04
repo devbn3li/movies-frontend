@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { trackSearch } from "@/lib/analytics";
 import { SearchResultItem } from "./SearchResultItem";
 import { LoadingSpinner, LoadMoreButton } from "./SearchComponents";
+import { generateMovieUrl, generateSeriesUrl } from "@/lib/slug-utils";
 
 interface SearchResult {
   id: number;
@@ -80,9 +81,9 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     setSelectedIndex(-1);
 
     if (result.media_type === "movie") {
-      window.location.href = `/movie/${result.id}`;
+      window.location.href = generateMovieUrl(result.id, title);
     } else if (result.media_type === "tv") {
-      window.location.href = `/series/${result.id}`;
+      window.location.href = generateSeriesUrl(result.id, title);
     } else if (result.media_type === "person") {
       window.location.href = `/person/${result.id}`;
     }

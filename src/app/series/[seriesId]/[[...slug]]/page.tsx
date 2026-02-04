@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import SeriesPage from "./SeriesPage";
+import { redirect } from "next/navigation";
+import SeriesPage from "../SeriesPage";
 import { TVShow } from "@/types/index";
 import {
   generateSeriesKeywords,
   generateSeriesDescription,
-  generateBreadcrumbs,
 } from "@/lib/seo-utils";
+import { generateSlug, generateFullSeriesUrl } from "@/lib/slug-utils";
 
 // Types for TMDB responses
 interface TMDBCastMember {
@@ -82,11 +83,11 @@ async function getTVSeriesCredits(seriesId: number): Promise<TMDBCredits | null>
 }
 
 type Props = {
-  params: Promise<{ seriesId: string }>;
+  params: Promise<{ seriesId: string; slug?: string[] }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { seriesId } = await params;
+  const { seriesId, slug } = await params;
   const id = parseInt(seriesId);
 
   let series: TVShow | null = null;
@@ -166,6 +167,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const genres = series.genre_names || [];
   const poster = series.poster_url || "/og-image.png";
 
+  // Generate canonical URL with slug
+  const canonicalUrl = generateFullSeriesUrl(series.id, name);
+
   // Extract cast and creator from credits
   const castNames = credits?.cast?.slice(0, 10).map((c) => c.name) || [];
   const creator = credits?.crew?.find(
@@ -192,19 +196,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     series.number_of_seasons
   );
 
-  // Generate breadcrumbs for structured data
-  const breadcrumbs = generateBreadcrumbs("series", name, series.id);
+  // Generate breadcrumbs for structured data (with slug)
+  const breadcrumbs = [
+    { name: "Home", url: "https://moviezone-inky.vercel.app" },
+    { name: "TV Series", url: "https://moviezone-inky.vercel.app/main-series" },
+    { name: name, url: canonicalUrl },
+  ];
 
   // Create JSON-LD structured data
   const seriesSchema = {
     "@context": "https://schema.org",
     "@type": "TVSeries",
-    "@id": `https://moviezone-inky.vercel.app/series/${seriesId}`,
+    "@id": canonicalUrl,
     name: name,
     alternateName: series.original_name !== name ? series.original_name : undefined,
     description: series.overview,
     image: [poster, series.backdrop_url].filter(Boolean),
-    url: `https://moviezone-inky.vercel.app/series/${seriesId}`,
+    url: canonicalUrl,
     datePublished: series.first_air_date,
     inLanguage: series.original_language,
     genre: genres,
@@ -235,7 +243,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         : undefined,
     potentialAction: {
       "@type": "WatchAction",
-      target: `https://moviezone-inky.vercel.app/series/${seriesId}`,
+      target: canonicalUrl,
     },
   };
 
@@ -258,7 +266,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     keywords: keywords,
     alternates: {
-      canonical: `https://moviezone-inky.vercel.app/series/${seriesId}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title: `${name}${year ? ` (${year})` : ""} - Watch Free on Movie Zone`,
@@ -271,7 +279,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           alt: `${name} TV series poster - مشاهدة مسلسل ${name}`,
         },
       ],
-      url: `https://moviezone-inky.vercel.app/series/${seriesId}`,
+      url: canonicalUrl,
       type: "video.tv_show",
       siteName: "Movie Zone",
     },
@@ -302,6 +310,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const { seriesId } = await params;
-  return <SeriesPage seriesId={parseInt(seriesId)} />;
+  const { seriesId, slug } = await params;
+  const id = parseInt(seriesId);
+
+  // Fetch series to get the correct slug for redirect
+  const tmdbSeries = await getTVSeriesDetails(id);
+
+  if (tmdbSeries) {
+    const correctSlug = generateSlug(tmdbSeries.name);
+    const currentSlug = slug?.[0] || "";
+
+    // Redirect to correct slug URL if slug is missing or incorrect
+    if (correctSlug && correctSlug !== currentSlug) {
+      redirect(`/series/${id}/${correctSlug}`);
+    }
+  }
+
+  return <SeriesPage seriesId={id} />;
 }
