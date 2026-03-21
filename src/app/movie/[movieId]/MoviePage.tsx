@@ -271,7 +271,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
           )}
         </div>
 
-        <div className="max-w-[1080px] w-full border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl mb-10">
+        <div className="max-w-270 w-full border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl mb-10">
           <div className="flex max-sm:flex-col items-center justify-between gap-5 mb-4 w-full">
             <h1 className="text-3xl font-bold text-white">{title}</h1>
             <div className="flex items-center gap-4">
@@ -312,7 +312,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
           </div>
         </div>
 
-        <div className="max-w-[1080px] w-full flex flex-col gap-6">
+        <div className="max-w-270 w-full flex flex-col gap-6">
           <h2 className="text-[32px] font-bold text-white">More Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="border border-white/20 p-6 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl space-y-2">
@@ -366,7 +366,7 @@ export default function MoviePage({ movieId }: { movieId: number }) {
           </div>
         </div>
 
-        <div className="mt-10 max-w-[1080px] w-full">
+        <div className="mt-10 max-w-270 w-full">
           {movieId && <Cast movieId={id} mediaType={mediaType as 'movie' | 'tv'} movieTitle={title} />}
         </div>
 
