@@ -13,6 +13,7 @@ import { Toaster } from 'react-hot-toast';
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import ClarityProvider from "@/components/ClarityProvider";
 
 
 const geistSans = Geist({
@@ -261,9 +262,12 @@ export default function RootLayout({
 
         {/* Google Analytics Route Tracker */}
         <RouteTracker />
-        
+
         {/* Enhanced User Behavior Tracking */}
         <UserBehaviorTracker />
+
+        {/* Microsoft Clarity - Session replays & heatmaps */}
+        <ClarityProvider projectId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || ""} />
 
         <Analytics />
         <SpeedInsights />
