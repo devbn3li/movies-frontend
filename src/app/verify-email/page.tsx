@@ -50,7 +50,7 @@ export default function VerifyEmailPage() {
     setMessage("");
 
     try {
-      const res = await axios.post("/auth/verify-email", {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email`, {
         userId: userId,
         verificationCode: verificationCode
       });
@@ -84,7 +84,7 @@ export default function VerifyEmailPage() {
     setMessage("");
 
     try {
-      await axios.post("/auth/resend-verification", {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification`, {
         userId: userId
       });
 
